@@ -1,0 +1,127 @@
+.cni-main{position:relative}
+.cni-main-viewport{position:relative;overflow:hidden}
+.cni-slides{position:absolute;inset:0}
+.cni-slide{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:var(--cni-object-fit, cover);
+  display:block;
+  opacity:0;
+  transform:translateX(0%);
+  transition:opacity 260ms ease, transform 260ms ease;
+  will-change:opacity, transform;
+}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="1"] .cni-main-viewport{width:100%}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="1"] .cni-main-viewport::before{content:"";display:block;width:100%;height:100%}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="1"] .cni-slide{opacity:0}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="0"] .cni-slides{position:relative;inset:auto}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="0"] .cni-slide{
+  position:relative;inset:auto;
+  height:auto;
+  object-fit:contain;
+  opacity:0;
+}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="0"] .cni-main-viewport{overflow:hidden}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="0"] .cni-slide.is-active{opacity:1}
+.wp-block-cni-blocks-slide-gallery[data-has-frame="1"] .cni-slide.is-active{opacity:1}
+
+.cni-slide.is-enter{opacity:1}
+.cni-slide.is-leave{opacity:1}
+
+.wp-block-cni-blocks-slide-gallery[data-has-frame="1"] .cni-main-viewport{width:100%}
+
+.cni-thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.cni-thumb{border:1px solid #ddd;padding:0;background:transparent;cursor:pointer;line-height:0}
+.cni-thumb img{width:72px;height:72px;object-fit:cover;display:block}
+.cni-thumb.is-active{outline:2px solid currentColor;outline-offset:1px}
+.cni-editor-toolbar{display:flex;gap:8px;margin-bottom:10px}
+.cni-placeholder{padding:16px;border:1px dashed #ccc}
+
+/* Caption base */
+.cni-caption{font-size:.95em;line-height:1.5;text-align:center}
+.cni-caption--below{margin-top:8px}
+
+/* overlay: full width band, bottom flush */
+.cni-caption--overlay{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:10px 12px;
+  box-sizing:border-box;
+}
+
+/* Color styles */
+.cni-caption--dark{background:rgba(0,0,0,.55);color:#fff}
+.cni-caption--light{background:rgba(255,255,255,.85);color:#111}
+
+/* Glass: transparent background + blur(3px). Needs tiny alpha to render blur on some browsers */
+.cni-caption--glass{
+  background:rgba(255,255,255,.01);
+  color:#fff;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Arrows */
+.cni-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:3;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.85);cursor:pointer;padding:6px 10px;line-height:1;border-radius:999px}
+.cni-arrow:disabled{opacity:.4;cursor:not-allowed}
+.cni-arrow-prev{left:8px}
+.cni-arrow-next{right:8px}
+
+
+.wp-block-cni-blocks-slide-gallery.cni-no-transition .cni-slide{transition:none !important}
+
+
+
+/* Side layout (desktop): main image left, thumbnails right */
+@media (min-width: 782px){
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"]{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items:start;
+  }
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"] .cni-main-image{
+    grid-column: 1;
+  }
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"] .cni-thumbs{
+    grid-column: 2;
+    align-content:start;
+    max-height: 520px;
+    overflow:auto;
+  }
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"] .cni-thumbs{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+
+
+/* Side layout (desktop): keep thumbs in right column reliably */
+@media (min-width: 782px){
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"]{
+    display:grid !important;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-areas: "main thumbs" !important;
+    gap: 12px !important;
+    align-items: start;
+  }
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"] > .cni-main-viewport{
+    grid-area: main !important;
+    min-width: 0;
+    width: 100%;
+    margin: 0 !important;
+  }
+  .wp-block-cni-blocks-slide-gallery .cni-main[data-layout="side"] > .cni-thumbs{
+    grid-area: thumbs !important;
+    min-width: 0;
+    margin-top: 0 !important;
+    /* override base flex layout */
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    align-content: start;
+    justify-content: start;
+    max-height: 520px;
+    overflow: auto;
+  }
+}

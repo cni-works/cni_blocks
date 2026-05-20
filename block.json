@@ -1,0 +1,63 @@
+{
+  "apiVersion": 2,
+  "name": "cni-blocks/slide-gallery",
+  "title": "スライドギャラリー",
+  "category": "media",
+  "icon": "format-gallery",
+  "description": "メイン画像＋サムネ切替＋矢印＋アニメーション。キャプション表示も可能。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "images": {
+      "type": "array",
+      "default": []
+    },
+    "selected": {
+      "type": "number",
+      "default": 0
+    },
+    "loop": {
+      "type": "boolean",
+      "default": true
+    },
+    "showArrows": {
+      "type": "boolean",
+      "default": true
+    },
+    "transition": {
+      "type": "string",
+      "default": "fade"
+    },
+    "fixedWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "fixedHeight": {
+      "type": "number",
+      "default": 0
+    },
+    "aspectRatio": {
+      "type": "string",
+      "default": "auto"
+    },
+    "objectFit": {
+      "type": "string",
+      "default": "cover"
+    },
+    "layout": {
+      "type": "string",
+      "default": "below"
+    },
+    "showCaption": {
+      "type": "boolean",
+      "default": false
+    },
+    "captionPosition": {
+      "type": "string",
+      "default": "below"
+    },
+    "captionStyle": {
+      "type": "string",
+      "default": "glass"
+    }
+  }
+}
