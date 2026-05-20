@@ -81,7 +81,7 @@
 
     clearTimers(block);
 
-    // ghost/snap-back �h�~
+    // ghost/snap-back –hŽ~
     block.classList.add('cni-no-transition');
     resetSlideStyles(slides);
 
@@ -237,4 +237,72 @@
   } else {
     document.querySelectorAll('.wp-block-cni-blocks-slide-gallery').forEach(initBlock);
   }
+})();
+(() => {
+  function getTileItems(block) {
+    return Array.from(block.querySelectorAll('.cni-tile-item img')).map((img, idx) => ({
+      src: img.currentSrc || img.src,
+      alt: img.alt || '',
+      index: idx
+    }));
+  }
+
+  function ensureLightbox() {
+    let root = document.querySelector('.cni-lightbox');
+    if (root) return root;
+
+    root = document.createElement('div');
+    root.className = 'cni-lightbox';
+    root.innerHTML = '<div class="cni-lightbox__backdrop"></div><div class="cni-lightbox__dialog" role="dialog" aria-modal="true"><button type="button" class="cni-lightbox__close" aria-label="Close">×</button><button type="button" class="cni-lightbox__nav cni-lightbox__prev" aria-label="Prev">‹</button><img class="cni-lightbox__img" alt="" /><button type="button" class="cni-lightbox__nav cni-lightbox__next" aria-label="Next">›</button></div>';
+    document.body.appendChild(root);
+    return root;
+  }
+
+  function openTileLightbox(block, startIdx) {
+    const items = getTileItems(block);
+    if (!items.length) return;
+    const box = ensureLightbox();
+    const imgEl = box.querySelector('.cni-lightbox__img');
+    let idx = Math.max(0, Math.min(startIdx, items.length - 1));
+
+    const render = () => {
+      imgEl.src = items[idx].src;
+      imgEl.alt = items[idx].alt;
+    };
+
+    box.classList.add('is-open');
+    render();
+
+    const onPrev = (e) => { e.stopPropagation(); idx = (idx - 1 + items.length) % items.length; render(); };
+    const onNext = (e) => { e.stopPropagation(); idx = (idx + 1) % items.length; render(); };
+    const onClose = () => {
+      box.classList.remove('is-open');
+      box.querySelector('.cni-lightbox__prev').removeEventListener('click', onPrev);
+      box.querySelector('.cni-lightbox__next').removeEventListener('click', onNext);
+      box.querySelector('.cni-lightbox__close').removeEventListener('click', onClose);
+      box.querySelector('.cni-lightbox__backdrop').removeEventListener('click', onClose);
+      document.removeEventListener('keydown', onKey);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onPrev(e);
+      if (e.key === 'ArrowRight') onNext(e);
+    };
+
+    box.querySelector('.cni-lightbox__prev').addEventListener('click', onPrev);
+    box.querySelector('.cni-lightbox__next').addEventListener('click', onNext);
+    box.querySelector('.cni-lightbox__close').addEventListener('click', onClose);
+    box.querySelector('.cni-lightbox__backdrop').addEventListener('click', onClose);
+    document.addEventListener('keydown', onKey);
+  }
+
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('.wp-block-cni-blocks-tile-gallery[data-lightbox="1"] .cni-tile-trigger');
+    if (!trigger) return;
+    e.preventDefault();
+    const block = trigger.closest('.wp-block-cni-blocks-tile-gallery');
+    if (!block) return;
+    const idx = parseInt(trigger.dataset.index || '0', 10);
+    openTileLightbox(block, idx);
+  });
 })();
