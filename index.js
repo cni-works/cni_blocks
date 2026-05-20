@@ -95,7 +95,7 @@
 
 				setAttributes( {
 					images: normalized,
-					selected: normalized.length ? 0 : 0,
+					selected: 0,
 				} );
 			};
 
@@ -414,9 +414,8 @@
 			);
 		},
 	} );
-} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
 
-blocks.registerBlockType('cni-blocks/tile-gallery', {
+blocks.registerBlockType( 'cni-blocks/tile-gallery', {
   title: __('タイルギャラリー', 'cni-blocks'),
   icon: 'screenoptions',
   category: 'media',
@@ -491,7 +490,7 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
         el('div', { className: 'cni-tile-grid' + (shadow ? ' is-shadow' : '') },
           images.map((img, i) =>
             el('figure', { key: img.id || i, className: 'cni-tile-item' },
-              el('img', { src: img.url, alt: img.alt || '' }),
+              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
               showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
             )
           )
@@ -516,7 +515,7 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
       el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
         images.map((img, i) =>
           el('figure', { key: img.id || i, className: 'cni-tile-item' },
-            el('img', { src: img.url, alt: img.alt || '' }),
+            el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
             attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
           )
         )
@@ -524,3 +523,5 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
     );
   }
 });
+
+} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
