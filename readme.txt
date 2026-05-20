@@ -3,6 +3,7 @@ Stable tag: 1.6.6
 
 Includes:
 - Slide Gallery block (cni-blocks/slide-gallery)
+- Tile Gallery block (cni-blocks/tile-gallery)
 
 Updates:
 - Restored aspect ratio controls and expanded wide ratio variants (3:2, 2:1, 21:9, 5:2, 3:1, 4:1).

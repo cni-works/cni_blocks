@@ -56,6 +56,14 @@ register_block_type(
       'radius'      => array( 'type' => 'number', 'default' => 0 ),
       'shadow'      => array( 'type' => 'boolean', 'default' => false ),
       'showCaption' => array( 'type' => 'boolean', 'default' => false ),
+      'displayType' => array( 'type' => 'string', 'default' => 'grid' ),
+      'borderOn'    => array( 'type' => 'boolean', 'default' => false ),
+      'borderColor' => array( 'type' => 'string', 'default' => '#dddddd' ),
+      'borderWidth' => array( 'type' => 'number', 'default' => 1 ),
+      'lightbox'    => array( 'type' => 'boolean', 'default' => true ),
+      'previewDevice' => array( 'type' => 'string', 'default' => 'pc' ),
+      'masonryColumnsSp' => array( 'type' => 'number', 'default' => 2 ),
+      'masonryColumnsPc' => array( 'type' => 'number', 'default' => 3 ),
     ),
   )
 );

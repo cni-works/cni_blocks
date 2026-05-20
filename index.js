@@ -4,7 +4,7 @@
 
 	const { __ } = i18n;
 	const { useBlockProps, MediaUpload, MediaUploadCheck, InspectorControls } = blockEditor;
-	const { Button, PanelBody, ToggleControl, SelectControl, RangeControl } = components;
+	const { Button, PanelBody, ToggleControl, SelectControl, RangeControl, ColorPalette } = components;
 
 	function getMain( images, selected ) {
 		if ( ! images || ! images.length ) return null;
@@ -95,7 +95,7 @@
 
 				setAttributes( {
 					images: normalized,
-					selected: normalized.length ? 0 : 0,
+					selected: 0,
 				} );
 			};
 
@@ -414,13 +414,12 @@
 			);
 		},
 	} );
-} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
 
-blocks.registerBlockType('cni-blocks/tile-gallery', {
+blocks.registerBlockType( 'cni-blocks/tile-gallery', {
   title: __('タイルギャラリー', 'cni-blocks'),
   icon: 'screenoptions',
   category: 'media',
-  description: __('通常ギャラリー向け。レスポンシブ列数とgap、角丸/影を設定可能。', 'cni-blocks'),
+  description: __('表示タイプ選択・ライトボックス付きギャラリー。', 'cni-blocks'),
   attributes: {
     images: { type: 'array', default: [] },
     columnsSp: { type: 'number', default: 2 },
@@ -428,7 +427,15 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
     gap: { type: 'number', default: 8 },
     radius: { type: 'number', default: 0 },
     shadow: { type: 'boolean', default: false },
-    showCaption: { type: 'boolean', default: false }
+    showCaption: { type: 'boolean', default: false },
+    displayType: { type: 'string', default: 'grid' },
+    borderOn: { type: 'boolean', default: false },
+    borderColor: { type: 'string', default: '#dddddd' },
+    borderWidth: { type: 'number', default: 1 },
+    lightbox: { type: 'boolean', default: true },
+    previewDevice: { type: 'string', default: 'pc' },
+    masonryColumnsSp: { type: 'number', default: 2 },
+    masonryColumnsPc: { type: 'number', default: 3 }
   },
   edit: function (props) {
     const { attributes, setAttributes } = props;
@@ -439,14 +446,27 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
     const radius = typeof attributes.radius === 'number' ? attributes.radius : 0;
     const shadow = !!attributes.shadow;
     const showCaption = !!attributes.showCaption;
+    const displayType = attributes.displayType || 'grid';
+    const borderOn = !!attributes.borderOn;
+    const borderColor = attributes.borderColor || '#dddddd';
+    const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
+    const lightbox = attributes.lightbox !== false;
+    const previewDevice = attributes.previewDevice || 'pc';
+    const masonryColumnsSp = attributes.masonryColumnsSp || 2;
+    const masonryColumnsPc = attributes.masonryColumnsPc || 3;
 
     const blockProps = useBlockProps({
-      className: 'cni-tile-gallery',
+      className: 'cni-tile-gallery cni-display-' + displayType + ' cni-editor-preview-' + previewDevice,
+      'data-display-type': displayType,
       style: {
         '--cni-tile-cols-sp': columnsSp,
         '--cni-tile-cols-pc': columnsPc,
         '--cni-tile-gap': gap + 'px',
-        '--cni-tile-radius': radius + 'px'
+        '--cni-tile-radius': radius + 'px',
+        '--cni-tile-border-color': borderColor,
+        '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
+        '--cni-masonry-cols-sp': masonryColumnsSp,
+        '--cni-masonry-cols-pc': masonryColumnsPc
       }
     });
 
@@ -466,13 +486,47 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
       element.Fragment,
       null,
       el(InspectorControls, null,
-        el(PanelBody, { title: __('レイアウト', 'cni-blocks'), initialOpen: true },
+        el(PanelBody, { title: __('表示タイプ', 'cni-blocks'), initialOpen: true },
+          el(SelectControl, {
+            label: __('表示タイプ', 'cni-blocks'),
+            value: displayType,
+            options: [
+              { label: 'grid', value: 'grid' },
+              { label: 'justified', value: 'justified' },
+              { label: 'masonry', value: 'masonry' },
+              { label: 'portfolio', value: 'portfolio' },
+              { label: 'single-thumbnail', value: 'single-thumbnail' }
+            ],
+            onChange: (v) => setAttributes({ displayType: v || 'grid' })
+          }),
+          el(SelectControl, {
+            label: __('編集プレビュー', 'cni-blocks'),
+            value: previewDevice,
+            options: [
+              { label: __('PC', 'cni-blocks'), value: 'pc' },
+              { label: __('スマホ', 'cni-blocks'), value: 'sp' }
+            ],
+            onChange: (v) => setAttributes({ previewDevice: v || 'pc' })
+          })
+        ),
+        el(PanelBody, { title: __('デザイン', 'cni-blocks'), initialOpen: false },
           el(RangeControl, { label: __('スマホ列数', 'cni-blocks'), value: columnsSp, min: 1, max: 3, onChange: (v) => setAttributes({ columnsSp: v || 1 }) }),
-          el(RangeControl, { label: __('PC列数', 'cni-blocks'), value: columnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ columnsPc: v || 2 }) }),
+          el(RangeControl, { label: __('PC列数', 'cni-blocks'), value: columnsPc, min: 1, max: 6, onChange: (v) => setAttributes({ columnsPc: v || 1 }) }),
           el(RangeControl, { label: __('gap(px)', 'cni-blocks'), value: gap, min: 0, max: 40, onChange: (v) => setAttributes({ gap: v || 0 }) }),
           el(RangeControl, { label: __('角丸(px)', 'cni-blocks'), value: radius, min: 0, max: 40, onChange: (v) => setAttributes({ radius: v || 0 }) }),
+          el(ToggleControl, { label: __('画像の外枠', 'cni-blocks'), checked: borderOn, onChange: (v) => setAttributes({ borderOn: !!v }) }),
+          borderOn ? el(ColorPalette, {
+            value: borderColor,
+            onChange: (v) => setAttributes({ borderColor: v || '#dddddd' })
+          }) : null,
+          borderOn ? el(RangeControl, { label: __('外枠太さ(px)', 'cni-blocks'), value: borderWidth, min: 1, max: 12, onChange: (v) => setAttributes({ borderWidth: v || 1 }) }) : null,
+          displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(スマホ)', 'cni-blocks'), value: masonryColumnsSp, min: 1, max: 4, onChange: (v) => setAttributes({ masonryColumnsSp: v || 1 }) }) : null,
+          displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(PC)', 'cni-blocks'), value: masonryColumnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ masonryColumnsPc: v || 2 }) }) : null,
           el(ToggleControl, { label: __('影をつける', 'cni-blocks'), checked: shadow, onChange: (v) => setAttributes({ shadow: !!v }) }),
           el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) })
+        ),
+        el(PanelBody, { title: __('ライトボックス', 'cni-blocks'), initialOpen: false },
+          el(ToggleControl, { label: __('画像クリックで拡大表示', 'cni-blocks'), checked: lightbox, onChange: (v) => setAttributes({ lightbox: !!v }) })
         )
       ),
       el('div', blockProps,
@@ -491,7 +545,7 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
         el('div', { className: 'cni-tile-grid' + (shadow ? ' is-shadow' : '') },
           images.map((img, i) =>
             el('figure', { key: img.id || i, className: 'cni-tile-item' },
-              el('img', { src: img.url, alt: img.alt || '' }),
+              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
               showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
             )
           )
@@ -502,13 +556,23 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
   save: function (props) {
     const { attributes } = props;
     const images = attributes.images || [];
+    const displayType = attributes.displayType || 'grid';
+    const borderOn = !!attributes.borderOn;
+    const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
+    const borderColor = attributes.borderColor || '#dddddd';
     const blockProps = blockEditor.useBlockProps.save({
-      className: 'cni-tile-gallery',
+      className: 'cni-tile-gallery cni-display-' + displayType,
+      'data-display-type': displayType,
+      'data-lightbox': attributes.lightbox !== false ? '1' : '0',
       style: {
         '--cni-tile-cols-sp': attributes.columnsSp || 2,
         '--cni-tile-cols-pc': attributes.columnsPc || 4,
         '--cni-tile-gap': (typeof attributes.gap === 'number' ? attributes.gap : 8) + 'px',
-        '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px'
+        '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px',
+        '--cni-tile-border-color': borderColor,
+        '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
+        '--cni-masonry-cols-sp': attributes.masonryColumnsSp || 2,
+        '--cni-masonry-cols-pc': attributes.masonryColumnsPc || 3
       }
     });
 
@@ -516,7 +580,9 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
       el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
         images.map((img, i) =>
           el('figure', { key: img.id || i, className: 'cni-tile-item' },
-            el('img', { src: img.url, alt: img.alt || '' }),
+            el('button', { type: 'button', className: 'cni-tile-trigger', 'data-index': i, 'aria-label': __('画像', 'cni-blocks') + (i + 1) },
+              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })
+            ),
             attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
           )
         )
@@ -524,3 +590,6 @@ blocks.registerBlockType('cni-blocks/tile-gallery', {
     );
   }
 });
+
+
+} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
