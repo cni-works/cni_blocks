@@ -11,8 +11,6 @@
     if (btn) btn.classList.add('is-active');
   }
 
-  function isOverlayPos(pos) { return pos === 'overlay'; }
-
   function ensureCaptionEl(block) {
     const pos = block.dataset.captionPosition || 'below';
     const style = block.dataset.captionStyle || 'glass';
@@ -24,24 +22,21 @@
 
     if (cap) {
       cap.className = cls;
-      if (isOverlayPos(pos) && viewport && cap.parentElement !== viewport) viewport.appendChild(cap);
-      if (!isOverlayPos(pos) && main && main.parentNode && cap.parentElement !== main.parentNode) main.parentNode.insertBefore(cap, main.nextSibling);
+      if (pos === 'overlay' && viewport && cap.parentElement !== viewport) viewport.appendChild(cap);
+      if (pos !== 'overlay' && main && main.parentNode && cap.parentElement !== main.parentNode) main.parentNode.insertBefore(cap, main.nextSibling);
       return cap;
     }
 
     cap = document.createElement('div');
     cap.className = cls;
-
-    if (isOverlayPos(pos) && viewport) viewport.appendChild(cap);
+    if (pos === 'overlay' && viewport) viewport.appendChild(cap);
     else if (main && main.parentNode) main.parentNode.insertBefore(cap, main.nextSibling);
     else block.appendChild(cap);
-
     return cap;
   }
 
   function setCaption(block, text) {
-    const show = block.dataset.showCaption === '1';
-    if (!show) return;
+    if (block.dataset.showCaption !== '1') return;
     const cap = ensureCaptionEl(block);
     cap.textContent = (text || '').trim();
     cap.style.display = cap.textContent ? '' : 'none';
@@ -51,27 +46,17 @@
   function isBusy(block) { return block.dataset.cniBusy === '1'; }
 
   function clearTimers(block) {
-    if (block.__cniCleanupTimer) {
-      clearTimeout(block.__cniCleanupTimer);
-      block.__cniCleanupTimer = null;
-    }
-    if (block.__cniBusyTimer) {
-      clearTimeout(block.__cniBusyTimer);
-      block.__cniBusyTimer = null;
-    }
+    if (block.__cniCleanupTimer) { clearTimeout(block.__cniCleanupTimer); block.__cniCleanupTimer = null; }
+    if (block.__cniBusyTimer) { clearTimeout(block.__cniBusyTimer); block.__cniBusyTimer = null; }
   }
 
-  function resetSlideStyles(block, slides) {
-    // Temporarily disable transitions while we clear transforms/classes.
-    block.classList.add('cni-no-transition');
+  function resetSlideStyles(slides) {
     slides.forEach((s) => {
       s.classList.remove('is-active', 'is-enter', 'is-leave');
       s.style.transform = 'translateX(0%)';
-      s.style.transitionProperty = '';
+      s.style.transition = '';
       s.style.opacity = '';
     });
-    // Re-enable transitions next frame
-    requestAnimationFrame(() => block.classList.remove('cni-no-transition'));
   }
 
   function finalizeActive(block, slides, activeIdx) {
@@ -81,7 +66,7 @@
       else s.classList.remove('is-active');
       s.classList.remove('is-enter', 'is-leave');
       s.style.transform = 'translateX(0%)';
-      s.style.transitionProperty = '';
+      s.style.transition = '';
       s.style.opacity = '';
     });
     requestAnimationFrame(() => block.classList.remove('cni-no-transition'));
@@ -96,35 +81,29 @@
 
     clearTimers(block);
 
-    // Reset base state (but keep the two we need ready)
-    resetSlideStyles(block, slides);
+    // ghost/snap-back –hŽ~
+    block.classList.add('cni-no-transition');
+    resetSlideStyles(slides);
 
     if (transition === 'none') {
       to.classList.add('is-active');
+      requestAnimationFrame(() => block.classList.remove('cni-no-transition'));
       return;
     }
 
     if (transition === 'fade') {
-      // Class-only fade: avoid inline opacity (can create a faint 'return' ghost on wrap in some browsers).
-      // Base state: all slides inactive (opacity 0). Keep FROM visible, then activate TO on next frame.
       from.classList.add('is-active');
-      // TO starts inactive (opacity 0), then we activate it to fade in.
-      requestAnimationFrame(() => {
-        to.classList.add('is-active');
-      });
-
-      block.__cniCleanupTimer = window.setTimeout(() => {
-        finalizeActive(block, slides, toIdx);
-      }, TRANSITION_MS);
-
+      block.classList.remove('cni-no-transition');
+      requestAnimationFrame(() => to.classList.add('is-active'));
+      block.__cniCleanupTimer = window.setTimeout(() => finalizeActive(block, slides, toIdx), TRANSITION_MS);
       return;
     }
 
     if (transition === 'slide') {
-      // For slide mode: avoid opacity tween (it can look like "ghosting" on wrap)
       from.classList.add('is-active');
       to.classList.add('is-active');
-      // force transition for reliability
+      block.classList.remove('cni-no-transition');
+
       from.style.transition = 'transform 260ms ease';
       to.style.transition = 'transform 260ms ease';
       from.style.opacity = '1';
@@ -136,7 +115,6 @@
       to.style.transform = `translateX(${enterFrom})`;
       to.getBoundingClientRect();
 
-      // animate (double rAF for better reliability across browsers)
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           from.style.transform = `translateX(${leaveTo})`;
@@ -144,14 +122,11 @@
         });
       });
 
-      block.__cniCleanupTimer = window.setTimeout(() => {
-        finalizeActive(block, slides, toIdx);
-      }, TRANSITION_MS);
-
+      block.__cniCleanupTimer = window.setTimeout(() => finalizeActive(block, slides, toIdx), TRANSITION_MS);
       return;
     }
 
-    // fallback
+    block.classList.remove('cni-no-transition');
     to.classList.add('is-active');
   }
 
@@ -169,24 +144,17 @@
 
     const currentIdx = clamp(parseInt(block.dataset.selected || '0', 10), 0, max);
     if (idx === currentIdx && !opts.force) return;
-
     if (isBusy(block)) return;
+
     setBusy(block, true);
 
-    // Direction priority:
-    // 1) explicit (arrow click)
-    // 2) wrap-aware (loop): last->0 on "next" should be dir=+1, 0->last on "prev" should be dir=-1
-    // 3) fallback by index comparison
     let dir;
-    if (typeof opts.dir === 'number') {
-      dir = opts.dir;
-    } else if (loop) {
+    if (typeof opts.dir === 'number') dir = opts.dir;
+    else if (loop) {
       if (currentIdx === max && idx === 0) dir = 1;
       else if (currentIdx === 0 && idx === max) dir = -1;
       else dir = idx > currentIdx ? 1 : -1;
-    } else {
-      dir = idx > currentIdx ? 1 : -1;
-    }
+    } else dir = idx > currentIdx ? 1 : -1;
 
     applyTransition(block, currentIdx, idx, dir);
     setActiveThumb(block, idx);
@@ -213,28 +181,6 @@
     const arrowsOn = block.dataset.arrows === '1';
     const prev = block.querySelector('.cni-arrow-prev');
     const next = block.querySelector('.cni-arrow-next');
-    // Confine arrows to the main image viewport (especially for side layout)
-    const viewport = block.querySelector('.cni-main-viewport');
-    if (viewport) {
-      if (prev && prev.parentElement !== viewport) viewport.appendChild(prev);
-      if (next && next.parentElement !== viewport) viewport.appendChild(next);
-    }
-
-    // Deduplicate arrows (older saved markup may contain extra arrow buttons)
-    if (viewport) {
-      const prevAll = Array.from(block.querySelectorAll('.cni-arrow-prev'));
-      const nextAll = Array.from(block.querySelectorAll('.cni-arrow-next'));
-
-      const prevKeep = prevAll.find((b) => b.parentElement === viewport) || prevAll[0] || null;
-      const nextKeep = nextAll.find((b) => b.parentElement === viewport) || nextAll[0] || null;
-
-      if (prevKeep && prevKeep.parentElement !== viewport) viewport.appendChild(prevKeep);
-      if (nextKeep && nextKeep.parentElement !== viewport) viewport.appendChild(nextKeep);
-
-      prevAll.forEach((b) => { if (prevKeep && b !== prevKeep) b.remove(); });
-      nextAll.forEach((b) => { if (nextKeep && b !== nextKeep) b.remove(); });
-    }
-
     if (prev) prev.style.display = arrowsOn ? '' : 'none';
     if (next) next.style.display = arrowsOn ? '' : 'none';
 
@@ -281,7 +227,6 @@
       if (!block) return;
       const idx = parseInt(block.dataset.selected || '0', 10);
       goTo(block, idx + 1, { dir: 1 });
-      return;
     }
   });
 
