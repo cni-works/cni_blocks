@@ -166,7 +166,11 @@
   object-fit:cover;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{
+codex/analyze-wordpress-plugin-structure-7syd03
+  columns:var(--cni-masonry-cols-sp,2);
+
   columns:2;
+fix/slide-ghost-and-tile-gallery
   column-gap:var(--cni-tile-gap, 8px);
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-item{
@@ -174,7 +178,11 @@
   margin:0 0 var(--cni-tile-gap, 8px);
 }
 @media (min-width:782px){
+codex/analyze-wordpress-plugin-structure-7syd03
+  .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{columns:var(--cni-masonry-cols-pc,3);}
+
   .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{columns:3;}
+fix/slide-ghost-and-tile-gallery
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-portfolio .cni-tile-grid{
   grid-template-columns:repeat(2, minmax(0,1fr));
@@ -209,10 +217,17 @@
   grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr)) !important;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-sp .cni-tile-grid{
+codex/analyze-wordpress-plugin-structure-7syd03
+  columns:var(--cni-masonry-cols-sp,2) !important;
+}
+.wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-pc .cni-tile-grid{
+  columns:var(--cni-masonry-cols-pc,3) !important;
+
   columns:2 !important;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-pc .cni-tile-grid{
   columns:3 !important;
+fix/slide-ghost-and-tile-gallery
 }
 
 .cni-lightbox{position:fixed;inset:0;display:none;z-index:99999;}
