@@ -433,9 +433,13 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     borderColor: { type: 'string', default: '#dddddd' },
     borderWidth: { type: 'number', default: 1 },
     lightbox: { type: 'boolean', default: true },
+codex/analyze-wordpress-plugin-structure-7syd03
     previewDevice: { type: 'string', default: 'pc' },
     masonryColumnsSp: { type: 'number', default: 2 },
     masonryColumnsPc: { type: 'number', default: 3 }
+
+    previewDevice: { type: 'string', default: 'pc' }
+fix/slide-ghost-and-tile-gallery
   },
   edit: function (props) {
     const { attributes, setAttributes } = props;
@@ -447,6 +451,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const shadow = !!attributes.shadow;
     const showCaption = !!attributes.showCaption;
     const displayType = attributes.displayType || 'grid';
+codex/analyze-wordpress-plugin-structure-7syd03
     const lightbox = attributes.lightbox !== false;
     const borderOn = !!attributes.borderOn;
     const borderColor = attributes.borderColor || '#dddddd';
@@ -454,6 +459,13 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const previewDevice = attributes.previewDevice || 'pc';
     const masonryColumnsSp = attributes.masonryColumnsSp || 2;
     const masonryColumnsPc = attributes.masonryColumnsPc || 3;
+
+    const borderOn = !!attributes.borderOn;
+    const borderColor = attributes.borderColor || '#dddddd';
+    const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
+    const lightbox = attributes.lightbox !== false;
+    const previewDevice = attributes.previewDevice || 'pc';
+fix/slide-ghost-and-tile-gallery
 
     const blockProps = useBlockProps({
       className: 'cni-tile-gallery cni-display-' + displayType + ' cni-editor-preview-' + previewDevice,
@@ -464,9 +476,13 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-gap': gap + 'px',
         '--cni-tile-radius': radius + 'px',
         '--cni-tile-border-color': borderColor,
+codex/analyze-wordpress-plugin-structure-7syd03
         '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
         '--cni-masonry-cols-sp': masonryColumnsSp,
         '--cni-masonry-cols-pc': masonryColumnsPc
+
+        '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px'
+fix/slide-ghost-and-tile-gallery
       }
     });
 
@@ -515,6 +531,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
           el(RangeControl, { label: __('gap(px)', 'cni-blocks'), value: gap, min: 0, max: 40, onChange: (v) => setAttributes({ gap: v || 0 }) }),
           el(RangeControl, { label: __('角丸(px)', 'cni-blocks'), value: radius, min: 0, max: 40, onChange: (v) => setAttributes({ radius: v || 0 }) }),
           el(ToggleControl, { label: __('画像の外枠', 'cni-blocks'), checked: borderOn, onChange: (v) => setAttributes({ borderOn: !!v }) }),
+codex/analyze-wordpress-plugin-structure-7syd03
           borderOn ? el(ColorPalette, {
             value: borderColor,
             onChange: (v) => setAttributes({ borderColor: v || '#dddddd' })
@@ -522,6 +539,14 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
           borderOn ? el(RangeControl, { label: __('外枠太さ(px)', 'cni-blocks'), value: borderWidth, min: 1, max: 12, onChange: (v) => setAttributes({ borderWidth: v || 1 }) }) : null,
           displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(スマホ)', 'cni-blocks'), value: masonryColumnsSp, min: 1, max: 4, onChange: (v) => setAttributes({ masonryColumnsSp: v || 1 }) }) : null,
           displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(PC)', 'cni-blocks'), value: masonryColumnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ masonryColumnsPc: v || 2 }) }) : null,
+
+          borderOn ? el('input', {
+            type: 'color',
+            value: borderColor,
+            onChange: (e) => setAttributes({ borderColor: e.target.value || '#dddddd' })
+          }) : null,
+          borderOn ? el(RangeControl, { label: __('外枠太さ(px)', 'cni-blocks'), value: borderWidth, min: 1, max: 12, onChange: (v) => setAttributes({ borderWidth: v || 1 }) }) : null,
+fix/slide-ghost-and-tile-gallery
           el(ToggleControl, { label: __('影をつける', 'cni-blocks'), checked: shadow, onChange: (v) => setAttributes({ shadow: !!v }) }),
           el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) })
         ),
@@ -557,7 +582,10 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const { attributes } = props;
     const images = attributes.images || [];
     const displayType = attributes.displayType || 'grid';
+codex/analyze-wordpress-plugin-structure-7syd03
     const lightbox = attributes.lightbox !== false;
+
+fix/slide-ghost-and-tile-gallery
     const borderOn = !!attributes.borderOn;
     const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
     const borderColor = attributes.borderColor || '#dddddd';
@@ -571,9 +599,13 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-gap': (typeof attributes.gap === 'number' ? attributes.gap : 8) + 'px',
         '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px',
         '--cni-tile-border-color': borderColor,
+codex/analyze-wordpress-plugin-structure-7syd03
         '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
         '--cni-masonry-cols-sp': attributes.masonryColumnsSp || 2,
         '--cni-masonry-cols-pc': attributes.masonryColumnsPc || 3
+
+        '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px'
+fix/slide-ghost-and-tile-gallery
       }
     });
 
@@ -581,11 +613,17 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
         images.map((img, i) =>
           el('figure', { key: img.id || i, className: 'cni-tile-item' },
+codex/analyze-wordpress-plugin-structure-7syd03
             lightbox
               ? el('button', { type: 'button', className: 'cni-tile-trigger', 'data-index': i, 'aria-label': __('画像', 'cni-blocks') + (i + 1) },
                   el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })
                 )
               : el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
+
+            el('button', { type: 'button', className: 'cni-tile-trigger', 'data-index': i, 'aria-label': __('画像', 'cni-blocks') + (i + 1) },
+              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })
+            ),
+fix/slide-ghost-and-tile-gallery
             attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
           )
         )

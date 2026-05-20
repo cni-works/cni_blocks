@@ -62,8 +62,11 @@ register_block_type(
       'borderWidth' => array( 'type' => 'number', 'default' => 1 ),
       'lightbox'    => array( 'type' => 'boolean', 'default' => true ),
       'previewDevice' => array( 'type' => 'string', 'default' => 'pc' ),
+codex/analyze-wordpress-plugin-structure-7syd03
       'masonryColumnsSp' => array( 'type' => 'number', 'default' => 2 ),
       'masonryColumnsPc' => array( 'type' => 'number', 'default' => 3 ),
+
+fix/slide-ghost-and-tile-gallery
     ),
   )
 );
