@@ -125,3 +125,28 @@
     overflow: auto;
   }
 }
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid{
+  display:grid;
+  grid-template-columns:repeat(var(--cni-tile-cols-sp,2), minmax(0,1fr));
+  gap:var(--cni-tile-gap, 8px);
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-item{margin:0}
+.wp-block-cni-blocks-tile-gallery .cni-tile-item img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:var(--cni-tile-radius, 0);
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.is-shadow .cni-tile-item img{
+  box-shadow:0 8px 20px rgba(0,0,0,.18);
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-cap{
+  margin-top:6px;
+  font-size:.9em;
+  line-height:1.5;
+}
+@media (min-width: 782px){
+  .wp-block-cni-blocks-tile-gallery .cni-tile-grid{
+    grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr));
+  }
+}

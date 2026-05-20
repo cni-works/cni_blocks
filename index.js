@@ -277,14 +277,14 @@
 								el(
 									'div',
 									{ className: 'cni-main', style: containerStyle, 'data-layout': (attributes.layout || 'below') },
-									showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', disabled: images.length < 2 }, '‹' ) : null,
+									showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', disabled: images.length < 2 }, '?' ) : null,
 									el(
 										'div',
 										{ className: 'cni-main-viewport', style: viewportStyle },
 										el( 'img', { className: 'cni-main-img', src: main.url, alt: main.alt || '' } ),
 										showCaption && isOverlay && main && main.text ? el( 'div', { className: captionClass }, main.text ) : null
 									),
-									showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', disabled: images.length < 2 }, '›' ) : null
+									showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', disabled: images.length < 2 }, '?' ) : null
 								),
 								showCaption && !isOverlay && main && main.text ? el( 'div', { className: captionClass }, main.text ) : null,
 								el(
@@ -364,7 +364,7 @@
 				el(
 					'div',
 					{ className: 'cni-main', style: containerStyle, 'data-layout': (attributes.layout || 'below') },
-					showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', 'aria-label': __( '前へ', 'cni-blocks' ) }, '‹' ) : null,
+					showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', 'aria-label': __( '前へ', 'cni-blocks' ) }, '?' ) : null,
 					el(
 						'div',
 						{ className: 'cni-main-viewport', style: viewportStyle },
@@ -386,11 +386,11 @@
 						),
 						showCaption && isOverlay && images[ idx ] && images[ idx ].text ? el( 'div', { className: captionClass }, images[ idx ].text ) : null
 						,
-						showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', 'aria-label': __( '前へ', 'cni-blocks' ) }, '‹' ) : null,
-						showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', 'aria-label': __( '次へ', 'cni-blocks' ) }, '›' ) : null
+						showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-prev', 'aria-label': __( '前へ', 'cni-blocks' ) }, '?' ) : null,
+						showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', 'aria-label': __( '次へ', 'cni-blocks' ) }, '?' ) : null
 
 					),
-					showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', 'aria-label': __( '次へ', 'cni-blocks' ) }, '›' ) : null
+					showArrows ? el( 'button', { type: 'button', className: 'cni-arrow cni-arrow-next', 'aria-label': __( '次へ', 'cni-blocks' ) }, '?' ) : null
 				),
 				showCaption && !isOverlay && images[ idx ] && images[ idx ].text ? el( 'div', { className: captionClass }, images[ idx ].text ) : null,
 				el(
@@ -415,3 +415,112 @@
 		},
 	} );
 } )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
+
+blocks.registerBlockType('cni-blocks/tile-gallery', {
+  title: __('タイルギャラリー', 'cni-blocks'),
+  icon: 'screenoptions',
+  category: 'media',
+  description: __('通常ギャラリー向け。レスポンシブ列数とgap、角丸/影を設定可能。', 'cni-blocks'),
+  attributes: {
+    images: { type: 'array', default: [] },
+    columnsSp: { type: 'number', default: 2 },
+    columnsPc: { type: 'number', default: 4 },
+    gap: { type: 'number', default: 8 },
+    radius: { type: 'number', default: 0 },
+    shadow: { type: 'boolean', default: false },
+    showCaption: { type: 'boolean', default: false }
+  },
+  edit: function (props) {
+    const { attributes, setAttributes } = props;
+    const images = attributes.images || [];
+    const columnsSp = attributes.columnsSp || 2;
+    const columnsPc = attributes.columnsPc || 4;
+    const gap = typeof attributes.gap === 'number' ? attributes.gap : 8;
+    const radius = typeof attributes.radius === 'number' ? attributes.radius : 0;
+    const shadow = !!attributes.shadow;
+    const showCaption = !!attributes.showCaption;
+
+    const blockProps = useBlockProps({
+      className: 'cni-tile-gallery',
+      style: {
+        '--cni-tile-cols-sp': columnsSp,
+        '--cni-tile-cols-pc': columnsPc,
+        '--cni-tile-gap': gap + 'px',
+        '--cni-tile-radius': radius + 'px'
+      }
+    });
+
+    const onSelectImages = function (media) {
+      const normalized = (media || []).map(function (m) {
+        return {
+          id: m.id,
+          url: m.url,
+          alt: m.alt || '',
+          caption: getRenderedText(m && m.caption)
+        };
+      });
+      setAttributes({ images: normalized });
+    };
+
+    return el(
+      element.Fragment,
+      null,
+      el(InspectorControls, null,
+        el(PanelBody, { title: __('レイアウト', 'cni-blocks'), initialOpen: true },
+          el(RangeControl, { label: __('スマホ列数', 'cni-blocks'), value: columnsSp, min: 1, max: 3, onChange: (v) => setAttributes({ columnsSp: v || 1 }) }),
+          el(RangeControl, { label: __('PC列数', 'cni-blocks'), value: columnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ columnsPc: v || 2 }) }),
+          el(RangeControl, { label: __('gap(px)', 'cni-blocks'), value: gap, min: 0, max: 40, onChange: (v) => setAttributes({ gap: v || 0 }) }),
+          el(RangeControl, { label: __('角丸(px)', 'cni-blocks'), value: radius, min: 0, max: 40, onChange: (v) => setAttributes({ radius: v || 0 }) }),
+          el(ToggleControl, { label: __('影をつける', 'cni-blocks'), checked: shadow, onChange: (v) => setAttributes({ shadow: !!v }) }),
+          el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) })
+        )
+      ),
+      el('div', blockProps,
+        el('div', { className: 'cni-editor-toolbar' },
+          el(MediaUploadCheck, null,
+            el(MediaUpload, {
+              onSelect: onSelectImages,
+              allowedTypes: ['image'],
+              multiple: true,
+              gallery: true,
+              value: images.map((i) => i.id).filter(Boolean),
+              render: (obj) => el(Button, { variant: 'primary', onClick: obj.open }, images.length ? __('画像を差し替える', 'cni-blocks') : __('画像を追加', 'cni-blocks'))
+            })
+          )
+        ),
+        el('div', { className: 'cni-tile-grid' + (shadow ? ' is-shadow' : '') },
+          images.map((img, i) =>
+            el('figure', { key: img.id || i, className: 'cni-tile-item' },
+              el('img', { src: img.url, alt: img.alt || '' }),
+              showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
+            )
+          )
+        )
+      )
+    );
+  },
+  save: function (props) {
+    const { attributes } = props;
+    const images = attributes.images || [];
+    const blockProps = blockEditor.useBlockProps.save({
+      className: 'cni-tile-gallery',
+      style: {
+        '--cni-tile-cols-sp': attributes.columnsSp || 2,
+        '--cni-tile-cols-pc': attributes.columnsPc || 4,
+        '--cni-tile-gap': (typeof attributes.gap === 'number' ? attributes.gap : 8) + 'px',
+        '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px'
+      }
+    });
+
+    return el('div', blockProps,
+      el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
+        images.map((img, i) =>
+          el('figure', { key: img.id || i, className: 'cni-tile-item' },
+            el('img', { src: img.url, alt: img.alt || '' }),
+            attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
+          )
+        )
+      )
+    );
+  }
+});

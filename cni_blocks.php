@@ -43,5 +43,21 @@ function cni_blocks_register_blocks() {
 			'style'         => 'cni-blocks-style',
 		)
 	);
+register_block_type(
+  'cni-blocks/tile-gallery',
+  array(
+    'editor_script' => 'cni-blocks-editor',
+    'style'         => 'cni-blocks-style',
+    'attributes'    => array(
+      'images'      => array( 'type' => 'array', 'default' => array() ),
+      'columnsSp'   => array( 'type' => 'number', 'default' => 2 ),
+      'columnsPc'   => array( 'type' => 'number', 'default' => 4 ),
+      'gap'         => array( 'type' => 'number', 'default' => 8 ),
+      'radius'      => array( 'type' => 'number', 'default' => 0 ),
+      'shadow'      => array( 'type' => 'boolean', 'default' => false ),
+      'showCaption' => array( 'type' => 'boolean', 'default' => false ),
+    ),
+  )
+);
 }
 add_action( 'init', 'cni_blocks_register_blocks' );
