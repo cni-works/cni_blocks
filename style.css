@@ -130,12 +130,40 @@
   grid-template-columns:repeat(var(--cni-tile-cols-sp,2), minmax(0,1fr));
   gap:var(--cni-tile-gap, 8px);
 }
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--masonry{
+  columns: var(--cni-tile-cols-sp, 2);
+  column-gap: var(--cni-tile-gap, 8px);
+  display:block;
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--masonry .cni-tile-item{
+  break-inside: avoid;
+  margin-bottom: var(--cni-tile-gap, 8px);
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--justified{
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--portfolio{
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--single-thumbnail{
+  grid-template-columns: 1fr;
+  max-width: 420px;
+}
 .wp-block-cni-blocks-tile-gallery .cni-tile-item{margin:0}
+.wp-block-cni-blocks-tile-gallery .cni-tile-open{
+  border:0;
+  background:transparent;
+  padding:0;
+  display:block;
+  width:100%;
+  cursor:pointer;
+}
 .wp-block-cni-blocks-tile-gallery .cni-tile-item img{
   display:block;
   width:100%;
   height:auto;
   border-radius:var(--cni-tile-radius, 0);
+  border:var(--cni-tile-border-width, 0) solid var(--cni-tile-border-color, #d9d9d9);
 }
 .wp-block-cni-blocks-tile-gallery .cni-tile-grid.is-shadow .cni-tile-item img{
   box-shadow:0 8px 20px rgba(0,0,0,.18);
@@ -153,4 +181,16 @@
   .wp-block-cni-blocks-tile-gallery .cni-tile-grid{
     grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr));
   }
+  .wp-block-cni-blocks-tile-gallery .cni-tile-grid.cni-tile-grid--masonry{
+    columns: var(--cni-tile-cols-pc, 4);
+  }
 }
+
+.cni-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9999}
+.cni-lightbox[hidden]{display:none}
+.cni-lightbox__img{max-width:min(92vw,1280px);max-height:86vh;display:block}
+.cni-lightbox__btn{position:absolute;top:16px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.45);color:#fff;padding:8px 12px;cursor:pointer}
+.cni-lightbox__close{right:16px}
+.cni-lightbox__prev,.cni-lightbox__next{top:50%;transform:translateY(-50%)}
+.cni-lightbox__prev{left:16px}
+.cni-lightbox__next{right:16px}

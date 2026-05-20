@@ -4,7 +4,7 @@
 
 	const { __ } = i18n;
 	const { useBlockProps, MediaUpload, MediaUploadCheck, InspectorControls } = blockEditor;
-	const { Button, PanelBody, ToggleControl, SelectControl, RangeControl } = components;
+	const { Button, PanelBody, ToggleControl, SelectControl, RangeControl, ColorPalette } = components;
 
 	function getMain( images, selected ) {
 		if ( ! images || ! images.length ) return null;
@@ -427,7 +427,12 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     gap: { type: 'number', default: 8 },
     radius: { type: 'number', default: 0 },
     shadow: { type: 'boolean', default: false },
-    showCaption: { type: 'boolean', default: false }
+    showCaption: { type: 'boolean', default: false },
+    displayType: { type: 'string', default: 'grid' },
+    showBorder: { type: 'boolean', default: false },
+    borderColor: { type: 'string', default: '#d9d9d9' },
+    borderWidth: { type: 'number', default: 1 },
+    lightbox: { type: 'boolean', default: false }
   },
   edit: function (props) {
     const { attributes, setAttributes } = props;
@@ -438,6 +443,11 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const radius = typeof attributes.radius === 'number' ? attributes.radius : 0;
     const shadow = !!attributes.shadow;
     const showCaption = !!attributes.showCaption;
+    const displayType = attributes.displayType || 'grid';
+    const showBorder = !!attributes.showBorder;
+    const borderColor = attributes.borderColor || '#d9d9d9';
+    const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
+    const lightbox = !!attributes.lightbox;
 
     const blockProps = useBlockProps({
       className: 'cni-tile-gallery',
@@ -445,7 +455,9 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-cols-sp': columnsSp,
         '--cni-tile-cols-pc': columnsPc,
         '--cni-tile-gap': gap + 'px',
-        '--cni-tile-radius': radius + 'px'
+        '--cni-tile-radius': radius + 'px',
+        '--cni-tile-border-color': borderColor,
+        '--cni-tile-border-width': (showBorder ? borderWidth : 0) + 'px'
       }
     });
 
@@ -467,11 +479,31 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       el(InspectorControls, null,
         el(PanelBody, { title: __('レイアウト', 'cni-blocks'), initialOpen: true },
           el(RangeControl, { label: __('スマホ列数', 'cni-blocks'), value: columnsSp, min: 1, max: 6, onChange: (v) => setAttributes({ columnsSp: v || 1 }) }),
+          el(SelectControl, { label: __('表示タイプ', 'cni-blocks'), value: displayType, options: [
+            { label: 'grid', value: 'grid' },
+            { label: 'justified', value: 'justified' },
+            { label: 'masonry', value: 'masonry' },
+            { label: 'portfolio', value: 'portfolio' },
+            { label: 'single-thumbnail', value: 'single-thumbnail' }
+          ], onChange: (v) => setAttributes({ displayType: v || 'grid' }) }),
           el(RangeControl, { label: __('PC列数', 'cni-blocks'), value: columnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ columnsPc: v || 2 }) }),
           el(RangeControl, { label: __('gap(px)', 'cni-blocks'), value: gap, min: 0, max: 40, onChange: (v) => setAttributes({ gap: v || 0 }) }),
           el(RangeControl, { label: __('角丸(px)', 'cni-blocks'), value: radius, min: 0, max: 40, onChange: (v) => setAttributes({ radius: v || 0 }) }),
+          el(ToggleControl, { label: __('外枠を表示', 'cni-blocks'), checked: showBorder, onChange: (v) => setAttributes({ showBorder: !!v }) }),
+          el(ColorPalette, {
+            colors: [
+              { name: 'gray', color: '#d9d9d9' },
+              { name: 'black', color: '#222222' },
+              { name: 'white', color: '#ffffff' },
+              { name: 'blue', color: '#2271b1' }
+            ],
+            value: borderColor,
+            onChange: (v) => setAttributes({ borderColor: v || '#d9d9d9' })
+          }),
+          el(RangeControl, { label: __('外枠の太さ(px)', 'cni-blocks'), value: borderWidth, min: 0, max: 12, onChange: (v) => setAttributes({ borderWidth: v || 0 }) }),
           el(ToggleControl, { label: __('影をつける', 'cni-blocks'), checked: shadow, onChange: (v) => setAttributes({ shadow: !!v }) }),
-          el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) })
+          el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) }),
+          el(ToggleControl, { label: __('ライトボックスを有効化', 'cni-blocks'), checked: lightbox, onChange: (v) => setAttributes({ lightbox: !!v }) })
         )
       ),
       el('div', blockProps,
@@ -487,10 +519,10 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
             })
           )
         ),
-        el('div', { className: 'cni-tile-grid' + (shadow ? ' is-shadow' : '') },
+        el('div', { className: 'cni-tile-grid cni-tile-grid--' + displayType + (shadow ? ' is-shadow' : ''), 'data-lightbox': lightbox ? '1' : '0' },
           images.map((img, i) =>
             el('figure', { key: img.id || i, className: 'cni-tile-item' },
-              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
+              el('button', { type: 'button', className: 'cni-tile-open', disabled: !lightbox }, el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })),
               showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
             )
           )
@@ -507,15 +539,17 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-cols-sp': attributes.columnsSp || 2,
         '--cni-tile-cols-pc': attributes.columnsPc || 4,
         '--cni-tile-gap': (typeof attributes.gap === 'number' ? attributes.gap : 8) + 'px',
-        '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px'
+        '--cni-tile-radius': (typeof attributes.radius === 'number' ? attributes.radius : 0) + 'px',
+        '--cni-tile-border-color': attributes.borderColor || '#d9d9d9',
+        '--cni-tile-border-width': ((attributes.showBorder ? (typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1) : 0)) + 'px'
       }
     });
 
     return el('div', blockProps,
-      el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
+      el('div', { className: 'cni-tile-grid cni-tile-grid--' + (attributes.displayType || 'grid') + (attributes.shadow ? ' is-shadow' : ''), 'data-lightbox': attributes.lightbox ? '1' : '0' },
         images.map((img, i) =>
           el('figure', { key: img.id || i, className: 'cni-tile-item' },
-            el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
+            el('button', { type: 'button', className: 'cni-tile-open', 'data-index': i, 'data-full': img.url, 'aria-label': __('画像を拡大', 'cni-blocks') }, el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })),
             attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
           )
         )

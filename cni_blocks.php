@@ -47,6 +47,7 @@ register_block_type(
   'cni-blocks/tile-gallery',
   array(
     'editor_script' => 'cni-blocks-editor',
+    'script'        => 'cni-blocks-view',
     'style'         => 'cni-blocks-style',
     'attributes'    => array(
       'images'      => array( 'type' => 'array', 'default' => array() ),
@@ -56,6 +57,11 @@ register_block_type(
       'radius'      => array( 'type' => 'number', 'default' => 0 ),
       'shadow'      => array( 'type' => 'boolean', 'default' => false ),
       'showCaption' => array( 'type' => 'boolean', 'default' => false ),
+      'displayType' => array( 'type' => 'string', 'default' => 'grid' ),
+      'showBorder'  => array( 'type' => 'boolean', 'default' => false ),
+      'borderColor' => array( 'type' => 'string', 'default' => '#d9d9d9' ),
+      'borderWidth' => array( 'type' => 'number', 'default' => 1 ),
+      'lightbox'    => array( 'type' => 'boolean', 'default' => false ),
     ),
   )
 );
