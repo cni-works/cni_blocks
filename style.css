@@ -145,6 +145,10 @@
   font-size:.9em;
   line-height:1.5;
 }
+/* Editor preview: keep desktop-like columns so it matches typical frontend preview */
+.editor-styles-wrapper .wp-block-cni-blocks-tile-gallery .cni-tile-grid{
+  grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr));
+}
 @media (min-width: 782px){
   .wp-block-cni-blocks-tile-gallery .cni-tile-grid{
     grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr));

@@ -466,7 +466,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       null,
       el(InspectorControls, null,
         el(PanelBody, { title: __('レイアウト', 'cni-blocks'), initialOpen: true },
-          el(RangeControl, { label: __('スマホ列数', 'cni-blocks'), value: columnsSp, min: 1, max: 3, onChange: (v) => setAttributes({ columnsSp: v || 1 }) }),
+          el(RangeControl, { label: __('スマホ列数', 'cni-blocks'), value: columnsSp, min: 1, max: 6, onChange: (v) => setAttributes({ columnsSp: v || 1 }) }),
           el(RangeControl, { label: __('PC列数', 'cni-blocks'), value: columnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ columnsPc: v || 2 }) }),
           el(RangeControl, { label: __('gap(px)', 'cni-blocks'), value: gap, min: 0, max: 40, onChange: (v) => setAttributes({ gap: v || 0 }) }),
           el(RangeControl, { label: __('角丸(px)', 'cni-blocks'), value: radius, min: 0, max: 40, onChange: (v) => setAttributes({ radius: v || 0 }) }),
