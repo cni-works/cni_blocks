@@ -166,11 +166,8 @@
   object-fit:cover;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{
-codex/analyze-wordpress-plugin-structure-7syd03
+  display:block;
   columns:var(--cni-masonry-cols-sp,2);
-
-  columns:2;
-fix/slide-ghost-and-tile-gallery
   column-gap:var(--cni-tile-gap, 8px);
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-item{
@@ -178,11 +175,7 @@ fix/slide-ghost-and-tile-gallery
   margin:0 0 var(--cni-tile-gap, 8px);
 }
 @media (min-width:782px){
-codex/analyze-wordpress-plugin-structure-7syd03
   .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{columns:var(--cni-masonry-cols-pc,3);}
-
-  .wp-block-cni-blocks-tile-gallery.cni-display-masonry .cni-tile-grid{columns:3;}
-fix/slide-ghost-and-tile-gallery
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-portfolio .cni-tile-grid{
   grid-template-columns:repeat(2, minmax(0,1fr));
@@ -197,8 +190,23 @@ fix/slide-ghost-and-tile-gallery
   display:none;
 }
 
+.wp-block-cni-blocks-tile-gallery{
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+}
+.wp-block-cni-blocks-tile-gallery .cni-tile-item,
+.wp-block-cni-blocks-tile-gallery .cni-tile-trigger{
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+}
 .wp-block-cni-blocks-tile-gallery .cni-tile-item img{
-  border:var(--cni-tile-border-width,0) solid var(--cni-tile-border-color,#ddd);
+  border:0 !important;
+  outline:0 !important;
+}
+.wp-block-cni-blocks-tile-gallery.cni-has-border .cni-tile-item img{
+  border:var(--cni-tile-border-width,1px) solid var(--cni-tile-border-color,#ddd) !important;
 }
 .wp-block-cni-blocks-tile-gallery .cni-tile-trigger{
   border:0;
@@ -217,17 +225,10 @@ fix/slide-ghost-and-tile-gallery
   grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr)) !important;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-sp .cni-tile-grid{
-codex/analyze-wordpress-plugin-structure-7syd03
   columns:var(--cni-masonry-cols-sp,2) !important;
 }
 .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-pc .cni-tile-grid{
   columns:var(--cni-masonry-cols-pc,3) !important;
-
-  columns:2 !important;
-}
-.wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-pc .cni-tile-grid{
-  columns:3 !important;
-fix/slide-ghost-and-tile-gallery
 }
 
 .cni-lightbox{position:fixed;inset:0;display:none;z-index:99999;}
@@ -239,3 +240,18 @@ fix/slide-ghost-and-tile-gallery
 .cni-lightbox__close{top:8px;right:8px;font-size:20px;}
 .cni-lightbox__prev{left:8px;}
 .cni-lightbox__next{right:8px;}
+
+
+/* editor preview force: Gutenberg editor width should not change selected PC/SP preview */
+.editor-styles-wrapper .wp-block-cni-blocks-tile-gallery.cni-editor-preview-sp .cni-tile-grid{
+  grid-template-columns:repeat(var(--cni-tile-cols-sp,2), minmax(0,1fr)) !important;
+}
+.editor-styles-wrapper .wp-block-cni-blocks-tile-gallery.cni-editor-preview-pc .cni-tile-grid{
+  grid-template-columns:repeat(var(--cni-tile-cols-pc,4), minmax(0,1fr)) !important;
+}
+.editor-styles-wrapper .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-sp .cni-tile-grid{
+  columns:var(--cni-masonry-cols-sp,2) !important;
+}
+.editor-styles-wrapper .wp-block-cni-blocks-tile-gallery.cni-display-masonry.cni-editor-preview-pc .cni-tile-grid{
+  columns:var(--cni-masonry-cols-pc,3) !important;
+}

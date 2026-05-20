@@ -1,0 +1,2 @@
+git checkout fix/slide-ghost-and-tile-gallery
+git pull

@@ -253,11 +253,7 @@
 
     root = document.createElement('div');
     root.className = 'cni-lightbox';
-codex/analyze-wordpress-plugin-structure-7syd03
     root.innerHTML = '<div class="cni-lightbox__backdrop"></div><div class="cni-lightbox__dialog" role="dialog" aria-modal="true" tabindex="-1"><button type="button" class="cni-lightbox__close" aria-label="Close">×</button><button type="button" class="cni-lightbox__nav cni-lightbox__prev" aria-label="Prev">‹</button><img class="cni-lightbox__img" alt="" /><button type="button" class="cni-lightbox__nav cni-lightbox__next" aria-label="Next">›</button></div>';
-
-    root.innerHTML = '<div class="cni-lightbox__backdrop"></div><div class="cni-lightbox__dialog" role="dialog" aria-modal="true"><button type="button" class="cni-lightbox__close" aria-label="Close">×</button><button type="button" class="cni-lightbox__nav cni-lightbox__prev" aria-label="Prev">‹</button><img class="cni-lightbox__img" alt="" /><button type="button" class="cni-lightbox__nav cni-lightbox__next" aria-label="Next">›</button></div>';
-fix/slide-ghost-and-tile-gallery
     document.body.appendChild(root);
     return root;
   }
@@ -266,13 +262,9 @@ fix/slide-ghost-and-tile-gallery
     const items = getTileItems(block);
     if (!items.length) return;
     const box = ensureLightbox();
-codex/analyze-wordpress-plugin-structure-7syd03
     const dialog = box.querySelector('.cni-lightbox__dialog');
     const imgEl = box.querySelector('.cni-lightbox__img');
     const prevFocus = document.activeElement;
-
-    const imgEl = box.querySelector('.cni-lightbox__img');
-fix/slide-ghost-and-tile-gallery
     let idx = Math.max(0, Math.min(startIdx, items.length - 1));
 
     const render = () => {
@@ -281,37 +273,26 @@ fix/slide-ghost-and-tile-gallery
     };
 
     box.classList.add('is-open');
-codex/analyze-wordpress-plugin-structure-7syd03
     box.setAttribute('aria-hidden', 'false');
     render();
     if (dialog) dialog.focus();
-
-    render();
-fix/slide-ghost-and-tile-gallery
 
     const onPrev = (e) => { e.stopPropagation(); idx = (idx - 1 + items.length) % items.length; render(); };
     const onNext = (e) => { e.stopPropagation(); idx = (idx + 1) % items.length; render(); };
     const onClose = () => {
       box.classList.remove('is-open');
-codex/analyze-wordpress-plugin-structure-7syd03
       box.setAttribute('aria-hidden', 'true');
-
-fix/slide-ghost-and-tile-gallery
       box.querySelector('.cni-lightbox__prev').removeEventListener('click', onPrev);
       box.querySelector('.cni-lightbox__next').removeEventListener('click', onNext);
       box.querySelector('.cni-lightbox__close').removeEventListener('click', onClose);
       box.querySelector('.cni-lightbox__backdrop').removeEventListener('click', onClose);
       document.removeEventListener('keydown', onKey);
-codex/analyze-wordpress-plugin-structure-7syd03
       if (prevFocus && prevFocus.focus) prevFocus.focus();
-
-fix/slide-ghost-and-tile-gallery
     };
     const onKey = (e) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowLeft') onPrev(e);
       if (e.key === 'ArrowRight') onNext(e);
-codex/analyze-wordpress-plugin-structure-7syd03
       if (e.key === 'Tab' && dialog) {
         const focusables = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         if (!focusables.length) return;
@@ -320,8 +301,6 @@ codex/analyze-wordpress-plugin-structure-7syd03
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }
-
-fix/slide-ghost-and-tile-gallery
     };
 
     box.querySelector('.cni-lightbox__prev').addEventListener('click', onPrev);
