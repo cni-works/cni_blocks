@@ -447,10 +447,10 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const shadow = !!attributes.shadow;
     const showCaption = !!attributes.showCaption;
     const displayType = attributes.displayType || 'grid';
+    const lightbox = attributes.lightbox !== false;
     const borderOn = !!attributes.borderOn;
     const borderColor = attributes.borderColor || '#dddddd';
     const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
-    const lightbox = attributes.lightbox !== false;
     const previewDevice = attributes.previewDevice || 'pc';
     const masonryColumnsSp = attributes.masonryColumnsSp || 2;
     const masonryColumnsPc = attributes.masonryColumnsPc || 3;
@@ -557,6 +557,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const { attributes } = props;
     const images = attributes.images || [];
     const displayType = attributes.displayType || 'grid';
+    const lightbox = attributes.lightbox !== false;
     const borderOn = !!attributes.borderOn;
     const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
     const borderColor = attributes.borderColor || '#dddddd';
@@ -580,9 +581,11 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       el('div', { className: 'cni-tile-grid' + (attributes.shadow ? ' is-shadow' : '') },
         images.map((img, i) =>
           el('figure', { key: img.id || i, className: 'cni-tile-item' },
-            el('button', { type: 'button', className: 'cni-tile-trigger', 'data-index': i, 'aria-label': __('画像', 'cni-blocks') + (i + 1) },
-              el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })
-            ),
+            lightbox
+              ? el('button', { type: 'button', className: 'cni-tile-trigger', 'data-index': i, 'aria-label': __('画像', 'cni-blocks') + (i + 1) },
+                  el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' })
+                )
+              : el('img', { src: img.url, alt: img.alt || '', loading: 'lazy', decoding: 'async' }),
             attributes.showCaption && img.caption ? el('figcaption', { className: 'cni-tile-cap' }, img.caption) : null
           )
         )
