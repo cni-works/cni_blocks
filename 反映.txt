@@ -1,2 +1,8 @@
+◆githubからローカルへ反映
 git checkout fix/slide-ghost-and-tile-gallery
 git pull
+
+◆ローカルからgithubへ反映
+git add .
+git commit -m "修正内容"
+git push
