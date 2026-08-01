@@ -1,0 +1,24 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/custom-field",
+  "title": "カスタムフィールド+",
+  "category": "cni-blocks",
+  "icon": "editor-code",
+  "description": "現在の投稿や固定ページに保存されたカスタムフィールドを表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "fieldKey": { "type": "string", "default": "" },
+    "displayMode": { "type": "string", "default": "linebreak" },
+    "fallbackText": { "type": "string", "default": "" },
+    "htmlTag": { "type": "string", "default": "div" },
+    "textAlign": { "type": "string", "default": "left" },
+    "fontSize": { "type": "number", "default": 0 },
+    "textColor": { "type": "string", "default": "" }
+  },
+  "usesContext": [ "postId", "postType" ],
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

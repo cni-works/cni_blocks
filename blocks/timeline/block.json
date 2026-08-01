@@ -1,0 +1,28 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/timeline",
+  "title": "タイムライン+",
+  "category": "cni-blocks",
+  "icon": "clock",
+  "description": "時刻や日付、工程などのラベルと自由な内容を時系列で表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "markerStyle": { "type": "string", "default": "outline" },
+    "markerSize": { "type": "number", "default": 16 },
+    "markerColor": { "type": "string", "default": "#2385b8" },
+    "labelColor": { "type": "string", "default": "#555555" },
+    "labelFontSize": { "type": "number", "default": 18 },
+    "itemGap": { "type": "number", "default": 32 },
+    "contentGap": { "type": "number", "default": 16 },
+    "showLine": { "type": "boolean", "default": true },
+    "lineStyle": { "type": "string", "default": "solid" },
+    "lineWidth": { "type": "number", "default": 3 },
+    "lineColor": { "type": "string", "default": "#dddddd" }
+  },
+  "allowedBlocks": [ "cni-blocks/timeline-item" ],
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

@@ -1,0 +1,127 @@
+.wp-block-cni-blocks-overlap-media {
+	display: flex;
+	position: relative;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border: 0;
+}
+
+.wp-block-cni-blocks-overlap-media[data-vertical-align="start"] { align-items: flex-start; }
+.wp-block-cni-blocks-overlap-media[data-vertical-align="end"] { align-items: flex-end; }
+.wp-block-cni-blocks-overlap-media[data-image-position="right"] { flex-direction: row-reverse; }
+
+.cni-overlap-media__media {
+	position: relative;
+	z-index: 1;
+	flex: 0 0 var(--cni-overlap-image-width, 65%);
+	overflow: hidden;
+	box-sizing: border-box;
+	border-radius: var(--cni-overlap-image-radius, 0);
+	background: #f0f0f0;
+	aspect-ratio: 3 / 2;
+}
+
+.wp-block-cni-blocks-overlap-media[data-image-ratio="16-9"] .cni-overlap-media__media { aspect-ratio: 16 / 9; }
+.wp-block-cni-blocks-overlap-media[data-image-ratio="4-3"] .cni-overlap-media__media { aspect-ratio: 4 / 3; }
+.wp-block-cni-blocks-overlap-media[data-image-ratio="1-1"] .cni-overlap-media__media { aspect-ratio: 1; }
+
+.cni-overlap-media__image {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.cni-overlap-media__image-actions {
+	display: flex;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 3;
+	gap: 8px;
+	transform: translate(-50%, -50%);
+}
+
+.cni-overlap-media__content {
+	position: relative;
+	z-index: 2;
+	flex: 0 0 var(--cni-overlap-content-width, 50%);
+	margin-left: calc(-1 * var(--cni-overlap-pc, 20%));
+	padding: var(--cni-overlap-padding-pc, 32px);
+	overflow: hidden;
+	box-sizing: border-box;
+	border: var(--cni-overlap-border-width, 0) solid var(--cni-overlap-border-color, #ddd);
+	border-radius: var(--cni-overlap-content-radius, 8px);
+	box-shadow: var(--cni-overlap-content-shadow, 0 12px 32px rgba(0, 0, 0, .16));
+	color: var(--cni-overlap-content-color, #333);
+}
+
+.wp-block-cni-blocks-overlap-media[data-image-position="right"] .cni-overlap-media__content {
+	margin-right: calc(-1 * var(--cni-overlap-pc, 20%));
+	margin-left: 0;
+}
+
+.cni-overlap-media__content::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: var(--cni-overlap-content-background, #fff);
+	opacity: var(--cni-overlap-content-opacity, .9);
+}
+
+.cni-overlap-media__content-inner { position: relative; z-index: 1; }
+.cni-overlap-media__content-inner > :first-child,
+.editor-styles-wrapper .cni-overlap-media__content-inner > .block-editor-inner-blocks > .block-editor-block-list__layout > :first-child { margin-top: 0; }
+.cni-overlap-media__content-inner > :last-child,
+.editor-styles-wrapper .cni-overlap-media__content-inner > .block-editor-inner-blocks > .block-editor-block-list__layout > :last-child { margin-bottom: 0; }
+
+@media (min-width: 601px) and (max-width: 1024px) {
+	.cni-overlap-media__content {
+		margin-left: calc(-1 * var(--cni-overlap-tablet, 12%));
+		padding: var(--cni-overlap-padding-tablet, 24px);
+	}
+	.wp-block-cni-blocks-overlap-media[data-image-position="right"] .cni-overlap-media__content {
+		margin-right: calc(-1 * var(--cni-overlap-tablet, 12%));
+		margin-left: 0;
+	}
+}
+
+@media (max-width: 600px) {
+	.wp-block-cni-blocks-overlap-media,
+	.wp-block-cni-blocks-overlap-media[data-image-position="right"] {
+		align-items: stretch;
+		flex-direction: column;
+	}
+	.cni-overlap-media__media,
+	.cni-overlap-media__content { width: 100%; flex-basis: auto; }
+	.cni-overlap-media__content,
+	.wp-block-cni-blocks-overlap-media[data-image-position="right"] .cni-overlap-media__content {
+		margin: calc(-1 * var(--cni-overlap-mobile, 0%)) 0 0;
+		padding: var(--cni-overlap-padding-mobile, 20px);
+	}
+	.wp-block-cni-blocks-overlap-media[data-mobile-order="content-first"] .cni-overlap-media__content {
+		order: 1;
+		margin-top: 0;
+	}
+	.wp-block-cni-blocks-overlap-media[data-mobile-order="content-first"] .cni-overlap-media__media {
+		order: 2;
+		margin-top: calc(-1 * var(--cni-overlap-mobile, 0%));
+	}
+}
+
+@media (min-width: 601px) {
+	.wp-block-cni-blocks-overlap-media.alignfull {
+		width: 100vw;
+		max-width: none;
+		margin-right: calc(50% - 50vw);
+		margin-left: calc(50% - 50vw);
+	}
+	.editor-styles-wrapper .wp-block-cni-blocks-overlap-media.alignfull {
+		width: 100%;
+		max-width: 100%;
+		margin-right: 0;
+		margin-left: 0;
+	}
+}

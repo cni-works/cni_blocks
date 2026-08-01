@@ -1,11 +1,14 @@
 {
-  "apiVersion": 2,
+  "apiVersion": 3,
   "name": "cni-blocks/slide-gallery",
   "title": "スライドギャラリー",
-  "category": "media",
+  "category": "cni-blocks",
   "icon": "format-gallery",
-  "description": "メイン画像＋サムネ切替＋矢印＋アニメーション。キャプション表示も可能。",
+  "description": "1枚表示または横並びカルーセルで、サムネイル、リンク、矢印、キャプションを設定できます。",
   "textdomain": "cni-blocks",
+  "supports": {
+    "align": ["wide", "full"]
+  },
   "attributes": {
     "images": {
       "type": "array",
@@ -23,6 +26,22 @@
       "type": "boolean",
       "default": true
     },
+    "arrowBackgroundColor": {
+      "type": "string",
+      "default": ""
+    },
+    "arrowIconColorMode": {
+      "type": "string",
+      "default": "auto"
+    },
+    "arrowIconColor": {
+      "type": "string",
+      "default": ""
+    },
+    "arrowPosition": {
+      "type": "string",
+      "default": "inside"
+    },
     "transition": {
       "type": "string",
       "default": "fade"
@@ -37,7 +56,7 @@
     },
     "aspectRatio": {
       "type": "string",
-      "default": "auto"
+      "default": "3/2"
     },
     "objectFit": {
       "type": "string",
@@ -58,6 +77,70 @@
     "captionStyle": {
       "type": "string",
       "default": "glass"
+    },
+    "sideRatio": {
+      "type": "string",
+      "default": "3-1"
+    },
+    "thumbnailSize": {
+      "type": "string",
+      "default": "medium"
+    },
+    "showThumbnails": {
+      "type": "boolean",
+      "default": true
+    },
+    "galleryType": {
+      "type": "string",
+      "default": "single"
+    },
+    "carouselColumnsPc": {
+      "type": "number",
+      "default": 3
+    },
+    "carouselColumnsTablet": {
+      "type": "number",
+      "default": 2
+    },
+    "carouselColumnsMobile": {
+      "type": "number",
+      "default": 1
+    },
+    "carouselGap": {
+      "type": "number",
+      "default": 16
+    },
+    "carouselAutoplay": {
+      "type": "boolean",
+      "default": false
+    },
+    "carouselAutoplayMode": {
+      "type": "string",
+      "default": "step"
+    },
+    "carouselDirection": {
+      "type": "string",
+      "default": "left"
+    },
+    "carouselInterval": {
+      "type": "number",
+      "default": 4
+    },
+    "carouselTransitionDuration": {
+      "type": "number",
+      "default": 500
+    },
+    "carouselContinuousSpeed": {
+      "type": "number",
+      "default": 40
+    },
+    "carouselPauseOnHover": {
+      "type": "boolean",
+      "default": true
+    },
+    "carouselPauseOnFocus": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

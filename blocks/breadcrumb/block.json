@@ -1,0 +1,29 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/breadcrumb",
+  "title": "パンくず表示+",
+  "category": "cni-blocks",
+  "icon": "arrow-right-alt",
+  "description": "現在のページに合わせたパンくずを好きな位置に表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "showHome": { "type": "boolean", "default": true },
+    "homeLabel": { "type": "string", "default": "ホーム" },
+    "showCurrent": { "type": "boolean", "default": true },
+    "hideOnFront": { "type": "boolean", "default": true },
+    "separator": { "type": "string", "default": "chevron" },
+    "textAlign": { "type": "string", "default": "left" },
+    "fontSize": { "type": "number", "default": 14 },
+    "textColor": { "type": "string", "default": "#666666" },
+    "linkColor": { "type": "string", "default": "#2271b1" },
+    "separatorColor": { "type": "string", "default": "#999999" },
+    "paddingTop": { "type": "number", "default": 8 },
+    "paddingBottom": { "type": "number", "default": 8 }
+  },
+  "usesContext": [ "postId", "postType" ],
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

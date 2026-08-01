@@ -1,0 +1,41 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/overlap-media",
+  "title": "画像重ねレイアウト+",
+  "category": "cni-blocks",
+  "icon": "align-pull-left",
+  "description": "画像と自由なコンテンツを重ね、モバイルでは縦並びにできるレイアウトです。",
+  "keywords": [ "画像重ね", "ブロークングリッド", "メディアとテキスト" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "imageId": { "type": "number", "default": 0 },
+    "imageUrl": { "type": "string", "default": "" },
+    "imageAlt": { "type": "string", "default": "" },
+    "imagePosition": { "type": "string", "default": "left" },
+    "imageWidth": { "type": "number", "default": 65 },
+    "contentWidth": { "type": "number", "default": 50 },
+    "verticalAlign": { "type": "string", "default": "center" },
+    "imageRatio": { "type": "string", "default": "3-2" },
+    "imageRadius": { "type": "number", "default": 0 },
+    "overlapPc": { "type": "number", "default": 20 },
+    "overlapTablet": { "type": "number", "default": 12 },
+    "overlapMobile": { "type": "number", "default": 0 },
+    "mobileOrder": { "type": "string", "default": "image-first" },
+    "contentBackgroundColor": { "type": "string", "default": "#ffffff" },
+    "contentBackgroundOpacity": { "type": "number", "default": 90 },
+    "contentTextColor": { "type": "string", "default": "#333333" },
+    "paddingPc": { "type": "number", "default": 32 },
+    "paddingTablet": { "type": "number", "default": 24 },
+    "paddingMobile": { "type": "number", "default": 20 },
+    "contentRadius": { "type": "number", "default": 8 },
+    "showShadow": { "type": "boolean", "default": true },
+    "showBorder": { "type": "boolean", "default": false },
+    "borderWidth": { "type": "number", "default": 1 },
+    "borderColor": { "type": "string", "default": "#dddddd" }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

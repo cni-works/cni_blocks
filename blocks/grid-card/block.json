@@ -1,0 +1,17 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/grid-card",
+  "title": "Grid+ Card",
+  "category": "cni-blocks",
+  "icon": "index-card",
+  "description": "Grid+内部で使用するカード。",
+  "textdomain": "cni-blocks",
+  "parent": [
+    "cni-blocks/auto-grid"
+  ],
+  "supports": {
+    "inserter": false,
+    "html": false,
+    "reusable": false
+  }
+}
