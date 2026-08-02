@@ -1,0 +1,38 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/tabs",
+  "title": "タブ+",
+  "category": "cni-blocks",
+  "icon": "index-card",
+  "description": "自由なブロックを配置できる内容をタブで切り替えます。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "activeIndex": { "type": "number", "default": 0 },
+    "design": { "type": "string", "default": "standard" },
+    "widthPc": { "type": "string", "default": "equal" },
+    "widthTablet": { "type": "string", "default": "equal" },
+    "widthMobile": { "type": "string", "default": "fit" },
+    "overflowPc": { "type": "string", "default": "wrap" },
+    "overflowTablet": { "type": "string", "default": "scroll" },
+    "overflowMobile": { "type": "string", "default": "scroll" },
+    "inactiveBackgroundColor": { "type": "string", "default": "#f0f0f0" },
+    "inactiveTextColor": { "type": "string", "default": "#333333" },
+    "contentBackgroundColor": { "type": "string", "default": "#ffffff" },
+    "contentBorder": { "type": "boolean", "default": true },
+    "contentBorderColor": { "type": "string", "default": "#dddddd" },
+    "contentPadding": { "type": "number", "default": 24 },
+    "labelPaddingY": { "type": "number", "default": 14 },
+    "labelPaddingX": { "type": "number", "default": 24 },
+    "labelRadius": { "type": "number", "default": 8 },
+    "tabGap": { "type": "number", "default": 4 }
+  },
+  "allowedBlocks": [ "cni-blocks/tab-item" ],
+  "providesContext": {
+    "cni-blocks/tabs-active-index": "activeIndex"
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

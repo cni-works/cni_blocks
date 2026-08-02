@@ -1,0 +1,27 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/visual-embed",
+  "title": "地図+",
+  "category": "cni-blocks",
+  "icon": "location-alt",
+  "description": "Googleマップを全幅またはレスポンシブな高さで表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "embedUrl": { "type": "string", "default": "" },
+    "title": { "type": "string", "default": "地図" },
+    "width": { "type": "number", "default": 100 },
+    "heightPc": { "type": "number", "default": 450 },
+    "heightTablet": { "type": "number", "default": 400 },
+    "heightMobile": { "type": "number", "default": 320 },
+    "radius": { "type": "number", "default": 0 },
+    "showBorder": { "type": "boolean", "default": false },
+    "borderWidth": { "type": "number", "default": 1 },
+    "borderColor": { "type": "string", "default": "#dddddd" },
+    "lazyLoad": { "type": "boolean", "default": true }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

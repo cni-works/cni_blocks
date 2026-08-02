@@ -1,0 +1,102 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/auto-grid",
+  "title": "Grid+",
+  "category": "cni-blocks",
+  "icon": "grid-view",
+  "description": "カードの最小幅から列数を自動計算するレスポンシブグリッド。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "minWidthPc": {
+      "type": "number",
+      "default": 280
+    },
+    "minWidthTablet": {
+      "type": "number",
+      "default": 0
+    },
+    "minWidthMobile": {
+      "type": "number",
+      "default": 0
+    },
+    "cardPaddingPc": {
+      "type": "number",
+      "default": 24
+    },
+    "cardPaddingTablet": {
+      "type": "number",
+      "default": 20
+    },
+    "cardPaddingMobile": {
+      "type": "number",
+      "default": 16
+    },
+    "flushFirstImage": {
+      "type": "boolean",
+      "default": false
+    },
+    "firstImageAspectRatio": {
+      "type": "string",
+      "default": "4-3"
+    },
+    "firstImageFit": {
+      "type": "string",
+      "default": "cover"
+    },
+    "firstImagePosition": {
+      "type": "string",
+      "default": "center"
+    },
+    "gapHorizontal": {
+      "type": "number",
+      "default": 24
+    },
+    "gapVertical": {
+      "type": "number",
+      "default": 24
+    },
+    "cardBackgroundColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "cardRadius": {
+      "type": "number",
+      "default": 8
+    },
+    "cardShadow": {
+      "type": "boolean",
+      "default": false
+    },
+    "cardBorder": {
+      "type": "boolean",
+      "default": false
+    },
+    "cardBorderWidth": {
+      "type": "number",
+      "default": 1
+    },
+    "cardBorderColor": {
+      "type": "string",
+      "default": "#dddddd"
+    },
+    "equalHeight": {
+      "type": "boolean",
+      "default": true
+    },
+    "alignButtonsBottom": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "allowedBlocks": [
+    "cni-blocks/grid-card"
+  ],
+  "supports": {
+    "align": [
+      "wide",
+      "full"
+    ],
+    "anchor": true,
+    "html": false
+  }
+}

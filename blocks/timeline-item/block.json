@@ -1,0 +1,18 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/timeline-item",
+  "title": "タイムライン項目",
+  "category": "cni-blocks",
+  "icon": "clock",
+  "description": "タイムライン+の内部で使用する項目です。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "label": { "type": "string", "default": "10:00" }
+  },
+  "parent": [ "cni-blocks/timeline" ],
+  "supports": {
+    "inserter": false,
+    "html": false,
+    "reusable": false
+  }
+}

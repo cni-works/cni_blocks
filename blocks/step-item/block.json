@@ -1,0 +1,18 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/step-item",
+  "title": "ステップ項目",
+  "category": "cni-blocks",
+  "icon": "marker",
+  "description": "ステップ+の内部で使用する項目です。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "markerLabel": { "type": "string", "default": "STEP" }
+  },
+  "parent": [ "cni-blocks/step" ],
+  "supports": {
+    "inserter": false,
+    "html": false,
+    "reusable": false
+  }
+}

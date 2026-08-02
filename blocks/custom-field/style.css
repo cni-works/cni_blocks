@@ -1,0 +1,24 @@
+.wp-block-cni-blocks-custom-field.cni-custom-field {
+	color: var(--cni-custom-field-text-color, inherit);
+	font-size: var(--cni-custom-field-font-size, inherit);
+}
+
+.cni-custom-field--left {
+	text-align: left;
+}
+
+.cni-custom-field--center {
+	text-align: center;
+}
+
+.cni-custom-field--right {
+	text-align: right;
+}
+
+.cni-custom-field__editor-note {
+	margin: 0;
+	padding: 12px 16px;
+	border: 1px solid #dba617;
+	background: #fff8e5;
+	color: #614200;
+}

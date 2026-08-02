@@ -1,0 +1,50 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/selected-post-list",
+  "title": "選択投稿リスト+",
+  "category": "cni-blocks",
+  "icon": "star-filled",
+  "description": "URLやタイトルから選択した投稿、固定ページ、カスタム投稿を一覧表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "selectedPosts": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "postType": { "type": "string" },
+          "title": { "type": "string" },
+          "url": { "type": "string" },
+          "typeLabel": { "type": "string" }
+        }
+      }
+    },
+    "displayType": { "type": "string", "default": "card" },
+    "showImage": { "type": "boolean", "default": true },
+    "showCategory": { "type": "boolean", "default": true },
+    "showDate": { "type": "boolean", "default": true },
+    "showTitle": { "type": "boolean", "default": true },
+    "titleLevel": { "type": "number", "default": 3 },
+    "titleFontSize": { "type": "number", "default": 0 },
+    "minWidthPc": { "type": "number", "default": 280 },
+    "minWidthTablet": { "type": "number", "default": 0 },
+    "minWidthMobile": { "type": "number", "default": 0 },
+    "gap": { "type": "number", "default": 24 },
+    "cardPadding": { "type": "number", "default": 16 },
+    "cardBackgroundColor": { "type": "string", "default": "#ffffff" },
+    "cardRadius": { "type": "number", "default": 8 },
+    "cardShadow": { "type": "boolean", "default": false },
+    "cardBorder": { "type": "boolean", "default": true },
+    "cardBorderWidth": { "type": "number", "default": 1 },
+    "cardBorderColor": { "type": "string", "default": "#dddddd" },
+    "imageRatio": { "type": "string", "default": "16-9" },
+    "hoverEffect": { "type": "string", "default": "lift" }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

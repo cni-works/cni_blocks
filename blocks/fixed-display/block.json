@@ -1,0 +1,34 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/fixed-display",
+  "title": "固定表示+",
+  "category": "cni-blocks",
+  "icon": "sticky",
+  "description": "内側に配置したブロックを公開画面の指定位置に固定表示します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "position": { "type": "string", "default": "bottom-right" },
+    "offsetX": { "type": "number", "default": 24 },
+    "offsetY": { "type": "number", "default": 24 },
+    "width": { "type": "number", "default": 360 },
+    "maxViewportWidth": { "type": "number", "default": 90 },
+    "padding": { "type": "number", "default": 16 },
+    "backgroundColor": { "type": "string", "default": "#ffffff" },
+    "transparentBackground": { "type": "boolean", "default": false },
+    "radius": { "type": "number", "default": 8 },
+    "showShadow": { "type": "boolean", "default": true },
+    "showBorder": { "type": "boolean", "default": false },
+    "borderWidth": { "type": "number", "default": 1 },
+    "borderColor": { "type": "string", "default": "#dddddd" },
+    "zIndex": { "type": "number", "default": 999 },
+    "showDesktop": { "type": "boolean", "default": true },
+    "showTablet": { "type": "boolean", "default": true },
+    "showMobile": { "type": "boolean", "default": true },
+    "showCloseButton": { "type": "boolean", "default": false },
+    "closeLabel": { "type": "string", "default": "閉じる" }
+  },
+  "supports": {
+    "anchor": true,
+    "html": false
+  }
+}

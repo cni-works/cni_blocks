@@ -1,0 +1,25 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/tab-item",
+  "title": "タブ項目",
+  "category": "cni-blocks",
+  "icon": "excerpt-view",
+  "description": "タブ+の内部で使用する項目です。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "label": { "type": "string", "default": "タブ" },
+    "activeColor": { "type": "string", "default": "#2385b8" },
+    "activeTextColor": { "type": "string", "default": "#ffffff" },
+    "iconBefore": { "type": "string", "default": "" },
+    "iconAfter": { "type": "string", "default": "" },
+    "fontAwesomeBefore": { "type": "string", "default": "" },
+    "fontAwesomeAfter": { "type": "string", "default": "" }
+  },
+  "parent": [ "cni-blocks/tabs" ],
+  "usesContext": [ "cni-blocks/tabs-active-index" ],
+  "supports": {
+    "inserter": false,
+    "html": false,
+    "reusable": false
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/outer",
+  "title": "Outer+",
+  "category": "cni-blocks",
+  "icon": "align-wide",
+  "description": "背景や余白、内側幅を設定し、中に自由なブロックを配置できるセクション。",
+  "textdomain": "cni-blocks",
+  "variations": [
+    {
+      "name": "outer-default",
+      "title": "Outer+",
+      "isDefault": true,
+      "scope": [
+        "inserter"
+      ],
+      "attributes": {
+        "align": "full",
+        "backgroundColor": "#f5f5f5",
+        "paddingVerticalPc": 64,
+        "paddingHorizontalPc": 24,
+        "paddingVerticalTablet": 48,
+        "paddingHorizontalTablet": 24,
+        "paddingVerticalMobile": 32,
+        "paddingHorizontalMobile": 16
+      }
+    }
+  ],
+  "attributes": {
+    "tagName": {
+      "type": "string",
+      "default": "div"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "default": ""
+    },
+    "backgroundImageId": {
+      "type": "number",
+      "default": 0
+    },
+    "backgroundImageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "tabletBackgroundImageId": {
+      "type": "number",
+      "default": 0
+    },
+    "tabletBackgroundImageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "mobileBackgroundImageId": {
+      "type": "number",
+      "default": 0
+    },
+    "mobileBackgroundImageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "backgroundPosition": {
+      "type": "string",
+      "default": "center center"
+    },
+    "backgroundFocalPointPc": {
+      "type": "string",
+      "default": ""
+    },
+    "backgroundFocalPointTablet": {
+      "type": "string",
+      "default": ""
+    },
+    "backgroundFocalPointMobile": {
+      "type": "string",
+      "default": ""
+    },
+    "backgroundDisplay": {
+      "type": "string",
+      "default": "cover"
+    },
+    "overlayColor": {
+      "type": "string",
+      "default": "#000000"
+    },
+    "overlayOpacity": {
+      "type": "number",
+      "default": 0
+    },
+    "contentWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "minHeightPc": {
+      "type": "number",
+      "default": 0
+    },
+    "minHeightTablet": {
+      "type": "number",
+      "default": 0
+    },
+    "minHeightMobile": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingVerticalPc": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingHorizontalPc": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingVerticalTablet": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingHorizontalTablet": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingVerticalMobile": {
+      "type": "number",
+      "default": 0
+    },
+    "paddingHorizontalMobile": {
+      "type": "number",
+      "default": 0
+    },
+    "borderStyle": {
+      "type": "string",
+      "default": "solid"
+    },
+    "borderWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "borderColor": {
+      "type": "string",
+      "default": "#dddddd"
+    },
+    "borderRadius": {
+      "type": "number",
+      "default": 0
+    },
+    "topDividerType": {
+      "type": "string",
+      "default": "none"
+    },
+    "topDividerColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "topDividerHeight": {
+      "type": "number",
+      "default": 80
+    },
+    "topDividerFlip": {
+      "type": "boolean",
+      "default": false
+    },
+    "topDividerCloudDensity": {
+      "type": "number",
+      "default": 2
+    },
+    "topDividerDirection": {
+      "type": "string",
+      "default": "inward"
+    },
+    "topDividerShapeWidth": {
+      "type": "number",
+      "default": 100
+    },
+    "topDividerZigzagCount": {
+      "type": "number",
+      "default": 6
+    },
+    "bottomDividerType": {
+      "type": "string",
+      "default": "none"
+    },
+    "bottomDividerColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "bottomDividerHeight": {
+      "type": "number",
+      "default": 80
+    },
+    "bottomDividerFlip": {
+      "type": "boolean",
+      "default": false
+    },
+    "bottomDividerCloudDensity": {
+      "type": "number",
+      "default": 2
+    },
+    "bottomDividerDirection": {
+      "type": "string",
+      "default": "inward"
+    },
+    "bottomDividerShapeWidth": {
+      "type": "number",
+      "default": 100
+    },
+    "bottomDividerZigzagCount": {
+      "type": "number",
+      "default": 6
+    }
+  },
+  "supports": {
+    "align": [
+      "wide",
+      "full"
+    ],
+    "anchor": true,
+    "color": {
+      "text": true,
+      "background": false,
+      "link": false
+    },
+    "html": false
+  }
+}
