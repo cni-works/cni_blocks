@@ -27,10 +27,13 @@
 			offset: { type: 'number', default: 0 },
 			sortOrder: { type: 'string', default: 'newest' },
 			displayType: { type: 'string', default: 'card' },
+			cardDesign: { type: 'string', default: 'standard' },
 			showImage: { type: 'boolean', default: true },
 			showCategory: { type: 'boolean', default: true },
 			showDate: { type: 'boolean', default: true },
 			showTitle: { type: 'boolean', default: true },
+			showExcerpt: { type: 'boolean', default: true },
+			excerptLength: { type: 'number', default: 55 },
 			titleLevel: { type: 'number', default: 3 },
 			titleFontSize: { type: 'number', default: 0 },
 			minWidthPc: { type: 'number', default: 280 },
@@ -46,6 +49,14 @@
 			cardBorderColor: { type: 'string', default: '#dddddd' },
 			imageRatio: { type: 'string', default: '16-9' },
 			hoverEffect: { type: 'string', default: 'lift' },
+			overlayColor: { type: 'string', default: '#000000' },
+			overlayOpacity: { type: 'number', default: 78 },
+			overlayHeight: { type: 'number', default: 75 },
+			overlayTextColor: { type: 'string', default: '#ffffff' },
+			dateCornerBackgroundColor: { type: 'string', default: '#ffffff' },
+			dateCornerTextColor: { type: 'string', default: '#222222' },
+			categoryBadgeColor: { type: 'string', default: '#087ea4' },
+			textCardTitleBackgroundColor: { type: 'string', default: '' },
 		},
 		supports: {
 			align: [ 'wide', 'full' ],
@@ -54,7 +65,14 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes } = props;
-			const isCard = attributes.displayType !== 'list';
+			const displayType = attributes.displayType || 'card';
+			const isGrid = displayType !== 'list';
+			const isCard = displayType === 'card';
+			const hasCardFrame = isCard || displayType === 'horizontal';
+			const isOverlay = isCard && attributes.cardDesign === 'overlay';
+			const isDateCorner = isCard && attributes.cardDesign === 'date-corner';
+			const isTextCard = isCard && attributes.cardDesign === 'text-card';
+			const usesExcerpt = isOverlay || isDateCorner || isTextCard;
 			const blockProps = useBlockProps();
 
 			return el(
@@ -106,14 +124,29 @@
 							value: attributes.displayType || 'card',
 							options: [
 								{ label: __( 'カード', 'cni-blocks' ), value: 'card' },
+								{ label: __( 'カード（水平）', 'cni-blocks' ), value: 'horizontal' },
+								{ label: __( 'カード（メディア）', 'cni-blocks' ), value: 'media' },
 								{ label: __( 'テキストリスト（1カラム）', 'cni-blocks' ), value: 'list' },
 							],
 							onChange: function( value ) { setAttributes( { displayType: value } ); },
 						} ),
-						isCard ? el( ToggleControl, { label: __( 'アイキャッチを表示', 'cni-blocks' ), checked: attributes.showImage !== false, onChange: function( value ) { setAttributes( { showImage: !!value } ); } } ) : null,
+						isCard ? el( SelectControl, {
+							label: __( 'カードのデザイン', 'cni-blocks' ),
+							value: attributes.cardDesign || 'standard',
+							options: [
+								{ label: __( '標準カード', 'cni-blocks' ), value: 'standard' },
+								{ label: __( '画像全面＋下部オーバーレイ', 'cni-blocks' ), value: 'overlay' },
+								{ label: __( '日付コーナー＋画像・本文', 'cni-blocks' ), value: 'date-corner' },
+								{ label: __( 'テキストカード（画像なし）', 'cni-blocks' ), value: 'text-card' },
+							],
+							onChange: function( value ) { setAttributes( { cardDesign: value } ); },
+						} ) : null,
+						isGrid && ! isTextCard ? el( ToggleControl, { label: __( 'アイキャッチを表示', 'cni-blocks' ), checked: attributes.showImage !== false, onChange: function( value ) { setAttributes( { showImage: !!value } ); } } ) : null,
 						el( ToggleControl, { label: __( 'カテゴリーバッジを表示', 'cni-blocks' ), checked: attributes.showCategory !== false, onChange: function( value ) { setAttributes( { showCategory: !!value } ); } } ),
 						el( ToggleControl, { label: __( '投稿日を表示', 'cni-blocks' ), checked: attributes.showDate !== false, onChange: function( value ) { setAttributes( { showDate: !!value } ); } } ),
 						el( ToggleControl, { label: __( 'タイトルを表示', 'cni-blocks' ), checked: attributes.showTitle !== false, onChange: function( value ) { setAttributes( { showTitle: !!value } ); } } ),
+						usesExcerpt ? el( ToggleControl, { label: __( '本文の一部を表示', 'cni-blocks' ), checked: attributes.showExcerpt !== false, onChange: function( value ) { setAttributes( { showExcerpt: !!value } ); } } ) : null,
+						usesExcerpt && attributes.showExcerpt !== false ? el( RangeControl, { label: __( '抜粋の長さ', 'cni-blocks' ), value: numberOr( attributes.excerptLength, 55 ), min: 10, max: 160, onChange: function( value ) { setAttributes( { excerptLength: numberOr( value, 55 ) } ); } } ) : null,
 						attributes.showTitle !== false ? el( SelectControl, {
 							label: __( '見出しレベル', 'cni-blocks' ),
 							value: numberOr( attributes.titleLevel, 3 ),
@@ -131,9 +164,11 @@
 							min: 0,
 							max: 48,
 							onChange: function( value ) { setAttributes( { titleFontSize: numberOr( value, 0 ) } ); },
-						} ) : null
+						} ) : null,
+						el( 'p', null, __( 'カテゴリーバッジ背景色（文字色は自動判定）', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.categoryBadgeColor || '#087ea4', clearable: false, onChange: function( value ) { setAttributes( { categoryBadgeColor: value || '#087ea4' } ); } } )
 					),
-					isCard ? el(
+					isGrid ? el(
 						PanelBody,
 						{ title: __( 'カードのカラム', 'cni-blocks' ), initialOpen: false },
 						el( RangeControl, { label: __( 'PC 最小幅（px）', 'cni-blocks' ), value: numberOr( attributes.minWidthPc, 280 ), min: 160, max: 600, step: 10, onChange: function( value ) { setAttributes( { minWidthPc: numberOr( value, 280 ) } ); } } ),
@@ -141,7 +176,7 @@
 						el( RangeControl, { label: __( 'モバイル 最小幅（px・0で上位を継承）', 'cni-blocks' ), value: numberOr( attributes.minWidthMobile, 0 ), min: 0, max: 600, step: 10, onChange: function( value ) { setAttributes( { minWidthMobile: numberOr( value, 0 ) } ); } } ),
 						el( RangeControl, { label: __( 'カード間隔（px）', 'cni-blocks' ), value: numberOr( attributes.gap, 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { gap: numberOr( value, 24 ) } ); } } )
 					) : null,
-					isCard ? el(
+					hasCardFrame ? el(
 						PanelBody,
 						{ title: __( 'カードデザイン', 'cni-blocks' ), initialOpen: false },
 						el( RangeControl, { label: __( 'カード内余白（px）', 'cni-blocks' ), value: numberOr( attributes.cardPadding, 16 ), min: 0, max: 80, onChange: function( value ) { setAttributes( { cardPadding: numberOr( value, 16 ) } ); } } ),
@@ -154,19 +189,21 @@
 						attributes.cardBorder !== false ? el( 'p', null, __( '枠線の色', 'cni-blocks' ) ) : null,
 						attributes.cardBorder !== false ? el( ColorPalette, { value: attributes.cardBorderColor || '#dddddd', clearable: false, onChange: function( value ) { setAttributes( { cardBorderColor: value || '#dddddd' } ); } } ) : null
 					) : null,
-					isCard ? el(
+					isGrid ? el(
 						PanelBody,
 						{ title: __( '画像・マウスオーバー', 'cni-blocks' ), initialOpen: false },
-						el( SelectControl, {
+						isCard && ! isTextCard ? el( SelectControl, {
 							label: __( '画像比率', 'cni-blocks' ),
 							value: attributes.imageRatio || '16-9',
 							options: [
 								{ label: '16:9', value: '16-9' },
 								{ label: '4:3', value: '4-3' },
 								{ label: '1:1', value: '1-1' },
+								{ label: '3:4', value: '3-4' },
+								{ label: '2:3', value: '2-3' },
 							],
 							onChange: function( value ) { setAttributes( { imageRatio: value } ); },
-						} ),
+						} ) : null,
 						el( SelectControl, {
 							label: __( 'マウスオーバー時の動き', 'cni-blocks' ),
 							value: attributes.hoverEffect || 'lift',
@@ -178,6 +215,30 @@
 							],
 							onChange: function( value ) { setAttributes( { hoverEffect: value } ); },
 						} )
+					) : null,
+					isOverlay ? el(
+						PanelBody,
+						{ title: __( 'オーバーレイ設定', 'cni-blocks' ), initialOpen: false },
+						el( 'p', null, __( 'オーバーレイ色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.overlayColor || '#000000', clearable: false, onChange: function( value ) { setAttributes( { overlayColor: value || '#000000' } ); } } ),
+						el( RangeControl, { label: __( 'オーバーレイの濃さ（%）', 'cni-blocks' ), value: numberOr( attributes.overlayOpacity, 78 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { overlayOpacity: numberOr( value, 78 ) } ); } } ),
+						el( RangeControl, { label: __( 'グラデーションの範囲（%）', 'cni-blocks' ), value: numberOr( attributes.overlayHeight, 75 ), min: 30, max: 100, onChange: function( value ) { setAttributes( { overlayHeight: numberOr( value, 75 ) } ); } } ),
+						el( 'p', null, __( '文字と矢印の色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.overlayTextColor || '#ffffff', clearable: false, onChange: function( value ) { setAttributes( { overlayTextColor: value || '#ffffff' } ); } } )
+					) : null,
+					isDateCorner ? el(
+						PanelBody,
+						{ title: __( '日付コーナー設定', 'cni-blocks' ), initialOpen: false },
+						el( 'p', null, __( '日付エリアの背景色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.dateCornerBackgroundColor || '#ffffff', clearable: false, onChange: function( value ) { setAttributes( { dateCornerBackgroundColor: value || '#ffffff' } ); } } ),
+						el( 'p', null, __( '日付の文字色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.dateCornerTextColor || '#222222', clearable: false, onChange: function( value ) { setAttributes( { dateCornerTextColor: value || '#222222' } ); } } )
+					) : null,
+					isTextCard ? el(
+						PanelBody,
+						{ title: __( 'テキストカード設定', 'cni-blocks' ), initialOpen: false },
+						el( 'p', null, __( 'タイトル部分の背景色（未選択で透明）', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.textCardTitleBackgroundColor || undefined, onChange: function( value ) { setAttributes( { textCardTitleBackgroundColor: value || '' } ); } } )
 					) : null
 				),
 				el(

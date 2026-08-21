@@ -7,11 +7,13 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pluginFile = Join-Path $projectRoot 'cni_blocks.php'
 $readmeFile = Join-Path $projectRoot 'readme.txt'
+$updaterFile = Join-Path $projectRoot 'includes/updater/class-github-release-updater.php'
 $releaseDirectory = Join-Path $projectRoot 'release'
 
 $pluginContents = Get-Content -Raw -Encoding UTF8 -LiteralPath $pluginFile
 $readmeContents = Get-Content -Raw -Encoding UTF8 -LiteralPath $readmeFile
 $versionMatch = [regex]::Match($pluginContents, '(?m)^\s*\*\s*Version:\s*([^\s]+)\s*$')
+$updateUriMatch = [regex]::Match($pluginContents, '(?m)^\s*\*\s*Update URI:\s*(\S+)\s*$')
 $stableTagMatch = [regex]::Match($readmeContents, '(?m)^Stable tag:\s*([^\s]+)\s*$')
 
 if (-not $versionMatch.Success) {
@@ -22,8 +24,17 @@ if (-not $stableTagMatch.Success) {
 	throw 'Unable to read Stable tag from readme.txt.'
 }
 
+if (-not $updateUriMatch.Success) {
+	throw 'Unable to read Update URI from cni_blocks.php.'
+}
+
+if (-not (Test-Path -LiteralPath $updaterFile -PathType Leaf)) {
+	throw 'GitHub updater is missing: includes/updater/class-github-release-updater.php.'
+}
+
 $version = $versionMatch.Groups[1].Value
 $stableTag = $stableTagMatch.Groups[1].Value
+$updateUri = $updateUriMatch.Groups[1].Value
 
 if ($version -ne $stableTag) {
 	throw "Version ($version) and Stable tag ($stableTag) do not match."
@@ -47,7 +58,21 @@ $excludedRootNames = @(
 	'build-release.ps1',
 	'.gitignore',
 	'.gitattributes',
+	'.github',
+	'docs',
+	'node_modules',
+	'dist',
+	'test',
+	'tests',
+	'phpunit.xml',
+	'phpunit.xml.dist',
+	'.phpunit.result.cache',
+	'package.json',
+	'package-lock.json',
+	'composer.json',
+	'composer.lock',
 	'COPY-EXISTING-FILES-HERE.md',
+	'README.md',
 	'desktop.ini'
 )
 
@@ -62,8 +87,12 @@ try {
 
 	Get-ChildItem -LiteralPath $packageRoot -Recurse -Force | Where-Object {
 		$_.Name -eq 'desktop.ini' -or
+		$_.Name -eq 'Thumbs.db' -or
+		$_.Name -eq '.DS_Store' -or
 		$_.Extension -eq '.zip' -or
+		$_.Extension -eq '.log' -or
 		$_.Extension -eq '.bak' -or
+		$_.Name -like '.env*' -or
 		$_.Name.EndsWith('~')
 	} | Remove-Item -Force
 
@@ -100,6 +129,21 @@ try {
 	try {
 		$rawEntryNames = @($archive.Entries | ForEach-Object { $_.FullName })
 		$entryNames = @($rawEntryNames | ForEach-Object { $_.Replace('\', '/') })
+		$packagedPluginEntry = $archive.GetEntry('cni_blocks/cni_blocks.php')
+		$packagedPluginContents = ''
+		if ($null -ne $packagedPluginEntry) {
+			$packagedPluginStream = $packagedPluginEntry.Open()
+			try {
+				$packagedPluginReader = [System.IO.StreamReader]::new($packagedPluginStream, [System.Text.UTF8Encoding]::new($false), $true)
+				try {
+					$packagedPluginContents = $packagedPluginReader.ReadToEnd()
+				} finally {
+					$packagedPluginReader.Dispose()
+				}
+			} finally {
+				$packagedPluginStream.Dispose()
+			}
+		}
 	} finally {
 		$archive.Dispose()
 	}
@@ -117,11 +161,22 @@ try {
 	if ($entryNames -notcontains 'cni_blocks/cni_blocks.php') {
 		$errors.Add('cni_blocks.php is missing.')
 	}
+	if ($entryNames -notcontains 'cni_blocks/includes/updater/class-github-release-updater.php') {
+		$errors.Add('The GitHub updater is missing.')
+	}
 	if (@($entryNames | Where-Object { $_.StartsWith('cni_blocks/blocks/') }).Count -eq 0) {
 		$errors.Add('The blocks folder is missing.')
 	}
 	if (@($entryNames | Where-Object { $_.StartsWith('cni_blocks/cni_blocks/') }).Count -gt 0) {
 		$errors.Add('A duplicate cni_blocks/cni_blocks folder was found.')
+	}
+	$packagedVersionMatch = [regex]::Match($packagedPluginContents, '(?m)^\s*\*\s*Version:\s*([^\s]+)\s*$')
+	$packagedUpdateUriMatch = [regex]::Match($packagedPluginContents, '(?m)^\s*\*\s*Update URI:\s*(\S+)\s*$')
+	if (-not $packagedVersionMatch.Success -or $packagedVersionMatch.Groups[1].Value -ne $version) {
+		$errors.Add('The ZIP Plugin Header Version does not match the source Version.')
+	}
+	if (-not $packagedUpdateUriMatch.Success -or $packagedUpdateUriMatch.Groups[1].Value -ne $updateUri) {
+		$errors.Add('The ZIP Update URI does not match the source Update URI.')
 	}
 
 	$forbiddenPatterns = @(
@@ -130,7 +185,21 @@ try {
 		'(^|/)PROJECT-BRIEF\.md$',
 		'(^|/)build-release\.ps1$',
 		'(^|/)release(/|$)',
-		'(^|/)desktop\.ini$'
+		'(^|/)\.github(/|$)',
+		'(^|/)docs(/|$)',
+		'(^|/)node_modules(/|$)',
+		'(^|/)dist(/|$)',
+		'(^|/)tests?(/|$)',
+		'(^|/)phpunit\.xml(?:\.dist)?$',
+		'(^|/)\.phpunit\.result\.cache$',
+		'(^|/)package(?:-lock)?\.json$',
+		'(^|/)composer(?:\.lock|\.json)$',
+		'(^|/)README\.md$',
+		'(^|/)\.env(?:\.[^/]+)?$',
+		'(^|/)[^/]+\.log$',
+		'(^|/)desktop\.ini$',
+		'(^|/)Thumbs\.db$',
+		'(^|/)\.DS_Store$'
 	)
 	foreach ($pattern in $forbiddenPatterns) {
 		if (@($entryNames | Where-Object { $_ -match $pattern }).Count -gt 0) {

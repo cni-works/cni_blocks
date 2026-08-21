@@ -14,6 +14,34 @@
 	};
 	const loaded = {};
 
+	function prepareRuby( root ) {
+		root.querySelectorAll( '.wp-block-cni-blocks-heading-plus ruby[data-cni-ruby]:not([data-cni-ruby-ready])' ).forEach( function( ruby ) {
+			const reading = ruby.getAttribute( 'data-cni-ruby' );
+			if ( ! reading ) return;
+			const baseCharacters = Array.from( ruby.textContent );
+			const rubyCharacters = Array.from( reading );
+			if ( baseCharacters.length === rubyCharacters.length && baseCharacters.length > 1 && ruby.children.length === 0 ) {
+				const fragment = document.createDocumentFragment();
+				baseCharacters.forEach( function( character, index ) {
+					const characterRuby = document.createElement( 'ruby' );
+					const rt = document.createElement( 'rt' );
+					characterRuby.className = 'cni-heading-plus__ruby cni-heading-plus__ruby-character';
+					characterRuby.setAttribute( 'data-cni-ruby-ready', 'true' );
+					characterRuby.appendChild( document.createTextNode( character ) );
+					rt.textContent = rubyCharacters[ index ];
+					characterRuby.appendChild( rt );
+					fragment.appendChild( characterRuby );
+				} );
+				ruby.replaceWith( fragment );
+				return;
+			}
+			const rt = document.createElement( 'rt' );
+			rt.textContent = reading;
+			ruby.appendChild( rt );
+			ruby.setAttribute( 'data-cni-ruby-ready', 'true' );
+		} );
+	}
+
 	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-google-font]' ).forEach( function( heading ) {
 		const family = heading.getAttribute( 'data-google-font' );
 		if ( ! family || allowedFonts.indexOf( family ) === -1 || loaded[ family ] ) return;
@@ -25,4 +53,6 @@
 		link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent( family ).replace( /%20/g, '+' ) + weights + '&display=swap';
 		document.head.appendChild( link );
 	} );
+
+	prepareRuby( document );
 } )();

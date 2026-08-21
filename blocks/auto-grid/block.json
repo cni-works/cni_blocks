@@ -86,6 +86,10 @@
     "alignButtonsBottom": {
       "type": "boolean",
       "default": false
+    },
+    "centerLastRow": {
+      "type": "boolean",
+      "default": false
     }
   },
   "allowedBlocks": [

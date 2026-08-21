@@ -1,12 +1,16 @@
-( function( blocks, element, blockEditor, components, data, i18n ) {
+( function( blocks, element, blockEditor, components, data, i18n, richText ) {
 	'use strict';
 
 	const el = element.createElement;
 	const { __ } = i18n;
-	const { useEffect } = element;
+	const { useEffect, useState } = element;
 	const { useSelect } = data;
-	const { AlignmentToolbar, BlockControls, ColorPalette, InspectorControls, RichText, useBlockProps } = blockEditor;
-	const { PanelBody, RangeControl, SelectControl } = components;
+	const { AlignmentToolbar, BlockControls, ColorPalette, InspectorControls, RichText, RichTextToolbarButton, useBlockProps } = blockEditor;
+	const { Button, Dropdown, PanelBody, RangeControl, SelectControl, TextControl } = components;
+	const { applyFormat, registerFormatType, removeFormat } = richText;
+	const inlineColorFormat = 'cni-blocks/heading-inline-color';
+	const inlineSizeFormat = 'cni-blocks/heading-inline-size';
+	const rubyFormat = 'cni-blocks/heading-ruby';
 	const googleFonts = [ '', 'Noto Sans JP', 'Noto Serif JP', 'M PLUS 1p', 'M PLUS Rounded 1c', 'Zen Kaku Gothic New', 'Zen Maru Gothic', 'Zen Old Mincho', 'Zen Kurenaido', 'Shippori Mincho', 'Kosugi Maru', 'Yuji Boku', 'Kiwi Maru', 'Kaisei Decol', 'Kaisei Opti', 'Mochiy Pop One', 'Klee One', 'Yomogi', 'Yusei Magic', 'Roboto', 'Lato', 'Montserrat', 'Poppins', 'Josefin Sans', 'Quicksand', 'Damion', 'Caveat', 'Cinzel', 'Dancing Script', 'Tangerine' ];
 	const fontWeights = {
 		'Zen Old Mincho': [ '400', '500', '600', '700', '800' ], 'Shippori Mincho': [ '400', '500', '600', '700', '800' ],
@@ -58,6 +62,80 @@
 	function palette( label, value, onChange ) {
 		return el( element.Fragment, null, el( 'p', null, label ), el( ColorPalette, { value: value, onChange: onChange, clearable: true } ) );
 	}
+	function formatDropdown( props, title, icon, content ) {
+		return el( Dropdown, {
+			popoverProps: { placement: 'bottom-start' },
+			renderToggle: function( toggleProps ) {
+				return el( RichTextToolbarButton, { icon: icon, title: title, isActive: props.isActive, onClick: toggleProps.onToggle } );
+			},
+			renderContent: content,
+		} );
+	}
+
+	registerFormatType( inlineColorFormat, {
+		title: __( '部分文字色', 'cni-blocks' ),
+		tagName: 'span',
+		className: 'cni-heading-plus__inline-color',
+		attributes: { style: 'style' },
+		edit: function( props ) {
+			const activeAttributes = props.activeAttributes || {};
+			return formatDropdown( props, __( '選択文字の色', 'cni-blocks' ), 'art', function() {
+				return el( 'div', { className: 'cni-heading-plus__format-popover' },
+					el( ColorPalette, {
+						value: activeAttributes.style ? activeAttributes.style.replace( /^color:\s*/, '' ).replace( /;$/, '' ) : undefined,
+						onChange: function( color ) {
+							props.onChange( color ? applyFormat( props.value, { type: inlineColorFormat, attributes: { style: 'color:' + color } } ) : removeFormat( props.value, inlineColorFormat ) );
+						},
+					} ),
+					props.isActive ? el( Button, { variant: 'secondary', onClick: function() { props.onChange( removeFormat( props.value, inlineColorFormat ) ); } }, __( '文字色を解除', 'cni-blocks' ) ) : null
+				);
+			} );
+		},
+	} );
+
+	registerFormatType( inlineSizeFormat, {
+		title: __( '部分文字サイズ', 'cni-blocks' ),
+		tagName: 'span',
+		className: 'cni-heading-plus__inline-size',
+		attributes: { size: 'data-cni-heading-size' },
+		edit: function( props ) {
+			const activeAttributes = props.activeAttributes || {};
+			const sizes = [
+				{ label: __( '小（75%）', 'cni-blocks' ), value: 'small' },
+				{ label: __( '大（125%）', 'cni-blocks' ), value: 'large' },
+				{ label: __( '特大（150%）', 'cni-blocks' ), value: 'x-large' },
+			];
+			return formatDropdown( props, __( '選択文字のサイズ', 'cni-blocks' ), 'editor-textcolor', function() {
+				return el( 'div', { className: 'cni-heading-plus__format-popover cni-heading-plus__format-buttons' },
+					sizes.map( function( size ) {
+						return el( Button, { key: size.value, variant: activeAttributes.size === size.value ? 'primary' : 'secondary', onClick: function() { props.onChange( applyFormat( props.value, { type: inlineSizeFormat, attributes: { size: size.value } } ) ); } }, size.label );
+					} ),
+					el( Button, { variant: 'secondary', onClick: function() { props.onChange( removeFormat( props.value, inlineSizeFormat ) ); } }, __( '標準サイズに戻す', 'cni-blocks' ) )
+				);
+			} );
+		},
+	} );
+
+	registerFormatType( rubyFormat, {
+		title: __( 'ルビ', 'cni-blocks' ),
+		tagName: 'ruby',
+		className: 'cni-heading-plus__ruby',
+		attributes: { reading: 'data-cni-ruby', alignment: 'data-cni-ruby-alignment' },
+		edit: function( props ) {
+			const activeAttributes = props.activeAttributes || {};
+			const [ reading, setReading ] = useState( activeAttributes.reading || '' );
+			useEffect( function() { setReading( activeAttributes.reading || '' ); }, [ activeAttributes.reading ] );
+			return formatDropdown( props, __( '選択文字にルビ', 'cni-blocks' ), 'editor-help', function() {
+				return el( 'div', { className: 'cni-heading-plus__format-popover' },
+					el( TextControl, { label: __( '読み仮名', 'cni-blocks' ), value: reading, onChange: setReading, __nextHasNoMarginBottom: true } ),
+					el( 'div', { className: 'cni-heading-plus__format-actions' },
+						el( Button, { variant: 'primary', disabled: ! reading.trim(), onClick: function() { const value = reading.trim(); const selectedText = props.value.text.slice( props.value.start, props.value.end ); const alignment = selectedText && Array.from( selectedText ).length === Array.from( value ).length ? 'character' : ( activeAttributes.alignment || 'group' ); if ( value ) props.onChange( applyFormat( props.value, { type: rubyFormat, attributes: { reading: value, alignment: alignment } } ) ); } }, props.isActive ? __( 'ルビを変更', 'cni-blocks' ) : __( 'ルビを適用', 'cni-blocks' ) ),
+						props.isActive ? el( Button, { variant: 'secondary', onClick: function() { props.onChange( removeFormat( props.value, rubyFormat ) ); setReading( '' ); } }, __( 'ルビを解除', 'cni-blocks' ) ) : null
+					)
+				);
+			} );
+		},
+	} );
 
 	blocks.registerBlockType( 'cni-blocks/heading-plus', {
 		apiVersion: 3,
@@ -95,7 +173,7 @@
 					),
 					el( PanelBody, { title: __( '色', 'cni-blocks' ), initialOpen: false }, palette( __( '文字色', 'cni-blocks' ), a.textColor, function( value ) { props.setAttributes( { textColor: value || '' } ); } ), palette( __( '背景色', 'cni-blocks' ), a.backgroundColor, function( value ) { props.setAttributes( { backgroundColor: value || '' } ); } ) )
 				),
-				el( 'div', propsFor( a, false, editorDevice ), el( RichText, { tagName: 'h' + ( a.level || 2 ), className: 'cni-heading-plus__text', value: a.content, allowedFormats: [ 'core/bold', 'core/italic', 'core/link' ], placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); } } ) )
+				el( 'div', propsFor( a, false, editorDevice ), el( RichText, { tagName: 'h' + ( a.level || 2 ), className: 'cni-heading-plus__text', value: a.content, allowedFormats: [ 'core/bold', 'core/italic', 'core/link', inlineColorFormat, inlineSizeFormat, rubyFormat ], placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); } } ) )
 			);
 		},
 		save: function( props ) {
@@ -103,4 +181,4 @@
 			return el( 'div', propsFor( a, true ), el( RichText.Content, { tagName: 'h' + ( a.level || 2 ), className: 'cni-heading-plus__text', value: a.content } ) );
 		},
 	} );
-} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.data, window.wp.i18n );
+} )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.data, window.wp.i18n, window.wp.richText );

@@ -2,15 +2,48 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.34.0
+ * Version: 1.34.1
  * Requires at least: 6.3
  * Requires PHP: 7.4
+ * Update URI: https://github.com/cni-works/cni_blocks
  * Author: Oishi Naoto
  * License: GPLv2 or later
  * Text Domain: cni-blocks
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+$cni_blocks_updater_file = plugin_dir_path( __FILE__ ) . 'includes/updater/class-github-release-updater.php';
+
+if ( is_readable( $cni_blocks_updater_file ) ) {
+	require_once $cni_blocks_updater_file;
+
+	$cni_blocks_updater_headers = get_file_data(
+		__FILE__,
+		array(
+			'version'    => 'Version',
+			'update_uri' => 'Update URI',
+		),
+		'plugin'
+	);
+
+	new \CniWorks\CniBlocks\Updater\GitHub_Release_Updater(
+		array(
+			'type'          => 'plugin',
+			'owner'         => 'cni-works',
+			'repository'    => 'cni_blocks',
+			'slug'          => 'cni_blocks',
+			'plugin_file'   => plugin_basename( __FILE__ ),
+			'version'       => $cni_blocks_updater_headers['version'],
+			'update_uri'    => $cni_blocks_updater_headers['update_uri'],
+			'requires'      => '6.3',
+			'requires_php'  => '7.4',
+			'cache_hours'   => 12,
+			'failure_hours' => 1,
+			'timeout'       => 5,
+		)
+	);
+}
 
 require_once plugin_dir_path( __FILE__ ) . 'blocks/post-list/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/selected-post-list/render.php';
@@ -70,6 +103,14 @@ function cni_blocks_register_blocks() {
 		$auto_grid_dir_url . 'index.js',
 		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data' ),
 		filemtime( $auto_grid_dir_path . 'index.js' )
+	);
+
+	wp_register_script(
+		'cni-blocks-auto-grid-view',
+		$auto_grid_dir_url . 'view.js',
+		array(),
+		filemtime( $auto_grid_dir_path . 'view.js' ),
+		true
 	);
 
 	wp_register_style(
@@ -230,7 +271,7 @@ function cni_blocks_register_blocks() {
 	wp_register_script(
 		'cni-blocks-heading-plus-editor',
 		$heading_plus_dir_url . 'index.js',
-		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data' ),
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-rich-text' ),
 		filemtime( $heading_plus_dir_path . 'index.js' )
 	);
 
@@ -379,6 +420,7 @@ function cni_blocks_register_blocks() {
 		$auto_grid_dir_path,
 		array(
 			'editor_script' => 'cni-blocks-auto-grid-editor',
+			'view_script'   => 'cni-blocks-auto-grid-view',
 			'style'         => 'cni-blocks-auto-grid-style',
 			'editor_style'  => 'cni-blocks-auto-grid-style',
 		)

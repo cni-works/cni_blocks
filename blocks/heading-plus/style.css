@@ -19,7 +19,9 @@
 	outline: 0;
 	background: none;
 	box-shadow: none;
-	color: inherit;
+	/* Apply these settings to the heading itself so theme heading rules cannot override inherited values. */
+	color: var(--cni-heading-color, inherit);
+	text-align: var(--cni-heading-align, left);
 	font: inherit;
 	letter-spacing: inherit;
 	line-height: inherit;
@@ -27,10 +29,89 @@
 	margin: 0;
 }
 
+/* The editor may load theme heading styles after this block stylesheet. */
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__text {
+	color: var(--cni-heading-color, inherit) !important;
+	text-align: var(--cni-heading-align, left) !important;
+}
+
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__text::before,
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__text::after {
 	display: none;
 	content: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="small"] {
+	font-size: .75em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="large"] {
+	font-size: 1.25em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="x-large"] {
+	font-size: 1.5em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby {
+	position: relative;
+	ruby-position: over;
+	ruby-align: center;
+	text-transform: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby rt {
+	color: inherit;
+	font-size: .45em;
+	font-weight: 400;
+	font-style: normal;
+	line-height: 1;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby-character {
+	color: inherit;
+	ruby-align: center;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby::after {
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% - .1em);
+	font-size: .45em;
+	font-weight: 400;
+	font-style: normal;
+	color: inherit;
+	line-height: 1;
+	letter-spacing: 0;
+	white-space: nowrap;
+	content: attr(data-cni-ruby);
+	transform: translateX(-50%);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby[data-cni-ruby-alignment="character"]::after {
+	left: 0;
+	width: 100%;
+	text-align: justify;
+	text-align-last: justify;
+	transform: none;
+}
+
+.cni-heading-plus__format-popover {
+	min-width: 250px;
+	padding: 12px;
+}
+
+.cni-heading-plus__format-buttons,
+.cni-heading-plus__format-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cni-heading-plus__format-actions {
+	margin-top: 12px;
 }
 
 @media (max-width: 1024px) {
