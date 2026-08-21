@@ -1,7 +1,7 @@
 === cni_blocks ===
 Requires at least: 6.3
 Requires PHP: 7.4
-Stable tag: 1.32.0
+Stable tag: 1.34.1
 
 Includes:
 - Slide Gallery block (cni-blocks/slide-gallery)
@@ -15,8 +15,16 @@ Includes:
 - Map+ block (cni-blocks/visual-embed)
 - Fixed Display+ block (cni-blocks/fixed-display)
 - Overlap Image Layout+ block (cni-blocks/overlap-media)
+- Heading+ block (cni-blocks/heading-plus)
+- Table+ block (cni-blocks/table-plus)
+- Counter+ block (cni-blocks/counter-plus)
 
 Updates:
+- Heading+ supports selected-text colors, responsive relative size presets, and editable ruby annotations without changing unused existing heading markup. Equal-length base text and readings are aligned character by character, and ruby text inherits the base text color.
+- Post List+ now offers standard, image-overlay, enlarged date-corner, image-free text-card, horizontal-card, media-list, and text-list layouts. Category badge colors use automatic black/white contrast; date-corner cards place the compact badge at the image's lower right. Overlay/date/title-area colors, trimmed excerpts, metadata, arrows, and image ratios can be adjusted while existing blocks keep the standard card design.
+- Added Heading+, with a broad curated Japanese and Latin Google Fonts selector, heading levels, available font weights and style, one-click text transforms, responsive sizes, line height, letter spacing, alignment, spacing, and colors.
+- Added Table+, with rectangular cell merging and unmerging, multi-cell color and alignment editing, unified inner/outer borders, padding, header/footer/caption controls, and unchanged, mobile horizontal-scroll, or vertical display modes.
+- Added Counter+, with prefix/suffix vertical or horizontal layouts, independent number and affix weights, number formatting, responsive sizing, viewport-triggered animation, and reduced-motion protection.
 - Slide Gallery arrow controls now support selectable circular background colors, automatic white/black icon contrast, white, black, or custom icon colors, and inside, edge, or outside positioning in both single and carousel layouts.
 - Grid+ can now place each card's first direct Image block outside the top and side padding, with a shared 16:9, 3:2, 4:3, or 1:1 ratio, cover/contain fitting, and top/center/bottom positioning. Existing Grid+ blocks remain unchanged until enabled.
 - WordPress 7.1 preparation: all blocks now register with Block API v3 for the enforced iframe editor.

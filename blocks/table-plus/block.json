@@ -1,0 +1,27 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/table-plus",
+  "title": "テーブル+",
+  "category": "cni-blocks",
+  "icon": "editor-table",
+  "description": "セル結合、セル単位の色、モバイル表示を設定できる表です。",
+  "keywords": [ "表", "テーブル", "セル結合" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "rows": { "type": "number", "default": 3 },
+    "columns": { "type": "number", "default": 3 },
+    "cells": { "type": "array", "default": [] },
+    "hasHeader": { "type": "boolean", "default": true },
+    "hasFooter": { "type": "boolean", "default": false },
+    "caption": { "type": "string", "default": "" },
+    "mobileMode": { "type": "string", "default": "none" },
+    "borderStyle": { "type": "string", "default": "solid" },
+    "borderWidth": { "type": "number", "default": 1 },
+    "borderColor": { "type": "string", "default": "#dddddd" },
+    "cellPadding": { "type": "number", "default": 12 },
+    "tableBackgroundColor": { "type": "string", "default": "" },
+    "headerBackgroundColor": { "type": "string", "default": "#f5f5f5" },
+    "striped": { "type": "boolean", "default": false }
+  },
+  "supports": { "align": [ "wide", "full" ], "anchor": true, "html": false }
+}

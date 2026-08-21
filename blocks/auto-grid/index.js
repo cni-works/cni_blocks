@@ -4,7 +4,7 @@
 	const el = element.createElement;
 	const { __ } = i18n;
 	const { useBlockProps, InnerBlocks, InspectorControls } = blockEditor;
-	const { Button, ColorPalette, PanelBody, RangeControl, SelectControl, ToggleControl } = components;
+	const { Button, ColorPalette, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
 	const CARD_BLOCK = 'cni-blocks/grid-card';
 	const GRID_TEMPLATE = [ [ CARD_BLOCK ] ];
 
@@ -57,11 +57,53 @@
 			'data-align-buttons-bottom': attributes.alignButtonsBottom ? '1' : '0',
 		};
 
+		if ( attributes.centerLastRow ) {
+			blockProps[ 'data-last-row-alignment' ] = 'center';
+		}
+
 		if ( attributes.flushFirstImage ) {
 			blockProps.className = 'cni-grid--flush-first-image';
 		}
 
 		return blockProps;
+	}
+
+	function clearLastRowOffset( cards ) {
+		cards.forEach( function( card ) {
+			card.classList.remove( 'cni-grid-card--last-row-centered' );
+			card.style.removeProperty( '--cni-grid-last-row-offset' );
+		} );
+	}
+
+	function centerIncompleteLastRow( container, enabled ) {
+		const cards = Array.prototype.filter.call( container.children, function( child ) {
+			return child.classList.contains( 'wp-block-cni-blocks-grid-card' );
+		} );
+
+		clearLastRowOffset( cards );
+
+		if ( ! enabled || cards.length < 2 ) {
+			return;
+		}
+
+		const styles = window.getComputedStyle( container );
+		const minWidth = parseFloat( styles.getPropertyValue( '--cni-grid-min-width-current' ) );
+		const gap = parseFloat( styles.columnGap ) || 0;
+		const columns = minWidth > 0 ? Math.max( 1, Math.floor( ( container.clientWidth + gap ) / ( minWidth + gap ) ) ) : 1;
+		const remaining = cards.length % columns;
+		const cardWidth = columns > 0 ? ( container.clientWidth - ( columns - 1 ) * gap ) / columns : 0;
+		const columnStep = cardWidth + gap;
+
+		if ( columns < 2 || remaining === 0 || cardWidth <= 0 ) {
+			return;
+		}
+
+		const offset = ( columns - remaining ) * columnStep / 2;
+
+		cards.slice( -remaining ).forEach( function( card ) {
+			card.classList.add( 'cni-grid-card--last-row-centered' );
+			card.style.setProperty( '--cni-grid-last-row-offset', offset + 'px' );
+		} );
 	}
 
 	blocks.registerBlockType( CARD_BLOCK, {
@@ -71,35 +113,118 @@
 		icon: 'index-card',
 		category: 'cni-blocks',
 		parent: [ 'cni-blocks/auto-grid' ],
+		attributes: {
+			linkUrl: { type: 'string', default: '' },
+			linkTarget: { type: 'boolean', default: false },
+			showLinkArrow: { type: 'boolean', default: false },
+			hoverEffect: { type: 'string', default: 'lift' },
+		},
 		supports: {
 			inserter: false,
 			html: false,
 			reusable: false,
 		},
-		edit: function() {
+		edit: function( props ) {
+			const { attributes, setAttributes } = props;
+			const linkUrl = attributes.linkUrl || '';
+			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
 			const blockProps = useBlockProps();
 
 			return el(
-				'div',
-				blockProps,
+				element.Fragment,
+				null,
+				el(
+					InspectorControls,
+					null,
+					el(
+						PanelBody,
+						{ title: __( 'カードリンク', 'cni-blocks' ), initialOpen: false },
+						el( TextControl, {
+							label: __( 'リンクURL', 'cni-blocks' ),
+							type: 'url',
+							value: linkUrl,
+							help: __( '設定すると、公開画面でカード全体をクリックできます。', 'cni-blocks' ),
+							onChange: function( value ) {
+								setAttributes( { linkUrl: value } );
+							},
+						} ),
+						el( ToggleControl, {
+							label: __( '新しいタブで開く', 'cni-blocks' ),
+							checked: !! attributes.linkTarget,
+							disabled: ! linkUrl,
+							onChange: function( value ) {
+								setAttributes( { linkTarget: value } );
+							},
+						} ),
+						el( ToggleControl, {
+							label: __( '右下に矢印を表示', 'cni-blocks' ),
+							checked: !! attributes.showLinkArrow,
+							disabled: ! linkUrl,
+							onChange: function( value ) {
+								setAttributes( { showLinkArrow: value } );
+							},
+						} ),
+						el( SelectControl, {
+							label: __( 'マウスオーバー時の効果', 'cni-blocks' ),
+							value: hoverEffect,
+							disabled: ! linkUrl,
+							options: [
+								{ label: __( '浮き上がる', 'cni-blocks' ), value: 'lift' },
+								{ label: __( '暗くする', 'cni-blocks' ), value: 'darken' },
+								{ label: __( '浮き上がる・暗くする', 'cni-blocks' ), value: 'lift-darken' },
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+							],
+							onChange: function( value ) {
+								setAttributes( { hoverEffect: value } );
+							},
+						} )
+					)
+				),
 				el(
 					'div',
-					{ className: 'cni-grid-card__inner' },
-					el( InnerBlocks, {
-						templateLock: false,
-						renderAppender: InnerBlocks.ButtonBlockAppender,
-					} )
+					blockProps,
+					el(
+						'div',
+						{ className: 'cni-grid-card__inner' },
+						el( InnerBlocks, {
+							templateLock: false,
+							renderAppender: InnerBlocks.ButtonBlockAppender,
+						} )
+					)
 				)
 			);
 		},
-		save: function() {
+		save: function( props ) {
+			const { attributes } = props;
+			const linkUrl = ( attributes.linkUrl || '' ).trim();
+			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
+			const classes = [ 'has-cni-grid-card-link' ];
+
+			if ( hoverEffect !== 'lift' ) {
+				classes.push( 'cni-grid-card--hover-' + hoverEffect );
+			}
+
+			const saveProps = linkUrl ? { className: classes.join( ' ' ) } : {};
+
 			return el(
 				'div',
-				blockEditor.useBlockProps.save(),
+				blockEditor.useBlockProps.save( saveProps ),
 				el(
 					'div',
 					{ className: 'cni-grid-card__inner' },
 					el( InnerBlocks.Content )
+				),
+				linkUrl && el( 'a', {
+					className: 'cni-grid-card__link',
+					href: linkUrl,
+					target: attributes.linkTarget ? '_blank' : undefined,
+					rel: attributes.linkTarget ? 'noopener noreferrer' : undefined,
+					'aria-label': __( 'このカードを開く', 'cni-blocks' ),
+				} ),
+				linkUrl && attributes.showLinkArrow && el(
+					'span',
+					{ className: 'cni-grid-card__link-arrow', 'aria-hidden': 'true' },
+					'→'
 				)
 			);
 		},
@@ -132,6 +257,7 @@
 			cardBorderColor: { type: 'string', default: '#dddddd' },
 			equalHeight: { type: 'boolean', default: true },
 			alignButtonsBottom: { type: 'boolean', default: false },
+			centerLastRow: { type: 'boolean', default: false },
 		},
 		supports: {
 			align: [ 'wide', 'full' ],
@@ -140,12 +266,47 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes } = props;
+			const gridRef = element.useRef( null );
 			const addCard = function() {
 				const card = blocks.createBlock( CARD_BLOCK );
 
 				data.dispatch( 'core/block-editor' ).insertBlock( card, undefined, props.clientId, true );
 			};
-			const blockProps = useBlockProps( getGridBlockProps( attributes ) );
+			const gridBlockProps = getGridBlockProps( attributes );
+			gridBlockProps.ref = gridRef;
+			const blockProps = useBlockProps( gridBlockProps );
+
+			element.useEffect( function() {
+				const grid = gridRef.current;
+				const layout = grid ? grid.querySelector( ':scope > .block-editor-inner-blocks > .block-editor-block-list__layout' ) : null;
+
+				if ( ! layout ) {
+					return undefined;
+				}
+
+				const update = function() {
+					centerIncompleteLastRow( layout, !! attributes.centerLastRow );
+				};
+				const resizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver( update ) : null;
+				const mutationObserver = typeof window.MutationObserver === 'function' ? new window.MutationObserver( update ) : null;
+
+				update();
+				if ( resizeObserver ) {
+					resizeObserver.observe( layout );
+				}
+				if ( mutationObserver ) {
+					mutationObserver.observe( layout, { childList: true } );
+				}
+
+				return function() {
+					if ( resizeObserver ) {
+						resizeObserver.disconnect();
+					}
+					if ( mutationObserver ) {
+						mutationObserver.disconnect();
+					}
+				};
+			}, [ attributes.centerLastRow, props.clientId ] );
 
 			return el(
 				element.Fragment,
@@ -258,6 +419,12 @@
 						PanelBody,
 						{ title: __( '高さ・ボタン配置', 'cni-blocks' ), initialOpen: false },
 						el( ToggleControl, { label: __( 'カードの高さをそろえる', 'cni-blocks' ), checked: attributes.equalHeight !== false, onChange: function( value ) { setAttributes( { equalHeight: !!value } ); } } ),
+						el( ToggleControl, {
+							label: __( '最終行のカードを中央揃え', 'cni-blocks' ),
+							help: __( '3列で5枚の場合、下段の2枚をカード幅を変えずに中央へ寄せます。', 'cni-blocks' ),
+							checked: !! attributes.centerLastRow,
+							onChange: function( value ) { setAttributes( { centerLastRow: !!value } ); },
+						} ),
 						el( ToggleControl, {
 							label: __( '最後のボタンをカード下端へそろえる', 'cni-blocks' ),
 							help: __( '各カードの最後に配置した「ボタン」ブロックへ適用します。', 'cni-blocks' ),

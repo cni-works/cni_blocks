@@ -2,15 +2,48 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.32.0
+ * Version: 1.34.1
  * Requires at least: 6.3
  * Requires PHP: 7.4
+ * Update URI: https://github.com/cni-works/cni_blocks
  * Author: Oishi Naoto
  * License: GPLv2 or later
  * Text Domain: cni-blocks
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+$cni_blocks_updater_file = plugin_dir_path( __FILE__ ) . 'includes/updater/class-github-release-updater.php';
+
+if ( is_readable( $cni_blocks_updater_file ) ) {
+	require_once $cni_blocks_updater_file;
+
+	$cni_blocks_updater_headers = get_file_data(
+		__FILE__,
+		array(
+			'version'    => 'Version',
+			'update_uri' => 'Update URI',
+		),
+		'plugin'
+	);
+
+	new \CniWorks\CniBlocks\Updater\GitHub_Release_Updater(
+		array(
+			'type'          => 'plugin',
+			'owner'         => 'cni-works',
+			'repository'    => 'cni_blocks',
+			'slug'          => 'cni_blocks',
+			'plugin_file'   => plugin_basename( __FILE__ ),
+			'version'       => $cni_blocks_updater_headers['version'],
+			'update_uri'    => $cni_blocks_updater_headers['update_uri'],
+			'requires'      => '6.3',
+			'requires_php'  => '7.4',
+			'cache_hours'   => 12,
+			'failure_hours' => 1,
+			'timeout'       => 5,
+		)
+	);
+}
 
 require_once plugin_dir_path( __FILE__ ) . 'blocks/post-list/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/selected-post-list/render.php';
@@ -70,6 +103,14 @@ function cni_blocks_register_blocks() {
 		$auto_grid_dir_url . 'index.js',
 		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data' ),
 		filemtime( $auto_grid_dir_path . 'index.js' )
+	);
+
+	wp_register_script(
+		'cni-blocks-auto-grid-view',
+		$auto_grid_dir_url . 'view.js',
+		array(),
+		filemtime( $auto_grid_dir_path . 'view.js' ),
+		true
 	);
 
 	wp_register_style(
@@ -220,6 +261,71 @@ function cni_blocks_register_blocks() {
 		filemtime( $overlap_media_dir_path . 'style.css' )
 	);
 
+	$heading_plus_dir_url  = $dir_url . 'blocks/heading-plus/';
+	$heading_plus_dir_path = $dir_path . 'blocks/heading-plus/';
+	$table_plus_dir_url    = $dir_url . 'blocks/table-plus/';
+	$table_plus_dir_path   = $dir_path . 'blocks/table-plus/';
+	$counter_plus_dir_url  = $dir_url . 'blocks/counter-plus/';
+	$counter_plus_dir_path = $dir_path . 'blocks/counter-plus/';
+
+	wp_register_script(
+		'cni-blocks-heading-plus-editor',
+		$heading_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-rich-text' ),
+		filemtime( $heading_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_script(
+		'cni-blocks-heading-plus-view',
+		$heading_plus_dir_url . 'view.js',
+		array(),
+		filemtime( $heading_plus_dir_path . 'view.js' ),
+		true
+	);
+
+	wp_register_style(
+		'cni-blocks-heading-plus-style',
+		$heading_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $heading_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-table-plus-editor',
+		$table_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $table_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_style(
+		'cni-blocks-table-plus-style',
+		$table_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $table_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-counter-plus-editor',
+		$counter_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $counter_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_script(
+		'cni-blocks-counter-plus-view',
+		$counter_plus_dir_url . 'view.js',
+		array(),
+		filemtime( $counter_plus_dir_path . 'view.js' ),
+		true
+	);
+
+	wp_register_style(
+		'cni-blocks-counter-plus-style',
+		$counter_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $counter_plus_dir_path . 'style.css' )
+	);
+
 	$step_dir_url       = $dir_url . 'blocks/step/';
 	$step_dir_path      = $dir_path . 'blocks/step/';
 	$step_item_dir_path = $dir_path . 'blocks/step-item/';
@@ -314,6 +420,7 @@ function cni_blocks_register_blocks() {
 		$auto_grid_dir_path,
 		array(
 			'editor_script' => 'cni-blocks-auto-grid-editor',
+			'view_script'   => 'cni-blocks-auto-grid-view',
 			'style'         => 'cni-blocks-auto-grid-style',
 			'editor_style'  => 'cni-blocks-auto-grid-style',
 		)
@@ -385,6 +492,35 @@ function cni_blocks_register_blocks() {
 			'editor_script' => 'cni-blocks-overlap-media-editor',
 			'style'         => 'cni-blocks-overlap-media-style',
 			'editor_style'  => 'cni-blocks-overlap-media-style',
+		)
+	);
+
+	register_block_type(
+		$heading_plus_dir_path,
+		array(
+			'editor_script' => 'cni-blocks-heading-plus-editor',
+			'view_script'   => 'cni-blocks-heading-plus-view',
+			'style'         => 'cni-blocks-heading-plus-style',
+			'editor_style'  => 'cni-blocks-heading-plus-style',
+		)
+	);
+
+	register_block_type(
+		$table_plus_dir_path,
+		array(
+			'editor_script' => 'cni-blocks-table-plus-editor',
+			'style'         => 'cni-blocks-table-plus-style',
+			'editor_style'  => 'cni-blocks-table-plus-style',
+		)
+	);
+
+	register_block_type(
+		$counter_plus_dir_path,
+		array(
+			'editor_script' => 'cni-blocks-counter-plus-editor',
+			'view_script'   => 'cni-blocks-counter-plus-view',
+			'style'         => 'cni-blocks-counter-plus-style',
+			'editor_style'  => 'cni-blocks-counter-plus-style',
 		)
 	);
 

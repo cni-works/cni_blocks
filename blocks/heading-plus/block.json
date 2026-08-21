@@ -1,0 +1,29 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/heading-plus",
+  "title": "見出し+",
+  "category": "cni-blocks",
+  "icon": "heading",
+  "description": "端末別の文字サイズ、Google Fonts、字間、色を設定できる見出しです。",
+  "keywords": [ "見出し", "タイトル", "Google Fonts" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "content": { "type": "string", "source": "html", "selector": ".cni-heading-plus__text", "default": "見出しを入力" },
+    "level": { "type": "number", "default": 2 },
+    "fontFamily": { "type": "string", "default": "" },
+    "fontWeight": { "type": "string", "default": "700" },
+    "fontStyle": { "type": "string", "default": "normal" },
+    "textTransform": { "type": "string", "default": "none" },
+    "fontSizePc": { "type": "number", "default": 40 },
+    "fontSizeTablet": { "type": "number", "default": 34 },
+    "fontSizeMobile": { "type": "number", "default": 28 },
+    "lineHeight": { "type": "number", "default": 1.3 },
+    "letterSpacing": { "type": "number", "default": 0 },
+    "textColor": { "type": "string", "default": "" },
+    "backgroundColor": { "type": "string", "default": "" },
+    "alignment": { "type": "string", "default": "left" },
+    "paddingVertical": { "type": "number", "default": 0 },
+    "paddingHorizontal": { "type": "number", "default": 0 }
+  },
+  "supports": { "anchor": true, "html": false }
+}

@@ -9,6 +9,24 @@
   "parent": [
     "cni-blocks/auto-grid"
   ],
+  "attributes": {
+    "linkUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "linkTarget": {
+      "type": "boolean",
+      "default": false
+    },
+    "showLinkArrow": {
+      "type": "boolean",
+      "default": false
+    },
+    "hoverEffect": {
+      "type": "string",
+      "default": "lift"
+    }
+  },
   "supports": {
     "inserter": false,
     "html": false,

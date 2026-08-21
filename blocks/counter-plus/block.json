@@ -1,0 +1,33 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/counter-plus",
+  "title": "カウンター+",
+  "category": "cni-blocks",
+  "icon": "editor-ol",
+  "description": "接頭語・接尾語と書式を設定できる、低モーション対応の数値カウンターです。",
+  "keywords": [ "カウンター", "数値", "アニメーション" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "start": { "type": "number", "default": 0 },
+    "end": { "type": "number", "default": 100 },
+    "decimals": { "type": "number", "default": 0 },
+    "useGrouping": { "type": "boolean", "default": true },
+    "groupSeparator": { "type": "string", "default": "," },
+    "decimalSeparator": { "type": "string", "default": "." },
+    "prefix": { "type": "string", "source": "html", "selector": ".cni-counter-plus__prefix", "default": "" },
+    "suffix": { "type": "string", "source": "html", "selector": ".cni-counter-plus__suffix", "default": "" },
+    "layout": { "type": "string", "default": "stacked" },
+    "duration": { "type": "number", "default": 2 },
+    "easing": { "type": "string", "default": "easeOut" },
+    "alignment": { "type": "string", "default": "left" },
+    "numberSizePc": { "type": "number", "default": 56 },
+    "numberSizeMobile": { "type": "number", "default": 42 },
+    "affixSize": { "type": "number", "default": 18 },
+    "gap": { "type": "number", "default": 8 },
+    "numberColor": { "type": "string", "default": "" },
+    "affixColor": { "type": "string", "default": "" },
+    "numberWeight": { "type": "string", "default": "" },
+    "affixWeight": { "type": "string", "default": "" }
+  },
+  "supports": { "anchor": true, "html": false }
+}

@@ -15,11 +15,13 @@
 - WordPress標準APIを優先し、入力のサニタイズ、出力のエスケープ、必要な権限・nonce確認を行います。
 - エディター表示と公開画面の表示が一致すること、キーボード操作と見出し構造などのアクセシビリティを確認します。
 - 変更後は、変更ファイル、確認結果、WordPress上の手動確認手順を説明します。
-- プロジェクト内の既存ZIPは参照用バックアップとして扱い、明示的な依頼なしに上書きしません。
+- 配布ZIPは通常変更時に `build-release.ps1 -Force` で最新化します。それ以外の場面で既存ZIPを手動上書きしません。
 
 ## 通常の開発
 
-通常の機能追加、不具合修正、コード整理では、ローカルファイルの変更と必要な構文検査まで行います。
+通常の機能追加、不具合修正、コード整理では、ローカルファイルの変更、必要な構文検査、`build-release.ps1 -Force` による現在Versionの配布ZIP最新化、ZIP構造検証まで行います。
+
+ZIP生成後は、生成先と構造検証結果を報告します。Version変更、Tag、GitHub Releaseは通常変更では行いません。
 
 ユーザーから明示的な指示がない限り、次は行いません。
 
@@ -29,7 +31,8 @@
 - Pull Request作成
 - `main` へのマージ
 - Version変更
-- 配布ZIP生成
+- Tag作成・Push
+- GitHub Release作成・Release Asset操作
 
 ## バックアップ
 
@@ -45,12 +48,15 @@
 
 バックアップは通常のGitコマンドによる `git add`、`git commit`、`git push` までとし、GitHub CLI（`gh`）を必須としません。`gh` が導入されていない場合もバックアップを停止せず、push後の状態確認まで完了します。
 
+バックアップでは、通常変更で最新化が必要な現在VersionのZIPを `build-release.ps1 -Force` で生成・検証できます。ただし、VersionやGitHub上の正式配布状態は変更しません。
+
 バックアップでは次を行いません。
 
 - Version変更
-- 配布ZIP生成
 - Pull Request作成
 - `main` へのマージ
+- Tag作成・Push
+- GitHub Release作成・Release Asset操作
 
 ## リリース
 
@@ -111,6 +117,7 @@
 
 - `release` フォルダとZIPはGit管理しません。
 - 配布ZIPは `build-release.ps1` で生成します。
-- 既存ZIPは通常上書きしません。
-- 上書きが必要な場合のみ `-Force` を使用します。
+- 通常変更時は、現在VersionのZIPを `build-release.ps1 -Force` で最新化し、構造検証結果を報告します。
+- `-Force` は、検証済み候補ZIPで同Versionの既存ZIPを置き換える場合にだけ使用します。
 - 配布ZIPの構造検証に失敗した場合はリリース処理を停止し、不完全なZIPを残しません。
+- 正式配布時だけVersionを更新し、`vX.Y.Z` Tag、公開GitHub Release、専用Release Asset ZIPへ進みます。

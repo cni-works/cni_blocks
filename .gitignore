@@ -1,4 +1,6 @@
 *.zip
+release/
+desktop.ini
 COPY-EXISTING-FILES-HERE.md
 .env
 .env.*

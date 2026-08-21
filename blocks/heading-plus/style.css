@@ -1,0 +1,135 @@
+.wp-block-cni-blocks-heading-plus {
+	box-sizing: border-box;
+	color: var(--cni-heading-color, inherit);
+	background: var(--cni-heading-background, transparent);
+	font-family: var(--cni-heading-font, inherit);
+	font-size: var(--cni-heading-size-pc, 40px);
+	font-weight: var(--cni-heading-weight, 700);
+	font-style: var(--cni-heading-style, normal);
+	line-height: var(--cni-heading-line-height, 1.3);
+	letter-spacing: var(--cni-heading-letter-spacing, 0);
+	text-align: var(--cni-heading-align, left);
+	text-transform: var(--cni-heading-transform, none);
+	padding: var(--cni-heading-padding-y, 0) var(--cni-heading-padding-x, 0);
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__text {
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: none;
+	box-shadow: none;
+	/* Apply these settings to the heading itself so theme heading rules cannot override inherited values. */
+	color: var(--cni-heading-color, inherit);
+	text-align: var(--cni-heading-align, left);
+	font: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	text-transform: inherit;
+	margin: 0;
+}
+
+/* The editor may load theme heading styles after this block stylesheet. */
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__text {
+	color: var(--cni-heading-color, inherit) !important;
+	text-align: var(--cni-heading-align, left) !important;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__text::before,
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__text::after {
+	display: none;
+	content: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="small"] {
+	font-size: .75em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="large"] {
+	font-size: 1.25em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="x-large"] {
+	font-size: 1.5em;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby {
+	position: relative;
+	ruby-position: over;
+	ruby-align: center;
+	text-transform: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby rt {
+	color: inherit;
+	font-size: .45em;
+	font-weight: 400;
+	font-style: normal;
+	line-height: 1;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby-character {
+	color: inherit;
+	ruby-align: center;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby::after {
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% - .1em);
+	font-size: .45em;
+	font-weight: 400;
+	font-style: normal;
+	color: inherit;
+	line-height: 1;
+	letter-spacing: 0;
+	white-space: nowrap;
+	content: attr(data-cni-ruby);
+	transform: translateX(-50%);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus .cni-heading-plus__ruby[data-cni-ruby-alignment="character"]::after {
+	left: 0;
+	width: 100%;
+	text-align: justify;
+	text-align-last: justify;
+	transform: none;
+}
+
+.cni-heading-plus__format-popover {
+	min-width: 250px;
+	padding: 12px;
+}
+
+.cni-heading-plus__format-buttons,
+.cni-heading-plus__format-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cni-heading-plus__format-actions {
+	margin-top: 12px;
+}
+
+@media (max-width: 1024px) {
+	.wp-block-cni-blocks-heading-plus { font-size: var(--cni-heading-size-tablet, 34px); }
+}
+
+@media (max-width: 767px) {
+	.wp-block-cni-blocks-heading-plus { font-size: var(--cni-heading-size-mobile, 28px); }
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Desktop"] {
+	font-size: var(--cni-heading-size-pc, 40px);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Tablet"] {
+	font-size: var(--cni-heading-size-tablet, 34px);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Mobile"] {
+	font-size: var(--cni-heading-size-mobile, 28px);
+}
