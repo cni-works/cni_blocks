@@ -1,0 +1,36 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/circle-image-plus",
+  "title": "サークル画像+",
+  "category": "cni-blocks",
+  "icon": "format-image",
+  "description": "円形画像の外周へ文字を配置し、ゆっくり回転させられる装飾画像です。",
+  "keywords": [ "円形画像", "回転文字", "サークル", "リング" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "mediaId": { "type": "number", "default": 0 },
+    "mediaUrl": { "type": "string", "default": "" },
+    "mediaAlt": { "type": "string", "default": "" },
+    "sizePreset": { "type": "string", "default": "medium" },
+    "alignment": { "type": "string", "default": "center" },
+    "ringText": { "type": "string", "default": "CREATIVE DESIGN" },
+    "separator": { "type": "string", "default": "dash" },
+    "textSize": { "type": "string", "default": "normal" },
+    "textColor": { "type": "string", "default": "" },
+    "textWeight": { "type": "string", "default": "600" },
+    "letterSpacing": { "type": "number", "default": 0 },
+    "ringBackground": { "type": "string", "default": "none" },
+    "ringGap": { "type": "string", "default": "normal" },
+    "rotationEnabled": { "type": "boolean", "default": true },
+    "rotationDirection": { "type": "string", "default": "clockwise" },
+    "rotationSpeed": { "type": "string", "default": "slow" },
+    "linkUrl": { "type": "string", "default": "" },
+    "linkTarget": { "type": "boolean", "default": false },
+    "hoverTextColor": { "type": "string", "default": "" }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

@@ -16,10 +16,23 @@
 		return numberOr( value, fallback ) + 'px';
 	}
 
+	function cardAxisPadding( attributes, axis, device, fallback ) {
+		const value = attributes[ 'cardPadding' + axis + device ];
+		return typeof value === 'number' && value >= 0
+			? value
+			: numberOr( attributes[ 'cardPadding' + device ], fallback );
+	}
+
 	function getGridStyle( attributes ) {
 		const minWidthPc = Math.max( 120, numberOr( attributes.minWidthPc, 280 ) );
 		const minWidthTablet = attributes.minWidthTablet > 0 ? attributes.minWidthTablet : minWidthPc;
 		const minWidthMobile = attributes.minWidthMobile > 0 ? attributes.minWidthMobile : minWidthTablet;
+		const paddingVerticalPc = cardAxisPadding( attributes, 'Vertical', 'Pc', 24 );
+		const paddingHorizontalPc = cardAxisPadding( attributes, 'Horizontal', 'Pc', 24 );
+		const paddingVerticalTablet = cardAxisPadding( attributes, 'Vertical', 'Tablet', 20 );
+		const paddingHorizontalTablet = cardAxisPadding( attributes, 'Horizontal', 'Tablet', 20 );
+		const paddingVerticalMobile = cardAxisPadding( attributes, 'Vertical', 'Mobile', 16 );
+		const paddingHorizontalMobile = cardAxisPadding( attributes, 'Horizontal', 'Mobile', 16 );
 
 		const style = {
 			'--cni-grid-min-width-pc': minWidthPc + 'px',
@@ -36,6 +49,20 @@
 			'--cni-grid-card-border-width': attributes.cardBorder ? px( attributes.cardBorderWidth, 1 ) : '0px',
 			'--cni-grid-card-border-color': attributes.cardBorderColor || '#dddddd',
 		};
+
+		[
+			[ 'VerticalPc', paddingVerticalPc ],
+			[ 'HorizontalPc', paddingHorizontalPc ],
+			[ 'VerticalTablet', paddingVerticalTablet ],
+			[ 'HorizontalTablet', paddingHorizontalTablet ],
+			[ 'VerticalMobile', paddingVerticalMobile ],
+			[ 'HorizontalMobile', paddingHorizontalMobile ],
+		].forEach( function( setting ) {
+			const attributeName = 'cardPadding' + setting[ 0 ];
+			if ( typeof attributes[ attributeName ] === 'number' && attributes[ attributeName ] >= 0 ) {
+				style[ '--cni-grid-card-padding-' + setting[ 0 ].replace( 'Vertical', 'v-' ).replace( 'Horizontal', 'h-' ).replace( 'Pc', 'pc' ).replace( 'Tablet', 'tablet' ).replace( 'Mobile', 'mobile' ) ] = setting[ 1 ] + 'px';
+			}
+		} );
 
 		if ( attributes.flushFirstImage ) {
 			style[ '--cni-grid-first-image-ratio' ] = {
@@ -243,6 +270,12 @@
 			cardPaddingPc: { type: 'number', default: 24 },
 			cardPaddingTablet: { type: 'number', default: 20 },
 			cardPaddingMobile: { type: 'number', default: 16 },
+			cardPaddingVerticalPc: { type: 'number', default: -1 },
+			cardPaddingHorizontalPc: { type: 'number', default: -1 },
+			cardPaddingVerticalTablet: { type: 'number', default: -1 },
+			cardPaddingHorizontalTablet: { type: 'number', default: -1 },
+			cardPaddingVerticalMobile: { type: 'number', default: -1 },
+			cardPaddingHorizontalMobile: { type: 'number', default: -1 },
 			flushFirstImage: { type: 'boolean', default: false },
 			firstImageAspectRatio: { type: 'string', default: '4-3' },
 			firstImageFit: { type: 'string', default: 'cover' },
@@ -343,11 +376,14 @@
 						} )
 					),
 					el(
-						PanelBody,
+					PanelBody,
 						{ title: __( 'カード内余白', 'cni-blocks' ), initialOpen: false },
-						el( RangeControl, { label: __( 'PC padding（px）', 'cni-blocks' ), value: numberOr( attributes.cardPaddingPc, 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingPc: numberOr( value, 24 ) } ); } } ),
-						el( RangeControl, { label: __( 'タブレット padding（px）', 'cni-blocks' ), value: numberOr( attributes.cardPaddingTablet, 20 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingTablet: numberOr( value, 20 ) } ); } } ),
-						el( RangeControl, { label: __( 'モバイル padding（px）', 'cni-blocks' ), value: numberOr( attributes.cardPaddingMobile, 16 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingMobile: numberOr( value, 16 ) } ); } } )
+						el( RangeControl, { label: __( 'PC 上下余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Vertical', 'Pc', 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingVerticalPc: numberOr( value, 24 ) } ); } } ),
+						el( RangeControl, { label: __( 'PC 左右余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Horizontal', 'Pc', 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingHorizontalPc: numberOr( value, 24 ) } ); } } ),
+						el( RangeControl, { label: __( 'タブレット 上下余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Vertical', 'Tablet', 20 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingVerticalTablet: numberOr( value, 20 ) } ); } } ),
+						el( RangeControl, { label: __( 'タブレット 左右余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Horizontal', 'Tablet', 20 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingHorizontalTablet: numberOr( value, 20 ) } ); } } ),
+						el( RangeControl, { label: __( 'モバイル 上下余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Vertical', 'Mobile', 16 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingVerticalMobile: numberOr( value, 16 ) } ); } } ),
+						el( RangeControl, { label: __( 'モバイル 左右余白（px）', 'cni-blocks' ), value: cardAxisPadding( attributes, 'Horizontal', 'Mobile', 16 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { cardPaddingHorizontalMobile: numberOr( value, 16 ) } ); } } )
 					),
 					el(
 						PanelBody,

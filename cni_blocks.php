@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.34.1
+ * Version: 1.35.0
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -50,6 +50,121 @@ require_once plugin_dir_path( __FILE__ ) . 'blocks/selected-post-list/render.php
 require_once plugin_dir_path( __FILE__ ) . 'blocks/breadcrumb/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/custom-field/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/visual-embed/render.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/circle-image-plus/render.php';
+
+/**
+ * Locate the first Outer+ hero block in the current singular post.
+ *
+ * Background images remain CSS backgrounds. This only adds preload hints for
+ * the first explicitly enabled hero so browsers can start its request early.
+ *
+ * @param array $blocks Parsed block tree.
+ * @return array
+ */
+function cni_blocks_find_outer_hero_preloads( $blocks ) {
+	foreach ( (array) $blocks as $block ) {
+		if ( ! is_array( $block ) ) {
+			continue;
+		}
+
+		$attributes = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
+
+		if ( 'cni-blocks/outer' === ( $block['blockName'] ?? '' ) && ! empty( $attributes['isHero'] ) && 'diagonal' !== ( $attributes['backgroundType'] ?? 'solid' ) ) {
+			$desktop_url = isset( $attributes['backgroundImageUrl'] ) ? trim( (string) $attributes['backgroundImageUrl'] ) : '';
+
+			if ( '' !== $desktop_url ) {
+				$tablet_url = isset( $attributes['tabletBackgroundImageUrl'] ) ? trim( (string) $attributes['tabletBackgroundImageUrl'] ) : '';
+				$mobile_url = isset( $attributes['mobileBackgroundImageUrl'] ) ? trim( (string) $attributes['mobileBackgroundImageUrl'] ) : '';
+				$tablet_url = '' !== $tablet_url ? $tablet_url : $desktop_url;
+				$mobile_url = '' !== $mobile_url ? $mobile_url : $tablet_url;
+				$breakpoints = array(
+					$desktop_url => array( '(min-width: 1024px)' ),
+				);
+
+				foreach (
+					array(
+						$tablet_url => '(min-width: 768px) and (max-width: 1023px)',
+						$mobile_url => '(max-width: 767px)',
+					) as $url => $media
+				) {
+					if ( ! isset( $breakpoints[ $url ] ) ) {
+						$breakpoints[ $url ] = array();
+					}
+					$breakpoints[ $url ][] = $media;
+				}
+
+				$preloads = array();
+				$uses_single_image = 1 === count( $breakpoints );
+				foreach ( $breakpoints as $url => $media_queries ) {
+					$preloads[] = array(
+						'url'   => $url,
+						'media' => $uses_single_image ? '' : implode( ', ', $media_queries ),
+					);
+				}
+
+				return $preloads;
+			}
+		}
+
+		$nested_preloads = cni_blocks_find_outer_hero_preloads( $block['innerBlocks'] ?? array() );
+		if ( ! empty( $nested_preloads ) ) {
+			return $nested_preloads;
+		}
+	}
+
+	return array();
+}
+
+/**
+ * Get preload hints for the current front-end singular request.
+ *
+ * @return array
+ */
+function cni_blocks_get_outer_hero_preloads() {
+	static $preloads = null;
+
+	if ( null !== $preloads ) {
+		return $preloads;
+	}
+
+	$preloads = array();
+
+	if ( is_admin() || ! is_singular() || is_feed() ) {
+		return $preloads;
+	}
+
+	$post = get_post( get_queried_object_id() );
+	if ( ! $post instanceof WP_Post || '' === $post->post_content ) {
+		return $preloads;
+	}
+
+	$preloads = cni_blocks_find_outer_hero_preloads( parse_blocks( $post->post_content ) );
+
+	return $preloads;
+}
+
+/**
+ * Print preload hints before styles in the document head.
+ */
+function cni_blocks_output_outer_hero_preloads() {
+	foreach ( cni_blocks_get_outer_hero_preloads() as $preload ) {
+		$url = isset( $preload['url'] ) ? esc_url( $preload['url'] ) : '';
+
+		if ( '' === $url ) {
+			continue;
+		}
+
+		$media = isset( $preload['media'] ) ? trim( (string) $preload['media'] ) : '';
+		$media_attribute = '' !== $media ? ' media="' . esc_attr( $media ) . '"' : '';
+
+		printf(
+			"\n<link rel=\"preload\" as=\"image\" href=\"%1\$s\" fetchpriority=\"high\"%2\$s />\n",
+			$url,
+			$media_attribute
+		);
+	}
+}
+add_action( 'wp_head', 'cni_blocks_output_outer_hero_preloads', 1 );
 
 function cni_blocks_register_blocks() {
 	$dir_url  = plugin_dir_url( __FILE__ );
@@ -92,6 +207,14 @@ function cni_blocks_register_blocks() {
 		$outer_dir_url . 'style.css',
 		array(),
 		filemtime( $outer_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-outer-view',
+		$outer_dir_url . 'view.js',
+		array(),
+		filemtime( $outer_dir_path . 'view.js' ),
+		true
 	);
 
 	$auto_grid_dir_url  = $dir_url . 'blocks/auto-grid/';
@@ -263,6 +386,10 @@ function cni_blocks_register_blocks() {
 
 	$heading_plus_dir_url  = $dir_url . 'blocks/heading-plus/';
 	$heading_plus_dir_path = $dir_path . 'blocks/heading-plus/';
+	$circle_image_plus_dir_url  = $dir_url . 'blocks/circle-image-plus/';
+	$circle_image_plus_dir_path = $dir_path . 'blocks/circle-image-plus/';
+	$generated_background_plus_dir_url  = $dir_url . 'blocks/generated-background-plus/';
+	$generated_background_plus_dir_path = $dir_path . 'blocks/generated-background-plus/';
 	$table_plus_dir_url    = $dir_url . 'blocks/table-plus/';
 	$table_plus_dir_path   = $dir_path . 'blocks/table-plus/';
 	$counter_plus_dir_url  = $dir_url . 'blocks/counter-plus/';
@@ -288,6 +415,34 @@ function cni_blocks_register_blocks() {
 		$heading_plus_dir_url . 'style.css',
 		array(),
 		filemtime( $heading_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-circle-image-plus-editor',
+		$circle_image_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $circle_image_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_style(
+		'cni-blocks-circle-image-plus-style',
+		$circle_image_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $circle_image_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-generated-background-plus-editor',
+		$generated_background_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $generated_background_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_style(
+		'cni-blocks-generated-background-plus-style',
+		$generated_background_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $generated_background_plus_dir_path . 'style.css' )
 	);
 
 	wp_register_script(
@@ -402,6 +557,7 @@ function cni_blocks_register_blocks() {
 		$outer_dir_path,
 		array(
 			'editor_script' => 'cni-blocks-outer-editor',
+			'view_script'   => 'cni-blocks-outer-view',
 			'style'         => 'cni-blocks-outer-style',
 			'editor_style'  => 'cni-blocks-outer-style',
 		)
@@ -502,6 +658,25 @@ function cni_blocks_register_blocks() {
 			'view_script'   => 'cni-blocks-heading-plus-view',
 			'style'         => 'cni-blocks-heading-plus-style',
 			'editor_style'  => 'cni-blocks-heading-plus-style',
+		)
+	);
+
+	register_block_type(
+		$circle_image_plus_dir_path,
+		array(
+			'editor_script'   => 'cni-blocks-circle-image-plus-editor',
+			'style'           => 'cni-blocks-circle-image-plus-style',
+			'editor_style'    => 'cni-blocks-circle-image-plus-style',
+			'render_callback' => 'cni_blocks_render_circle_image_plus',
+		)
+	);
+
+	register_block_type(
+		$generated_background_plus_dir_path,
+		array(
+			'editor_script' => 'cni-blocks-generated-background-plus-editor',
+			'style'         => 'cni-blocks-generated-background-plus-style',
+			'editor_style'  => 'cni-blocks-generated-background-plus-style',
 		)
 	);
 

@@ -29,16 +29,27 @@
 	margin: 0;
 }
 
-/* The editor may load theme heading styles after this block stylesheet. */
+/*
+ * Theme and block-extension editor styles can target bare heading elements
+ * after this stylesheet. Keep the editable heading neutral; the CNI wrapper
+ * owns its visual settings.
+ */
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__text {
 	color: var(--cni-heading-color, inherit) !important;
 	text-align: var(--cni-heading-align, left) !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	outline: 0 !important;
+	background: none !important;
+	box-shadow: none !important;
 }
 
-.wp-block-cni-blocks-heading-plus .cni-heading-plus__text::before,
-.wp-block-cni-blocks-heading-plus .cni-heading-plus__text::after {
+.wp-block-cni-blocks-heading-plus > .cni-heading-plus__text::before,
+.wp-block-cni-blocks-heading-plus > .cni-heading-plus__text::after {
 	display: none;
-	content: none;
+	content: none !important;
+	border: 0 !important;
 }
 
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-size[data-cni-heading-size="small"] {

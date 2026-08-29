@@ -31,6 +31,30 @@
       "type": "number",
       "default": 16
     },
+    "cardPaddingVerticalPc": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalPc": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingVerticalTablet": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalTablet": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingVerticalMobile": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalMobile": {
+      "type": "number",
+      "default": -1
+    },
     "flushFirstImage": {
       "type": "boolean",
       "default": false

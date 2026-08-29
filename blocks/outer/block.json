@@ -35,6 +35,26 @@
       "type": "string",
       "default": ""
     },
+    "backgroundType": {
+      "type": "string",
+      "default": "solid"
+    },
+    "diagonalAccentColor": {
+      "type": "string",
+      "default": "#1e73be"
+    },
+    "diagonalDirection": {
+      "type": "string",
+      "default": "down-right"
+    },
+    "diagonalAngle": {
+      "type": "number",
+      "default": -1
+    },
+    "diagonalSplitPosition": {
+      "type": "number",
+      "default": 50
+    },
     "backgroundImageId": {
       "type": "number",
       "default": 0
@@ -42,6 +62,18 @@
     "backgroundImageUrl": {
       "type": "string",
       "default": ""
+    },
+    "backgroundVideoId": {
+      "type": "number",
+      "default": 0
+    },
+    "backgroundVideoUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "isHero": {
+      "type": "boolean",
+      "default": false
     },
     "tabletBackgroundImageId": {
       "type": "number",
@@ -78,6 +110,18 @@
     "backgroundDisplay": {
       "type": "string",
       "default": "cover"
+    },
+    "backgroundOffsetX": {
+      "type": "number",
+      "default": 0
+    },
+    "backgroundOffsetY": {
+      "type": "number",
+      "default": 0
+    },
+    "disableBackgroundOffsetOnMobile": {
+      "type": "boolean",
+      "default": true
     },
     "overlayColor": {
       "type": "string",

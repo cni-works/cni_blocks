@@ -1,5 +1,6 @@
 .wp-block-cni-blocks-auto-grid {
-	--cni-grid-card-current-padding: var(--cni-grid-card-padding-pc, 24px);
+	--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-pc, var(--cni-grid-card-padding-pc, 24px));
+	--cni-grid-card-current-padding-y: var(--cni-grid-card-padding-v-pc, var(--cni-grid-card-padding-pc, 24px));
 	--cni-grid-min-width-current: var(--cni-grid-min-width-pc, 280px);
 	display: grid;
 	border: 0;
@@ -24,7 +25,7 @@
 	min-width: 0;
 	height: 100%;
 	box-sizing: border-box;
-	padding: var(--cni-grid-card-padding-pc, 24px);
+	padding: var(--cni-grid-card-padding-v-pc, var(--cni-grid-card-padding-pc, 24px)) var(--cni-grid-card-padding-h-pc, var(--cni-grid-card-padding-pc, 24px));
 	border: var(--cni-grid-card-border-width, 0) solid var(--cni-grid-card-border-color, #ddd);
 	border-radius: var(--cni-grid-card-radius, 8px);
 	background: var(--cni-grid-card-background, #fff);
@@ -71,8 +72,8 @@
 .wp-block-cni-blocks-grid-card > .cni-grid-card__link-arrow {
 	position: absolute;
 	z-index: 4;
-	right: max( 16px, var(--cni-grid-card-current-padding, 24px) );
-	bottom: max( 16px, var(--cni-grid-card-current-padding, 24px) );
+	right: max( 16px, var(--cni-grid-card-current-padding-x, 24px) );
+	bottom: max( 16px, var(--cni-grid-card-current-padding-y, 24px) );
 	display: grid;
 	width: 40px;
 	height: 40px;
@@ -103,6 +104,12 @@
 	pointer-events: none;
 }
 
+/* Reserve room for the arrow only in the final text/content block.  Padding
+ * the whole inner wrapper would make every preceding block look left-aligned. */
+.wp-block-cni-blocks-grid-card.has-cni-grid-card-link:has(> .cni-grid-card__link-arrow) > .cni-grid-card__inner > :not(.wp-block-image):last-child {
+	padding-inline-end: 48px;
+}
+
 .wp-block-cni-blocks-grid-card.has-cni-grid-card-link > .cni-grid-card__inner a,
 .wp-block-cni-blocks-grid-card.has-cni-grid-card-link > .cni-grid-card__inner button,
 .wp-block-cni-blocks-grid-card.has-cni-grid-card-link > .cni-grid-card__inner input,
@@ -129,11 +136,21 @@
 
 .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child,
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child {
-	width: calc(100% + (2 * var(--cni-grid-card-current-padding)));
-	max-width: none;
-	margin-top: calc(-1 * var(--cni-grid-card-current-padding));
-	margin-right: calc(-1 * var(--cni-grid-card-current-padding));
-	margin-left: calc(-1 * var(--cni-grid-card-current-padding));
+	width: calc(100% + (2 * var(--cni-grid-card-current-padding-x))) !important;
+	min-width: calc(100% + (2 * var(--cni-grid-card-current-padding-x))) !important;
+	max-width: none !important;
+	align-self: stretch;
+	/* Keep the aspect-ratio height in the card's normal flex layout. */
+	flex: 0 0 auto !important;
+	box-sizing: border-box;
+	line-height: 0;
+	float: none !important;
+	margin-top: calc(-1 * var(--cni-grid-card-current-padding-y)) !important;
+	margin-right: calc(-1 * var(--cni-grid-card-current-padding-x));
+	margin-left: calc(-1 * var(--cni-grid-card-current-padding-x));
+	margin-block-start: calc(-1 * var(--cni-grid-card-current-padding-y)) !important;
+	margin-inline-end: calc(-1 * var(--cni-grid-card-current-padding-x));
+	margin-inline-start: calc(-1 * var(--cni-grid-card-current-padding-x));
 }
 
 .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child > img,
@@ -144,9 +161,24 @@
 	display: block;
 	width: 100% !important;
 	max-width: none !important;
-	aspect-ratio: var(--cni-grid-first-image-ratio, 4 / 3);
 	overflow: hidden;
 	border-radius: var(--cni-grid-card-radius, 8px) var(--cni-grid-card-radius, 8px) 0 0;
+}
+
+/* Use a grid pseudo-element as the media frame. Unlike a replaced <img>, it
+ * always honours the selected ratio, including linked images and empty captions. */
+.wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-areas: 'media';
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child::before {
+	grid-area: media;
+	aspect-ratio: var(--cni-grid-first-image-ratio, 4 / 3);
+	content: '';
 }
 
 .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child > img,
@@ -159,10 +191,20 @@
 	object-position: center var(--cni-grid-first-image-position, center);
 }
 
+.wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child > img,
+.wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child > a,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child > img,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child > a,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child > .components-resizable-box__container {
+	grid-area: media;
+}
+
 .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child > figcaption,
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:first-child > figcaption {
-	margin-right: var(--cni-grid-card-current-padding);
-	margin-left: var(--cni-grid-card-current-padding);
+	grid-area: auto;
+	line-height: normal;
+	margin-right: var(--cni-grid-card-current-padding-x);
+	margin-left: var(--cni-grid-card-current-padding-x);
 }
 
 .wp-block-cni-blocks-auto-grid[data-align-buttons-bottom="1"] .cni-grid-card__inner > .wp-block-buttons:last-child {
@@ -188,8 +230,11 @@
 .editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks,
 .editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout {
 	display: flex;
+	/* Keep the card width constrained while allowing child blocks to set height. */
 	flex: 1 1 auto;
 	flex-direction: column;
+	width: 100%;
+	max-width: 100%;
 	min-width: 0;
 }
 
@@ -216,7 +261,8 @@
 
 @media (min-width: 782px) and (max-width: 1023px) {
 	.wp-block-cni-blocks-auto-grid {
-		--cni-grid-card-current-padding: var(--cni-grid-card-padding-tablet, 20px);
+		--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-tablet, var(--cni-grid-card-padding-tablet, 20px));
+		--cni-grid-card-current-padding-y: var(--cni-grid-card-padding-v-tablet, var(--cni-grid-card-padding-tablet, 20px));
 		--cni-grid-min-width-current: var(--cni-grid-min-width-tablet, 280px);
 	}
 
@@ -226,13 +272,14 @@
 	}
 
 	.wp-block-cni-blocks-grid-card {
-		padding: var(--cni-grid-card-padding-tablet, 20px);
+		padding: var(--cni-grid-card-padding-v-tablet, var(--cni-grid-card-padding-tablet, 20px)) var(--cni-grid-card-padding-h-tablet, var(--cni-grid-card-padding-tablet, 20px));
 	}
 }
 
 @media (max-width: 781px) {
 	.wp-block-cni-blocks-auto-grid {
-		--cni-grid-card-current-padding: var(--cni-grid-card-padding-mobile, 16px);
+		--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-mobile, var(--cni-grid-card-padding-mobile, 16px));
+		--cni-grid-card-current-padding-y: var(--cni-grid-card-padding-v-mobile, var(--cni-grid-card-padding-mobile, 16px));
 		--cni-grid-min-width-current: var(--cni-grid-min-width-mobile, 280px);
 	}
 
@@ -242,7 +289,7 @@
 	}
 
 	.wp-block-cni-blocks-grid-card {
-		padding: var(--cni-grid-card-padding-mobile, 16px);
+		padding: var(--cni-grid-card-padding-v-mobile, var(--cni-grid-card-padding-mobile, 16px)) var(--cni-grid-card-padding-h-mobile, var(--cni-grid-card-padding-mobile, 16px));
 	}
 }
 
