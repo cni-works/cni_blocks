@@ -13,6 +13,8 @@
     "tagName": { "type": "string", "default": "" },
     "marginTop": { "type": "number" },
     "marginBottom": { "type": "number" },
+    "legacyLayout": { "type": "boolean", "default": false },
+    "layoutVersion": { "type": "number", "default": 2 },
     "inlineImageId": { "type": "number", "default": 0 },
     "inlineImageUrl": { "type": "string", "default": "" },
     "inlineImageAlt": { "type": "string", "default": "" },

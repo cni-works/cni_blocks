@@ -30,11 +30,18 @@
 	margin-bottom: var(--cni-heading-margin-bottom, 0);
 }
 
-.wp-block-cni-blocks-heading-plus h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px); margin-bottom: var(--cni-heading-margin-bottom, 16px); }
-.wp-block-cni-blocks-heading-plus h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
-.wp-block-cni-blocks-heading-plus h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
-.wp-block-cni-blocks-heading-plus h5.cni-heading-plus__text,
-.wp-block-cni-blocks-heading-plus h6.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 20px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
+/* Saved blocks from before layout version 2 have no margin variable. Keep
+ * those published pages at their historical zero margin, even if a theme's
+ * generic h2/h3 rule loads after this stylesheet. Explicit user margins are
+ * left untouched. */
+.wp-block-cni-blocks-heading-plus:not([data-cni-layout-version]):not([style*="--cni-heading-margin-top"]) .cni-heading-plus__text { margin-top: 0 !important; }
+.wp-block-cni-blocks-heading-plus:not([data-cni-layout-version]):not([style*="--cni-heading-margin-bottom"]) .cni-heading-plus__text { margin-bottom: 0 !important; }
+
+.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px); margin-bottom: var(--cni-heading-margin-bottom, 16px); }
+.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
+.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
+.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h5.cni-heading-plus__text,
+.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h6.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 20px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
 
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-row {
 	display: inline-flex;
@@ -110,7 +117,8 @@
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__text {
 	color: var(--cni-heading-color, inherit) !important;
 	text-align: var(--cni-heading-align, left) !important;
-	margin: 0 !important;
+	margin-top: var(--cni-heading-margin-top, 0) !important;
+	margin-bottom: var(--cni-heading-margin-bottom, 0) !important;
 	padding: 0 !important;
 	border: 0 !important;
 	outline: 0 !important;
@@ -121,7 +129,8 @@
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__inline-row > .cni-heading-plus__text {
 	color: var(--cni-heading-color, inherit) !important;
 	text-align: var(--cni-heading-align, left) !important;
-	margin: 0 !important;
+	margin-top: var(--cni-heading-margin-top, 0) !important;
+	margin-bottom: var(--cni-heading-margin-bottom, 0) !important;
 	padding: 0 !important;
 	border: 0 !important;
 	outline: 0 !important;
@@ -237,9 +246,9 @@
 		text-align: inherit;
 		height: auto;
 	}
-	.wp-block-cni-blocks-heading-plus h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 30px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
-	.wp-block-cni-blocks-heading-plus h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 10px); }
-	.wp-block-cni-blocks-heading-plus h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 18px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
+	.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 30px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
+	.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 10px); }
+	.wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 18px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
 }
 
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Desktop"] {
@@ -256,6 +265,16 @@
 
 /* The editor neutralizes theme heading margins above; restore Heading+'s
  * deliberate defaults so editor and front end agree. */
-.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px) !important; margin-bottom: var(--cni-heading-margin-bottom, 16px) !important; }
-.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px) !important; margin-bottom: var(--cni-heading-margin-bottom, 12px) !important; }
-.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px) !important; margin-bottom: var(--cni-heading-margin-bottom, 8px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] > h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px) !important; margin-bottom: var(--cni-heading-margin-bottom, 16px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] > h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px) !important; margin-bottom: var(--cni-heading-margin-bottom, 12px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] > h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px) !important; margin-bottom: var(--cni-heading-margin-bottom, 8px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] > h5.cni-heading-plus__text,
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-cni-layout-version="2"] > h6.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 20px) !important; margin-bottom: var(--cni-heading-margin-bottom, 8px) !important; }
+
+/* Posts created before Heading+ introduced default heading margins retain
+ * their original zero-margin layout until the author intentionally chooses
+ * a new margin preset. */
+.wp-block-cni-blocks-heading-plus[data-cni-legacy-layout="true"] .cni-heading-plus__text {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}

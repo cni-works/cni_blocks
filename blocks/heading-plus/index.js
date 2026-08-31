@@ -13,6 +13,11 @@
 	const rubyFormat = 'cni-blocks/heading-ruby';
 	const responsiveBreakFormat = 'cni-blocks/heading-responsive-break';
 	const isLightning = !! ( window.cniBlocksHeadingPlusConfig && window.cniBlocksHeadingPlusConfig.isLightning );
+	/* Kept separately so posts saved before Heading+ gained units, margins,
+	 * writing modes, and inline images continue to validate byte-for-byte. */
+	const legacyHeadingAttributes = {
+		content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '見出しを入力' }, level: { type: 'number', default: 2 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 40 }, fontSizeTablet: { type: 'number', default: 34 }, fontSizeMobile: { type: 'number', default: 28 }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 },
+	};
 	const googleFonts = [ '', 'Noto Sans JP', 'Noto Serif JP', 'M PLUS 1p', 'M PLUS Rounded 1c', 'Zen Kaku Gothic New', 'Zen Maru Gothic', 'Zen Old Mincho', 'Zen Kurenaido', 'Shippori Mincho', 'Kosugi Maru', 'Yuji Boku', 'Kiwi Maru', 'Kaisei Decol', 'Kaisei Opti', 'Mochiy Pop One', 'Klee One', 'Yomogi', 'Yusei Magic', 'Roboto', 'Lato', 'Montserrat', 'Poppins', 'Josefin Sans', 'Quicksand', 'Damion', 'Caveat', 'Cinzel', 'Dancing Script', 'Tangerine' ];
 	const fontWeights = {
 		'Zen Old Mincho': [ '400', '500', '600', '700', '800' ], 'Shippori Mincho': [ '400', '500', '600', '700', '800' ],
@@ -85,10 +90,57 @@
 		if ( typeof a.marginBottom === 'number' ) style[ '--cni-heading-margin-bottom' ] = a.marginBottom + 'px';
 		return style;
 	}
-	function setMarginPreset( props, attribute, value ) { const next = {}; next[ attribute ] = value; props.setAttributes( next ); }
+	function legacyStyleFor( a ) {
+		return {
+			'--cni-heading-font': a.fontFamily ? '"' + a.fontFamily + '", sans-serif' : 'inherit',
+			'--cni-heading-weight': a.fontWeight || '700',
+			'--cni-heading-style': a.fontStyle || 'normal',
+			'--cni-heading-transform': a.textTransform || 'none',
+			'--cni-heading-size-pc': numberOr( a.fontSizePc, 40 ) + 'px',
+			'--cni-heading-size-tablet': numberOr( a.fontSizeTablet, 34 ) + 'px',
+			'--cni-heading-size-mobile': numberOr( a.fontSizeMobile, 28 ) + 'px',
+			'--cni-heading-line-height': numberOr( a.lineHeight, 1.3 ),
+			'--cni-heading-letter-spacing': numberOr( a.letterSpacing, 0 ) + 'px',
+			'--cni-heading-color': a.textColor || 'inherit',
+			'--cni-heading-background': a.backgroundColor || 'transparent',
+			'--cni-heading-align': a.alignment || 'left',
+			'--cni-heading-padding-y': numberOr( a.paddingVertical, 0 ) + 'px',
+			'--cni-heading-padding-x': numberOr( a.paddingHorizontal, 0 ) + 'px',
+		};
+	}
+	function legacySave( props ) {
+		const a = props.attributes;
+		const legacyProps = { style: legacyStyleFor( a ) };
+		if ( a.fontFamily ) legacyProps[ 'data-google-font' ] = a.fontFamily;
+		return el( 'div', blockEditor.useBlockProps.save( legacyProps ), el( RichText.Content, { tagName: 'h' + ( a.level || 2 ), className: 'cni-heading-plus__text', value: a.content } ) );
+	}
+	function migrateLegacyHeading( attributes ) {
+		return Object.assign( {}, attributes, {
+			tagName: 'h' + ( attributes.level || 2 ),
+			marginTop: 0,
+			marginBottom: 0,
+			fontSizeUnitPc: 'px',
+			fontSizeUnitTablet: 'px',
+			fontSizeUnitMobile: 'px',
+			inlineImageId: 0,
+			inlineImageUrl: '',
+			inlineImageAlt: '',
+			inlineImagePosition: 'before',
+			inlineImageSize: 1.05,
+			writingMode: 'horizontal-tb',
+			mobileWritingMode: 'horizontal-tb',
+			verticalOrientation: 'mixed',
+			verticalPosition: 'right',
+			verticalHeight: 320,
+			legacyLayout: true,
+			layoutVersion: 1,
+		} );
+	}
+	function setMarginPreset( props, attribute, value ) { const next = {}; next[ attribute ] = value; if ( props.attributes.legacyLayout ) next.legacyLayout = false; next.layoutVersion = 2; props.setAttributes( next ); }
 	function marginControls( props, attribute, label, icon ) {
 		const presets = [ [ __( '標準', 'cni-blocks' ), undefined ], [ '0', 0 ], [ 'XXS', 4 ], [ 'XS', 8 ], [ 'S', 16 ], [ 'M', 24 ], [ 'L', 32 ], [ 'XL', 40 ], [ 'XXL', 56 ] ];
-		return el( ToolbarDropdownMenu, { icon: icon, label: label, controls: presets.map( function( preset ) { return { title: label + '：' + preset[ 0 ], onClick: function() { setMarginPreset( props, attribute, preset[ 1 ] ); } }; } ) } );
+		const currentValue = typeof props.attributes[ attribute ] === 'number' ? props.attributes[ attribute ] : undefined;
+		return el( ToolbarDropdownMenu, { icon: icon, label: label, controls: presets.map( function( preset ) { return { title: label + '：' + preset[ 0 ], isActive: currentValue === preset[ 1 ], onClick: function() { setMarginPreset( props, attribute, preset[ 1 ] ); } }; } ) } );
 	}
 	function ResponsiveBreakFormatControl( formatProps ) {
 		const isOpenState = useState( false );
@@ -115,6 +167,8 @@
 	function propsFor( a, save, editorDevice ) {
 		const props = { style: styleFor( a ) };
 		if ( a.fontFamily ) props[ 'data-google-font' ] = a.fontFamily;
+		if ( a.legacyLayout ) props[ 'data-cni-legacy-layout' ] = 'true';
+		if ( ! a.legacyLayout && numberOr( a.layoutVersion, 2 ) >= 2 ) props[ 'data-cni-layout-version' ] = '2';
 		if ( [ 'vertical-rl', 'vertical-lr' ].indexOf( a.writingMode ) !== -1 ) {
 			props[ 'data-writing-mode' ] = a.writingMode;
 			props[ 'data-vertical-position' ] = [ 'left', 'center', 'right' ].indexOf( a.verticalPosition ) !== -1 ? a.verticalPosition : 'right';
@@ -220,8 +274,13 @@
 		title: __( '見出し+', 'cni-blocks' ), icon: 'heading', category: 'cni-blocks',
 		description: __( '端末別の文字サイズ、Google Fonts、字間、色を設定できる見出しです。', 'cni-blocks' ),
 		attributes: {
-			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 },
+			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, legacyLayout: { type: 'boolean', default: false }, layoutVersion: { type: 'number', default: 2 }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 },
 		},
+		deprecated: [ {
+			attributes: legacyHeadingAttributes,
+			save: legacySave,
+			migrate: migrateLegacyHeading,
+		} ],
 		supports: { anchor: true, html: false },
 		edit: function( props ) {
 			const a = props.attributes;
