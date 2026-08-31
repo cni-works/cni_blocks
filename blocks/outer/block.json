@@ -187,6 +187,22 @@
       "type": "number",
       "default": 0
     },
+    "creativeBackgroundEffect": {
+      "type": "string",
+      "default": "none"
+    },
+    "creativeFrameEffect": {
+      "type": "string",
+      "default": "none"
+    },
+    "creativeFrameColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "creativeContentEffect": {
+      "type": "string",
+      "default": "none"
+    },
     "topDividerType": {
       "type": "string",
       "default": "none"

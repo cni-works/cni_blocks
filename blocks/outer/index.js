@@ -436,6 +436,14 @@
 		if ( attributes.borderStyle === 'dotted' || attributes.borderStyle === 'dashed' ) {
 			style['--cni-outer-border-style'] = attributes.borderStyle;
 		}
+		if ( attributes.creativeBackgroundEffect === 'zoom' && ! diagonalBackground && attributes.backgroundImageUrl ) {
+			style['--cni-outer-creative-background-image'] = desktopImage;
+			style['--cni-outer-creative-tablet-background-image'] = tabletImage;
+			style['--cni-outer-creative-mobile-background-image'] = mobileImage;
+		}
+		if ( attributes.creativeFrameEffect === 'draw' ) {
+			style['--cni-outer-creative-frame-color'] = attributes.creativeFrameColor || '#ffffff';
+		}
 
 		return style;
 	}
@@ -535,6 +543,40 @@
 		} );
 	}
 
+	function hasCreativeImageZoom( attributes ) {
+		return attributes.creativeBackgroundEffect === 'zoom' && ! hasDiagonalBackground( attributes ) && !! attributes.backgroundImageUrl;
+	}
+
+	function outerClassName( attributes ) {
+		const classes = [];
+		if ( hasOutwardDivider( attributes ) ) classes.push( 'cni-outer--has-outward-divider' );
+		if ( hasCreativeImageZoom( attributes ) ) classes.push( 'cni-outer--creative-background-zoom' );
+		if ( attributes.creativeFrameEffect === 'draw' ) classes.push( 'cni-outer--creative-frame-draw' );
+		if ( attributes.creativeContentEffect === 'lift' ) classes.push( 'cni-outer--creative-content-lift' );
+		return classes.join( ' ' );
+	}
+
+	function creativeBackgroundElement( attributes ) {
+		if ( ! hasCreativeImageZoom( attributes ) ) return null;
+		return el(
+			'div',
+			{ className: 'cni-outer__creative-background-clip', 'aria-hidden': 'true' },
+			el( 'div', { className: 'cni-outer__creative-background' } )
+		);
+	}
+
+	function creativeFrameElement( attributes ) {
+		if ( attributes.creativeFrameEffect !== 'draw' ) return null;
+		return el(
+			'div',
+			{ className: 'cni-outer__creative-frame', 'aria-hidden': 'true' },
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--top' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--right' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--bottom' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--left' } )
+		);
+	}
+
 	function focalPointControl( label, imageUrl, value, onChange ) {
 		if ( ! imageUrl ) return null;
 		const enabled = !!value;
@@ -620,6 +662,10 @@
 			borderWidth: { type: 'number', default: 0 },
 			borderColor: { type: 'string', default: '#dddddd' },
 			borderRadius: { type: 'number', default: 0 },
+			creativeBackgroundEffect: { type: 'string', default: 'none' },
+			creativeFrameEffect: { type: 'string', default: 'none' },
+			creativeFrameColor: { type: 'string', default: '#ffffff' },
+			creativeContentEffect: { type: 'string', default: 'none' },
 			topDividerType: { type: 'string', default: 'none' },
 			topDividerColor: { type: 'string', default: '#ffffff' },
 			topDividerHeight: { type: 'number', default: 80 },
@@ -663,7 +709,7 @@
 			const borderType = attributes.borderWidth > 0 ? selectedBorderStyle : 'none';
 			const blockProps = useBlockProps( {
 				style: getOuterStyle( attributes ),
-				className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
+				className: outerClassName( attributes ),
 			} );
 
 			return el(
@@ -867,6 +913,46 @@
 					),
 					el(
 						PanelBody,
+						{ title: __( 'マウスオーバー演出', 'cni-blocks' ), initialOpen: false },
+						el( 'p', { className: 'cni-outer-control-help' }, __( 'PCではホバー、キーボード操作ではフォーカス時に表示します。モバイルと「動きを減らす」設定では通常表示のままです。', 'cni-blocks' ) ),
+						el( SelectControl, {
+							label: __( '背景演出', 'cni-blocks' ),
+							value: attributes.creativeBackgroundEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( '背景をゆっくり拡大', 'cni-blocks' ), value: 'zoom' },
+							],
+							help: pcBackgroundImageUrl ? __( 'PC背景画像に適用されます。動画背景と斜め背景は通常表示のままです。', 'cni-blocks' ) : __( 'PC背景画像を設定すると適用されます。動画背景と斜め背景は通常表示のままです。', 'cni-blocks' ),
+							onChange: function( value ) { setAttributes( { creativeBackgroundEffect: value === 'zoom' ? 'zoom' : 'none' } ); },
+						} ),
+						el( SelectControl, {
+							label: __( 'フレーム演出', 'cni-blocks' ),
+							value: attributes.creativeFrameEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( 'フレームを順に描画', 'cni-blocks' ), value: 'draw' },
+							],
+							onChange: function( value ) { setAttributes( { creativeFrameEffect: value === 'draw' ? 'draw' : 'none' } ); },
+						} ),
+						attributes.creativeFrameEffect === 'draw' ? el( 'p', null, __( 'フレーム色', 'cni-blocks' ) ) : null,
+						attributes.creativeFrameEffect === 'draw' ? el( ColorPalette, {
+							colors: colorPalette,
+							value: attributes.creativeFrameColor || '#ffffff',
+							clearable: false,
+							onChange: function( value ) { setAttributes( { creativeFrameColor: value || '#ffffff' } ); },
+						} ) : null,
+						el( SelectControl, {
+							label: __( 'コンテンツ演出', 'cni-blocks' ),
+							value: attributes.creativeContentEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( 'コンテンツを少し浮かせる', 'cni-blocks' ), value: 'lift' },
+							],
+							onChange: function( value ) { setAttributes( { creativeContentEffect: value === 'lift' ? 'lift' : 'none' } ); },
+						} )
+					),
+					el(
+						PanelBody,
 						{ title: __( 'レイアウト', 'cni-blocks' ), initialOpen: false },
 						el( SelectControl, {
 							label: __( '内側コンテンツの幅', 'cni-blocks' ),
@@ -992,7 +1078,9 @@
 					TagName,
 					blockProps,
 					dividerElement( 'top', attributes ),
+					creativeBackgroundElement( attributes ),
 					backgroundVideoElement( attributes, true ),
+					creativeFrameElement( attributes ),
 					el(
 						'div',
 						{ className: 'cni-outer__inner' },
@@ -1010,14 +1098,16 @@
 			const TagName = attributes.tagName === 'section' ? 'section' : 'div';
 			const blockProps = blockEditor.useBlockProps.save( {
 				style: getOuterStyle( attributes ),
-				className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
+				className: outerClassName( attributes ),
 			} );
 
 			return el(
 				TagName,
 				blockProps,
 				dividerElement( 'top', attributes ),
+				creativeBackgroundElement( attributes ),
 				backgroundVideoElement( attributes, false ),
+				creativeFrameElement( attributes ),
 				el(
 					'div',
 					{ className: 'cni-outer__inner' },

@@ -26,7 +26,80 @@
 	letter-spacing: inherit;
 	line-height: inherit;
 	text-transform: inherit;
-	margin: 0;
+	margin-top: var(--cni-heading-margin-top, 0);
+	margin-bottom: var(--cni-heading-margin-bottom, 0);
+}
+
+.wp-block-cni-blocks-heading-plus h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px); margin-bottom: var(--cni-heading-margin-bottom, 16px); }
+.wp-block-cni-blocks-heading-plus h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
+.wp-block-cni-blocks-heading-plus h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
+.wp-block-cni-blocks-heading-plus h5.cni-heading-plus__text,
+.wp-block-cni-blocks-heading-plus h6.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 20px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-row {
+	display: inline-flex;
+	align-items: center;
+	max-width: 100%;
+	gap: .35em;
+	vertical-align: middle;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-row > .cni-heading-plus__text {
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__inline-image {
+	display: block;
+	flex: 0 0 auto;
+	width: var(--cni-heading-inline-image-size, 1.05em);
+	height: var(--cni-heading-inline-image-size, 1.05em);
+	object-fit: contain;
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-rl"],
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-lr"] {
+	display: flex;
+	width: 100%;
+	writing-mode: horizontal-tb;
+	text-align: initial;
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-position="right"] { justify-content: flex-end; }
+.wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-position="center"] { justify-content: center; }
+.wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-position="left"] { justify-content: flex-start; }
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-rl"] .cni-heading-plus__text,
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-rl"] .cni-heading-plus__inline-row {
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-lr"] .cni-heading-plus__text,
+.wp-block-cni-blocks-heading-plus[data-writing-mode="vertical-lr"] .cni-heading-plus__inline-row {
+	writing-mode: vertical-lr;
+	text-orientation: mixed;
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-orientation="upright"] .cni-heading-plus__text,
+.wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-orientation="upright"] .cni-heading-plus__inline-row {
+	text-orientation: upright;
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode] .cni-heading-plus__text {
+	flex: 0 0 auto;
+	max-width: 100%;
+	height: var(--cni-heading-vertical-height, 320px);
+}
+
+.wp-block-cni-blocks-heading-plus[data-writing-mode] .cni-heading-plus__inline-row {
+	height: var(--cni-heading-vertical-height, 320px);
+}
+
+/* A paragraph is an intentional non-heading choice. Avoid theme paragraph
+ * margins changing the spacing of this otherwise heading-style block. */
+.wp-block-cni-blocks-heading-plus p.cni-heading-plus__text {
+	margin-block: 0;
 }
 
 /*
@@ -35,6 +108,17 @@
  * owns its visual settings.
  */
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__text {
+	color: var(--cni-heading-color, inherit) !important;
+	text-align: var(--cni-heading-align, left) !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	outline: 0 !important;
+	background: none !important;
+	box-shadow: none !important;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > .cni-heading-plus__inline-row > .cni-heading-plus__text {
 	color: var(--cni-heading-color, inherit) !important;
 	text-align: var(--cni-heading-align, left) !important;
 	margin: 0 !important;
@@ -125,12 +209,37 @@
 	margin-top: 12px;
 }
 
+.wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break { display: none; }
+@media (max-width: 575.98px) { .wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break[data-cni-break="xs"] { display: block; height: 0; } }
+@media (min-width: 576px) and (max-width: 767.98px) { .wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break[data-cni-break="sm"] { display: block; height: 0; } }
+@media (min-width: 768px) and (max-width: 991.98px) { .wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break[data-cni-break="md"] { display: block; height: 0; } }
+@media (min-width: 992px) and (max-width: 1199.98px) { .wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break[data-cni-break="lg"] { display: block; height: 0; } }
+@media (min-width: 1200px) { .wp-block-cni-blocks-heading-plus .cni-heading-plus__responsive-break[data-cni-break="xl"] { display: block; height: 0; } }
+
 @media (max-width: 1024px) {
 	.wp-block-cni-blocks-heading-plus { font-size: var(--cni-heading-size-tablet, 34px); }
 }
 
 @media (max-width: 767px) {
 	.wp-block-cni-blocks-heading-plus { font-size: var(--cni-heading-size-mobile, 28px); }
+	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"] {
+		writing-mode: horizontal-tb;
+		text-orientation: mixed;
+		text-align: var(--cni-heading-align, left);
+		justify-content: flex-start;
+	}
+	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"][data-heading-alignment="center"] { justify-content: center; }
+	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"][data-heading-alignment="right"] { justify-content: flex-end; }
+	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"] .cni-heading-plus__text,
+	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"] .cni-heading-plus__inline-row {
+		writing-mode: horizontal-tb;
+		text-orientation: mixed;
+		text-align: inherit;
+		height: auto;
+	}
+	.wp-block-cni-blocks-heading-plus h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 30px); margin-bottom: var(--cni-heading-margin-bottom, 12px); }
+	.wp-block-cni-blocks-heading-plus h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px); margin-bottom: var(--cni-heading-margin-bottom, 10px); }
+	.wp-block-cni-blocks-heading-plus h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 18px); margin-bottom: var(--cni-heading-margin-bottom, 8px); }
 }
 
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Desktop"] {
@@ -144,3 +253,9 @@
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Mobile"] {
 	font-size: var(--cni-heading-size-mobile, 28px);
 }
+
+/* The editor neutralizes theme heading margins above; restore Heading+'s
+ * deliberate defaults so editor and front end agree. */
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h2.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 40px) !important; margin-bottom: var(--cni-heading-margin-bottom, 16px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h3.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 32px) !important; margin-bottom: var(--cni-heading-margin-bottom, 12px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus > h4.cni-heading-plus__text { margin-top: var(--cni-heading-margin-top, 24px) !important; margin-bottom: var(--cni-heading-margin-bottom, 8px) !important; }

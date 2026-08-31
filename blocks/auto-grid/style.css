@@ -14,6 +14,62 @@
 	align-items: start;
 }
 
+/* Cell grid mode: the container background becomes the shared grid line.
+ * A spanning cell covers the gap between its tracks, so lines never double. */
+.wp-block-cni-blocks-auto-grid.cni-grid--cell {
+	display: block;
+	border: 0;
+	background: transparent;
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll {
+	width: 100%;
+	border-radius: var(--cni-cell-radius, 0);
+	overflow: hidden;
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell .cni-cell-grid-content {
+	display: grid;
+	grid-template-columns: repeat(var(--cni-cell-columns-pc, 3), minmax(0, 1fr));
+	gap: var(--cni-cell-inner-border-width, 1px);
+	padding: var(--cni-cell-outer-border-width, 2px);
+	border-radius: inherit;
+	background: var(--cni-cell-border-color, #ddd);
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-first-column] .cni-cell-grid-content {
+	grid-template-columns: minmax(0, var(--cni-cell-first-column)) repeat(var(--cni-cell-columns-after-first), minmax(0, 1fr));
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card {
+	min-width: 0;
+	height: auto;
+	padding: var(--cni-cell-padding, 24px);
+	border: 0;
+	border-radius: 0;
+	background: var(--cni-cell-background, #fff);
+	color: var(--cni-cell-text-color, inherit);
+	box-shadow: none;
+	grid-column: span var(--cni-cell-column-span, 1);
+	grid-row: span var(--cni-cell-row-span, 1);
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card > .cni-grid-card__inner {
+	justify-content: var(--cni-cell-content-align, flex-start);
+	text-align: var(--cni-cell-text-align, left);
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card.has-cni-grid-card-link:hover {
+	transform: none;
+}
+
+.wp-block-cni-blocks-auto-grid.cni-grid--cell .cni-cell-grid-scroll-hint {
+	display: none;
+	margin: 8px 0 0;
+	font-size: .85em;
+	color: #5b6470;
+}
+
 .cni-grid-card--last-row-centered {
 	position: relative;
 	left: var(--cni-grid-last-row-offset, 0px);
@@ -259,6 +315,38 @@
 	border-style: dashed;
 }
 
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+	display: grid;
+	grid-template-columns: repeat(var(--cni-cell-columns-pc, 3), minmax(0, 1fr));
+	gap: var(--cni-cell-inner-border-width, 1px);
+	padding: var(--cni-cell-outer-border-width, 2px);
+	border-radius: var(--cni-cell-radius, 0);
+	background: var(--cni-cell-border-color, #ddd);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-first-column] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+	grid-template-columns: minmax(0, var(--cni-cell-first-column)) repeat(var(--cni-cell-columns-after-first), minmax(0, 1fr));
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+	min-width: 0;
+	height: auto;
+	padding: var(--cni-cell-padding, 24px);
+	border: 0;
+	border-radius: 0;
+	background: var(--cni-cell-background, #fff);
+	color: var(--cni-cell-text-color, inherit);
+	box-shadow: none;
+	grid-column: span var(--cni-cell-column-span, 1);
+	grid-row: span var(--cni-cell-row-span, 1);
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card > .cni-grid-card__inner,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout {
+	justify-content: var(--cni-cell-content-align, flex-start);
+	text-align: var(--cni-cell-text-align, left);
+}
+
 @media (min-width: 782px) and (max-width: 1023px) {
 	.wp-block-cni-blocks-auto-grid {
 		--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-tablet, var(--cni-grid-card-padding-tablet, 20px));
@@ -273,6 +361,21 @@
 
 	.wp-block-cni-blocks-grid-card {
 		padding: var(--cni-grid-card-padding-v-tablet, var(--cni-grid-card-padding-tablet, 20px)) var(--cni-grid-card-padding-h-tablet, var(--cni-grid-card-padding-tablet, 20px));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		grid-template-columns: repeat(var(--cni-cell-columns-tablet, 2), minmax(0, 1fr));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-first-column] .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-first-column] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		grid-template-columns: repeat(var(--cni-cell-columns-tablet, 2), minmax(0, 1fr));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+		padding: var(--cni-cell-padding, 24px);
 	}
 }
 
@@ -290,6 +393,50 @@
 
 	.wp-block-cni-blocks-grid-card {
 		padding: var(--cni-grid-card-padding-v-mobile, var(--cni-grid-card-padding-mobile, 16px)) var(--cni-grid-card-padding-h-mobile, var(--cni-grid-card-padding-mobile, 16px));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="stack"] .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="stack"] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		grid-template-columns: 1fr;
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="compact"] .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="compact"] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] > .cni-cell-grid-scroll {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		min-width: var(--cni-cell-scroll-min-width, 660px);
+		grid-template-columns: repeat(var(--cni-cell-columns-pc, 3), minmax(0, 1fr));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"][data-cell-first-column] .cni-cell-grid-content,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"][data-cell-first-column] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout {
+		grid-template-columns: minmax(0, var(--cni-cell-first-column)) repeat(var(--cni-cell-columns-after-first), minmax(0, 1fr));
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] .cni-cell-grid-scroll-hint {
+		display: block;
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+		padding: min(var(--cni-cell-padding, 24px), 16px);
+		grid-column: auto;
+		grid-row: auto;
+	}
+
+	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] .wp-block-cni-blocks-grid-card,
+	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-mobile-layout="scroll"] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+		grid-column: span var(--cni-cell-column-span, 1);
+		grid-row: span var(--cni-cell-row-span, 1);
 	}
 }
 

@@ -114,6 +114,27 @@
 	transform: translateX(-50%);
 }
 
+.editor-styles-wrapper .cni-circle-image-plus__media-thumbnail {
+	display: block;
+	width: 100%;
+	max-width: 160px;
+	max-height: 120px;
+	margin: 0 0 12px;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+/* WordPress のエディター側画像スタイルで高さが上書きされても、円の比率を保つ。 */
+.editor-styles-wrapper .wp-block-cni-blocks-circle-image-plus .cni-circle-image-plus__image {
+	box-sizing: border-box;
+	width: var(--cni-circle-image-size) !important;
+	height: var(--cni-circle-image-size) !important;
+	max-width: none !important;
+	max-height: none !important;
+	aspect-ratio: 1 / 1;
+	object-fit: cover !important;
+}
+
 @keyframes cni-circle-image-plus-rotate {
 	from { transform: rotate(0deg); }
 	to { transform: rotate(360deg); }

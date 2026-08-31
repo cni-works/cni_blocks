@@ -17,7 +17,9 @@
 	}
 	function styleFor( a ) {
 		const defaultColor = a.ringBackground === 'black' ? '#ffffff' : ( a.ringBackground === 'white' ? '#111111' : 'currentColor' );
+		const circleSize = { small: 180, medium: 240, large: 320, xlarge: 400 }[ a.sizePreset || 'medium' ] || 240;
 		return {
+			'--cni-circle-size': circleSize + 'px',
 			'--cni-circle-text-color': a.textColor || defaultColor,
 			'--cni-circle-hover-text-color': a.hoverTextColor || a.textColor || defaultColor,
 			'--cni-circle-text-weight': a.textWeight || '600',
@@ -77,6 +79,7 @@
 			return el( element.Fragment, null,
 				el( InspectorControls, null,
 					el( PanelBody, { title: __( '画像', 'cni-blocks' ), initialOpen: true },
+						a.mediaUrl ? el( 'img', { className: 'cni-circle-image-plus__media-thumbnail', src: a.mediaUrl, alt: a.mediaAlt || '' } ) : null,
 						el( MediaUploadCheck, null, el( MediaUpload, { onSelect: selectImage, allowedTypes: [ 'image' ], value: a.mediaId || 0, render: function( mediaProps ) { return el( Button, { variant: 'secondary', onClick: mediaProps.open }, a.mediaUrl ? __( '画像を変更', 'cni-blocks' ) : __( '画像を選択', 'cni-blocks' ) ); } } ) ),
 						a.mediaUrl ? el( TextControl, { label: __( '代替テキスト', 'cni-blocks' ), value: a.mediaAlt || '', onChange: function( value ) { set( { mediaAlt: value } ); } } ) : null,
 						a.mediaUrl ? el( Button, { variant: 'tertiary', isDestructive: true, onClick: function() { set( { mediaId: 0, mediaUrl: '', mediaAlt: '' } ); } }, __( '画像を削除', 'cni-blocks' ) ) : null
@@ -92,7 +95,7 @@
 						el( SelectControl, { label: __( '文字の太さ', 'cni-blocks' ), value: a.textWeight || '600', options: [ { label: '400', value: '400' }, { label: '500', value: '500' }, { label: '600', value: '600' }, { label: '700', value: '700' } ], onChange: function( value ) { set( { textWeight: value } ); } } ),
 						el( RangeControl, { label: __( '文字間隔（px）', 'cni-blocks' ), value: numberOr( a.letterSpacing, 0 ), min: -2, max: 10, step: 0.5, onChange: function( value ) { set( { letterSpacing: numberOr( value, 0 ) } ); } } ),
 						palette( __( '文字色', 'cni-blocks' ), a.textColor, function( value ) { set( { textColor: value || '' } ); } ),
-						el( SelectControl, { label: __( '画像との間隔', 'cni-blocks' ), value: a.ringGap || 'normal', options: [ { label: __( '狭い', 'cni-blocks' ), value: 'narrow' }, { label: __( '標準', 'cni-blocks' ), value: 'normal' }, { label: __( '広い', 'cni-blocks' ), value: 'wide' } ], onChange: function( value ) { set( { ringGap: value } ); } } )
+						el( SelectControl, { label: __( '画像と外周文字の間隔', 'cni-blocks' ), value: a.ringGap || 'normal', options: [ { label: __( '狭い', 'cni-blocks' ), value: 'narrow' }, { label: __( '標準', 'cni-blocks' ), value: 'normal' }, { label: __( '広い', 'cni-blocks' ), value: 'wide' } ], onChange: function( value ) { set( { ringGap: value } ); } } )
 					),
 					el( PanelBody, { title: __( 'リング背景', 'cni-blocks' ), initialOpen: false }, el( SelectControl, { label: __( '背景', 'cni-blocks' ), value: a.ringBackground || 'none', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '白', 'cni-blocks' ), value: 'white' }, { label: __( '黒', 'cni-blocks' ), value: 'black' } ], onChange: function( value ) { set( { ringBackground: value } ); } } ) ),
 					el( PanelBody, { title: __( '回転', 'cni-blocks' ), initialOpen: false },

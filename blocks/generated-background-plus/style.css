@@ -94,8 +94,249 @@
 		radial-gradient(ellipse var(--cni-generated-size-5) var(--cni-generated-size-5) at var(--cni-generated-x-5) var(--cni-generated-y-5), var(--cni-generated-color-5) 0%, transparent var(--cni-generated-fade, 62%));
 }
 
+/* Motion is opt-in. Static backgrounds keep their existing pseudo-element-only rendering. */
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="spot-breathe"] .cni-generated-background-plus__background::before {
+	background: none;
+}
+
+.cni-generated-background-plus__motion-spot,
+.cni-generated-background-plus__motion-glow {
+	position: absolute;
+	pointer-events: none;
+	will-change: transform;
+}
+
+.cni-generated-background-plus__motion-color,
+.cni-generated-background-plus__motion-focus {
+	position: absolute;
+	z-index: 0;
+	pointer-events: none;
+	will-change: transform, opacity;
+}
+
+.cni-generated-background-plus__motion-color {
+	inset: -35%;
+	background: radial-gradient(ellipse at center, var(--cni-generated-color-2) 0%, transparent 62%);
+	animation: cni-generated-color-breathe-1 var(--cni-generated-motion-duration, 48s) ease-in-out infinite;
+}
+
+.cni-generated-background-plus__motion-color--2 {
+	background-image: radial-gradient(ellipse at center, var(--cni-generated-color-3) 0%, transparent 64%);
+	animation-name: cni-generated-color-breathe-2;
+	animation-delay: -21s;
+}
+
+@keyframes cni-generated-color-breathe-1 {
+	0%, 100% { transform: translate3d(-4%, -3%, 0) scale(0.96); opacity: 0.22; }
+	50% { transform: translate3d(5%, 4%, 0) scale(1.08); opacity: 0.58; }
+}
+
+@keyframes cni-generated-color-breathe-2 {
+	0%, 100% { transform: translate3d(5%, 3%, 0) scale(1.06); opacity: 0.48; }
+	50% { transform: translate3d(-4%, -5%, 0) scale(0.94); opacity: 0.16; }
+}
+
+.cni-generated-background-plus__motion-focus {
+	inset: -30%;
+	background: radial-gradient(ellipse 38% 30% at 50% 50%, rgba(255,255,255,0.48) 0%, transparent 72%);
+	animation: cni-generated-focus-shift var(--cni-generated-motion-duration, 48s) ease-in-out infinite alternate;
+}
+
+@keyframes cni-generated-focus-shift {
+	from { transform: translate3d(var(--cni-generated-motion-glow-distance-negative, -18%), 0, 0); }
+	to { transform: translate3d(var(--cni-generated-motion-glow-distance, 18%), 0, 0); }
+}
+
+.cni-generated-background-plus__motion-spot {
+	z-index: 0;
+	aspect-ratio: 1;
+	transform: translate3d(-50%, -50%, 0) scale(1);
+	background: radial-gradient(ellipse at center, var(--cni-generated-motion-color) 0%, transparent var(--cni-generated-fade, 68%));
+	animation: cni-generated-spot-breathe-1 var(--cni-generated-motion-duration, 48s) ease-in-out infinite;
+}
+
+.cni-generated-background-plus__motion-spot--1 { left: var(--cni-generated-x-1); top: var(--cni-generated-y-1); width: var(--cni-generated-size-1); --cni-generated-motion-color: var(--cni-generated-color-1); }
+.cni-generated-background-plus__motion-spot--2 { left: var(--cni-generated-x-2); top: var(--cni-generated-y-2); width: var(--cni-generated-size-2); --cni-generated-motion-color: var(--cni-generated-color-2); animation-name: cni-generated-spot-breathe-2; animation-delay: -9s; }
+.cni-generated-background-plus__motion-spot--3 { left: var(--cni-generated-x-3); top: var(--cni-generated-y-3); width: var(--cni-generated-size-3); --cni-generated-motion-color: var(--cni-generated-color-3); animation-name: cni-generated-spot-breathe-3; animation-delay: -17s; }
+.cni-generated-background-plus__motion-spot--4 { left: var(--cni-generated-x-4); top: var(--cni-generated-y-4); width: var(--cni-generated-size-4); --cni-generated-motion-color: var(--cni-generated-color-4); animation-name: cni-generated-spot-breathe-2; animation-delay: -26s; }
+.cni-generated-background-plus__motion-spot--5 { left: var(--cni-generated-x-5); top: var(--cni-generated-y-5); width: var(--cni-generated-size-5); --cni-generated-motion-color: var(--cni-generated-color-5); animation-name: cni-generated-spot-breathe-3; animation-delay: -35s; }
+
+@keyframes cni-generated-spot-breathe-1 { 0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.94); } 50% { transform: translate3d(-50%, -50%, 0) scale(1.06); } }
+@keyframes cni-generated-spot-breathe-2 { 0%, 100% { transform: translate3d(-50%, -50%, 0) scale(1.05); } 50% { transform: translate3d(-50%, -50%, 0) scale(0.93); } }
+@keyframes cni-generated-spot-breathe-3 { 0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.97); } 50% { transform: translate3d(-50%, -50%, 0) scale(1.08); } }
+
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="pattern-slide"] .cni-generated-background-plus__background::before {
+	inset: -10%;
+	will-change: transform;
+	animation: cni-generated-pattern-slide var(--cni-generated-motion-duration, 48s) linear infinite alternate;
+}
+
+@keyframes cni-generated-pattern-slide {
+	from { transform: translate3d(var(--cni-generated-motion-distance-negative, -3.5%), var(--cni-generated-motion-distance-negative, -3.5%), 0); }
+	to { transform: translate3d(var(--cni-generated-motion-distance, 3.5%), var(--cni-generated-motion-distance, 3.5%), 0); }
+}
+
+.cni-generated-background-plus__motion-glow {
+	inset: -45%;
+	z-index: 0;
+	background: radial-gradient(ellipse at center, var(--cni-generated-color-1) 0%, transparent 62%);
+	will-change: transform;
+	animation: cni-generated-glow-drift var(--cni-generated-motion-duration, 48s) ease-in-out infinite alternate;
+}
+
+@keyframes cni-generated-glow-drift {
+	from { transform: translate3d(var(--cni-generated-motion-glow-distance-negative, -18%), var(--cni-generated-motion-glow-distance-negative, -18%), 0); }
+	to { transform: translate3d(var(--cni-generated-motion-glow-distance, 18%), var(--cni-generated-motion-glow-distance, 18%), 0); }
+}
+
 .wp-block-cni-blocks-generated-background-plus[data-background-style="bokeh"] .cni-generated-background-plus__background::before {
 	background-image: var(--cni-generated-bokeh-image);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+}
+
+/* A ripple is deliberately limited to three expanding outline circles. */
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="ring-ripple"] .cni-generated-background-plus__background::before {
+	background: none;
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-style="fluid-shapes"] .cni-generated-background-plus__background::before {
+	background: none;
+}
+
+.cni-generated-background-plus__motion-ripple {
+	position: absolute;
+	z-index: 0;
+	left: var(--cni-generated-fluid-x-1);
+	top: var(--cni-generated-fluid-y-1);
+	width: min(54vw, 560px);
+	aspect-ratio: 1;
+	border: 1.5px solid var(--cni-generated-fluid-color-1);
+	border-radius: 50%;
+	pointer-events: none;
+	transform: translate3d(-50%, -50%, 0) scale(0.42);
+	will-change: transform, opacity;
+	animation: cni-generated-ring-ripple var(--cni-generated-motion-duration, 48s) ease-out infinite;
+}
+
+.cni-generated-background-plus__motion-ripple--2 { left: var(--cni-generated-fluid-x-2); top: var(--cni-generated-fluid-y-2); border-color: var(--cni-generated-fluid-color-2); animation-delay: -16s; }
+.cni-generated-background-plus__motion-ripple--3 { left: 50%; top: 52%; width: min(42vw, 440px); border-color: var(--cni-generated-fluid-color-2); animation-delay: -32s; }
+
+@keyframes cni-generated-ring-ripple {
+	0% { transform: translate3d(-50%, -50%, 0) scale(0.36); opacity: 0; }
+	18% { opacity: 0.72; }
+	78%, 100% { transform: translate3d(-50%, -50%, 0) scale(1.12); opacity: 0; }
+}
+
+/* Fluid shapes remain static unless their dedicated motion is selected. */
+.cni-generated-background-plus__fluid-shape {
+	position: absolute;
+	z-index: 0;
+	left: var(--cni-generated-fluid-x-1);
+	top: var(--cni-generated-fluid-y-1);
+	width: var(--cni-generated-fluid-size, 46%);
+	aspect-ratio: 1;
+	pointer-events: none;
+	background: var(--cni-generated-fluid-color-1);
+	border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+	transform: translate3d(-50%, -50%, 0);
+}
+
+.cni-generated-background-plus__fluid-shape--2 {
+	left: var(--cni-generated-fluid-x-2);
+	top: var(--cni-generated-fluid-y-2);
+	width: var(--cni-generated-fluid-size-2, 34%);
+	background: var(--cni-generated-fluid-color-2);
+	border-radius: 46% 54% 50% 50% / 35% 61% 39% 65%;
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-style="fluid-shapes"][data-generated-pattern-character="round"] .cni-generated-background-plus__fluid-shape {
+	border-radius: 50%;
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-style="fluid-shapes"][data-generated-pattern-character="organic"] .cni-generated-background-plus__fluid-shape {
+	border-radius: 38% 62% 58% 42% / 58% 39% 61% 42%;
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="fluid-morph"] .cni-generated-background-plus__fluid-shape {
+	will-change: transform, border-radius;
+	animation: cni-generated-fluid-morph-1 var(--cni-generated-motion-duration, 68s) ease-in-out infinite;
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="fluid-morph"] .cni-generated-background-plus__fluid-shape--2 {
+	animation-name: cni-generated-fluid-morph-2;
+	animation-delay: -29s;
+}
+
+@keyframes cni-generated-fluid-morph-1 {
+	0%, 100% { transform: translate3d(-50%, -50%, 0) scale(var(--cni-generated-fluid-motion-scale-down, 0.90)); border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%; }
+	28% { transform: translate3d(calc(-50% + var(--cni-generated-fluid-motion-distance, 8%)), calc(-50% - var(--cni-generated-fluid-motion-distance, 8%)), 0) scale(var(--cni-generated-fluid-motion-scale-up, 1.12)); border-radius: 30% 70% 43% 57% / 61% 35% 65% 39%; }
+	58% { transform: translate3d(calc(-50% - var(--cni-generated-fluid-motion-distance, 8%)), calc(-50% + var(--cni-generated-fluid-motion-distance, 8%)), 0) scale(1.02); border-radius: 70% 30% 67% 33% / 39% 67% 33% 61%; }
+	80% { transform: translate3d(calc(-50% + var(--cni-generated-fluid-motion-distance-negative, -8%)), calc(-50% - var(--cni-generated-fluid-motion-distance-negative, -8%)), 0) scale(0.96); border-radius: 45% 55% 28% 72% / 66% 44% 56% 34%; }
+}
+
+@keyframes cni-generated-fluid-morph-2 {
+	0%, 100% { transform: translate3d(-50%, -50%, 0) scale(var(--cni-generated-fluid-motion-scale-up, 1.12)); border-radius: 46% 54% 50% 50% / 35% 61% 39% 65%; }
+	34% { transform: translate3d(calc(-50% - var(--cni-generated-fluid-motion-distance, 8%)), calc(-50% - var(--cni-generated-fluid-motion-distance, 8%)), 0) scale(0.94); border-radius: 68% 32% 31% 69% / 58% 66% 34% 42%; }
+	66% { transform: translate3d(calc(-50% + var(--cni-generated-fluid-motion-distance, 8%)), calc(-50% + var(--cni-generated-fluid-motion-distance, 8%)), 0) scale(var(--cni-generated-fluid-motion-scale-down, 0.90)); border-radius: 34% 66% 60% 40% / 31% 58% 42% 69%; }
+	84% { transform: translate3d(calc(-50% - var(--cni-generated-fluid-motion-distance-negative, -8%)), calc(-50% + var(--cni-generated-fluid-motion-distance-negative, -8%)), 0) scale(1.04); border-radius: 55% 45% 72% 28% / 67% 39% 61% 33%; }
+}
+
+/* Bokeh motion uses only a few independently transformed gradient layers. */
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-float"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-breathe"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-wobble"] .cni-generated-background-plus__background::before {
+	background: none;
+}
+
+.cni-generated-background-plus__motion-bokeh {
+	position: absolute;
+	z-index: 0;
+	aspect-ratio: 1;
+	pointer-events: none;
+	border-radius: 50%;
+	background: radial-gradient(circle at center, var(--cni-generated-bokeh-motion-color) 0%, transparent var(--cni-generated-bokeh-motion-fade, 68%));
+	transform: translate3d(-50%, -50%, 0);
+	will-change: transform;
+	animation-duration: var(--cni-generated-motion-duration, 48s);
+	animation-timing-function: ease-in-out;
+	animation-iteration-count: infinite;
+}
+
+.cni-generated-background-plus__motion-bokeh--1 { --cni-generated-bokeh-motion-x: var(--cni-generated-motion-distance-negative, -3.5%); --cni-generated-bokeh-motion-y: var(--cni-generated-motion-distance-negative, -3.5%); animation-delay: -3s; }
+.cni-generated-background-plus__motion-bokeh--2 { --cni-generated-bokeh-motion-x: var(--cni-generated-motion-distance, 3.5%); --cni-generated-bokeh-motion-y: var(--cni-generated-motion-distance-negative, -3.5%); animation-delay: -11s; }
+.cni-generated-background-plus__motion-bokeh--3 { --cni-generated-bokeh-motion-x: var(--cni-generated-motion-distance-negative, -3.5%); --cni-generated-bokeh-motion-y: var(--cni-generated-motion-distance, 3.5%); animation-delay: -19s; }
+.cni-generated-background-plus__motion-bokeh--4 { --cni-generated-bokeh-motion-x: var(--cni-generated-motion-distance, 3.5%); --cni-generated-bokeh-motion-y: var(--cni-generated-motion-distance, 3.5%); animation-delay: -28s; }
+.cni-generated-background-plus__motion-bokeh--5 { --cni-generated-bokeh-motion-x: var(--cni-generated-motion-distance-negative, -3.5%); --cni-generated-bokeh-motion-y: var(--cni-generated-motion-distance, 3.5%); animation-delay: -37s; }
+
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-float"] .cni-generated-background-plus__motion-bokeh { animation-name: cni-generated-bokeh-float; }
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-breathe"] .cni-generated-background-plus__motion-bokeh { animation-name: cni-generated-bokeh-breathe; }
+.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-wobble"] .cni-generated-background-plus__motion-bokeh { animation-name: cni-generated-bokeh-wobble; }
+
+@keyframes cni-generated-bokeh-float {
+	0%, 100% { transform: translate3d(-50%, -50%, 0); }
+	50% { transform: translate3d(-50%, -50%, 0) translate3d(var(--cni-generated-bokeh-motion-x), var(--cni-generated-bokeh-motion-y), 0); }
+}
+
+@keyframes cni-generated-bokeh-breathe {
+	0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.94); }
+	50% { transform: translate3d(-50%, -50%, 0) scale(1.06); }
+}
+
+@keyframes cni-generated-bokeh-wobble {
+	0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.96); }
+	50% { transform: translate3d(-50%, -50%, 0) translate3d(var(--cni-generated-bokeh-motion-x), var(--cni-generated-bokeh-motion-y), 0) scale(1.05); }
+}
+
+.wp-block-cni-blocks-generated-background-plus[data-background-style="pixel-wave"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="soft-polygons"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="confetti"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="rings"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="flow-lines"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="halftone"] .cni-generated-background-plus__background::before,
+.wp-block-cni-blocks-generated-background-plus[data-background-style="tile-geometry"] .cni-generated-background-plus__background::before {
+	background-image: var(--cni-generated-pattern-image);
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: cover;
@@ -195,11 +436,101 @@
 		min-height: var(--cni-generated-min-height-mobile);
 		padding: var(--cni-generated-padding-v-mobile) var(--cni-generated-padding-h-mobile);
 	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-spot,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-glow,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-color,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-focus,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-ripple,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__fluid-shape,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__background::before {
+		animation: none;
+		will-change: auto;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-color,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"] .cni-generated-background-plus__motion-focus { display: none; }
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="ring-ripple"] .cni-generated-background-plus__motion-ripple { display: none; }
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="ring-ripple"] .cni-generated-background-plus__background::before {
+		background-image: var(--cni-generated-pattern-image);
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="pattern-slide"] .cni-generated-background-plus__background::before {
+		inset: 0;
+		transform: none;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-float"] .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-breathe"] .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-wobble"] .cni-generated-background-plus__motion-bokeh {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-float"] .cni-generated-background-plus__background::before,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-breathe"] .cni-generated-background-plus__background::before,
+	.wp-block-cni-blocks-generated-background-plus[data-motion-mobile="static"][data-background-motion="bokeh-wobble"] .cni-generated-background-plus__background::before {
+		background-image: var(--cni-generated-bokeh-image);
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
 }
 
 @media (min-width: 782px) and (max-width: 1023px) {
 	.wp-block-cni-blocks-generated-background-plus {
 		min-height: var(--cni-generated-min-height-tablet);
 		padding: var(--cni-generated-padding-v-tablet) var(--cni-generated-padding-h-tablet);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-spot,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-glow,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-color,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-focus,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-ripple,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__fluid-shape,
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion] .cni-generated-background-plus__background::before {
+		animation: none !important;
+		will-change: auto;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-color,
+	.wp-block-cni-blocks-generated-background-plus .cni-generated-background-plus__motion-focus { display: none; }
+
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="ring-ripple"] .cni-generated-background-plus__motion-ripple { display: none; }
+
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="ring-ripple"] .cni-generated-background-plus__background::before {
+		background-image: var(--cni-generated-pattern-image);
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="pattern-slide"] .cni-generated-background-plus__background::before {
+		inset: 0;
+		transform: none;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-float"] .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-breathe"] .cni-generated-background-plus__motion-bokeh,
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-wobble"] .cni-generated-background-plus__motion-bokeh {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-float"] .cni-generated-background-plus__background::before,
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-breathe"] .cni-generated-background-plus__background::before,
+	.wp-block-cni-blocks-generated-background-plus[data-background-motion="bokeh-wobble"] .cni-generated-background-plus__background::before {
+		background-image: var(--cni-generated-bokeh-image);
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
 	}
 }

@@ -39,8 +39,17 @@
 }
 
 .cni-breadcrumb a {
+	display: inline-flex;
+	align-items: center;
 	color: var(--cni-breadcrumb-link-color, #2271b1);
 	text-decoration: none;
+}
+
+.cni-breadcrumb__home-icon {
+	width: 1em;
+	height: 1em;
+	margin-right: .35em;
+	fill: currentColor;
 }
 
 .cni-breadcrumb a:hover,

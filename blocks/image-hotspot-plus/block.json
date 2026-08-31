@@ -1,0 +1,30 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/image-hotspot-plus",
+  "title": "Image Hotspot+",
+  "category": "cni-blocks",
+  "icon": "location-alt",
+  "description": "画像の好きな位置にポイントと、画像付きの詳細カードを配置します。",
+  "keywords": [ "hotspot", "画像", "ポイント", "注釈" ],
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "imageId": { "type": "number", "default": 0 },
+    "imageUrl": { "type": "string", "default": "" },
+    "imageAlt": { "type": "string", "default": "" },
+    "markers": { "type": "array", "default": [] },
+    "interaction": { "type": "string", "default": "click" },
+    "markerStyle": { "type": "string", "default": "plus" },
+    "markerColor": { "type": "string", "default": "#1769aa" },
+    "markerSize": { "type": "number", "default": 38 },
+    "markerPulse": { "type": "boolean", "default": true },
+    "cardPosition": { "type": "string", "default": "auto" },
+    "cardDisplay": { "type": "string", "default": "card" },
+    "modalPosition": { "type": "string", "default": "center" },
+    "modalOffsetY": { "type": "number", "default": 0 }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

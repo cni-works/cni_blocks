@@ -38,6 +38,87 @@
 	border-radius: inherit;
 }
 
+/* Creative Hover is opt-in. These layers are only rendered when an effect is selected. */
+.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+	position: absolute;
+	inset: -4%;
+	pointer-events: none;
+	border-radius: inherit;
+	background-image: var(--cni-outer-creative-background-image, none);
+	background-position: var(--cni-outer-background-position-pc, var(--cni-outer-background-position, center center));
+	background-repeat: no-repeat;
+	background-size: cover;
+	transform: scale(1.001);
+	transition: transform 0.72s ease-out;
+}
+
+.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+	position: absolute;
+	inset: 18px;
+	z-index: 2;
+	pointer-events: none;
+	border-radius: max(0px, calc(var(--cni-outer-border-radius, 0px) - 6px));
+}
+
+.cni-outer__creative-frame-line {
+	position: absolute;
+	display: block;
+	background: var(--cni-outer-creative-frame-color, #fff);
+	opacity: 0.88;
+	transition: transform 0.34s ease-out;
+}
+
+.cni-outer__creative-frame-line--top,
+.cni-outer__creative-frame-line--bottom {
+	left: 0;
+	right: 0;
+	height: 1px;
+	transform: scaleX(0);
+}
+
+.cni-outer__creative-frame-line--top { top: 0; transform-origin: left center; }
+.cni-outer__creative-frame-line--right { right: 0; transform-origin: center top; transition-delay: 0.08s; }
+.cni-outer__creative-frame-line--bottom { bottom: 0; transform-origin: right center; transition-delay: 0.16s; }
+.cni-outer__creative-frame-line--left { left: 0; transform-origin: center bottom; transition-delay: 0.24s; }
+
+.cni-outer__creative-frame-line--right,
+.cni-outer__creative-frame-line--left {
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	transform: scaleY(0);
+}
+
+.wp-block-cni-blocks-outer.cni-outer--creative-content-lift > .cni-outer__inner {
+	transition: transform 0.48s ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.wp-block-cni-blocks-outer.cni-outer--creative-background-zoom:hover > .cni-outer__creative-background-clip > .cni-outer__creative-background,
+	.wp-block-cni-blocks-outer.cni-outer--creative-background-zoom:focus-within > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+		transform: scale(1.055);
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:hover .cni-outer__creative-frame-line,
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:focus-within .cni-outer__creative-frame-line {
+		transform: scale(1);
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--creative-content-lift:hover > .cni-outer__inner,
+	.wp-block-cni-blocks-outer.cni-outer--creative-content-lift:focus-within > .cni-outer__inner {
+		transform: translate3d(0, -8px, 0);
+	}
+}
+
 .wp-block-cni-blocks-outer > .cni-outer__inner {
 	position: relative;
 	z-index: 3;
@@ -145,6 +226,11 @@
 	.wp-block-cni-blocks-outer > .cni-outer__background-video {
 		object-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
 	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+		background-image: var(--cni-outer-creative-tablet-background-image, var(--cni-outer-creative-background-image, none));
+		background-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
+	}
 }
 
 @media (max-width: 781px) {
@@ -159,10 +245,31 @@
 	.wp-block-cni-blocks-outer > .cni-outer__background-video {
 		object-position: var(--cni-outer-background-position-mobile, var(--cni-outer-background-position, center center));
 	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip,
+	.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__inner {
+		transform: none !important;
+		transition: none;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip,
+	.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+		display: none;
+	}
+
 	.wp-block-cni-blocks-outer > .cni-outer__background-video {
 		display: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__inner,
+	.wp-block-cni-blocks-outer .cni-outer__creative-frame-line {
+		transform: none !important;
+		transition: none !important;
 	}
 }

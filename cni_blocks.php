@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.35.0
+ * Version: 1.4.0
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -51,6 +51,7 @@ require_once plugin_dir_path( __FILE__ ) . 'blocks/breadcrumb/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/custom-field/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/visual-embed/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/circle-image-plus/render.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/image-hotspot-plus/render.php';
 
 /**
  * Locate the first Outer+ hero block in the current singular post.
@@ -166,6 +167,16 @@ function cni_blocks_output_outer_hero_preloads() {
 }
 add_action( 'wp_head', 'cni_blocks_output_outer_hero_preloads', 1 );
 
+/**
+ * Whether the active parent theme is Lightning. Child themes are covered by
+ * get_template(), which returns the parent template directory.
+ *
+ * @return bool
+ */
+function cni_blocks_is_lightning_theme() {
+	return 'lightning' === strtolower( (string) get_template() );
+}
+
 function cni_blocks_register_blocks() {
 	$dir_url  = plugin_dir_url( __FILE__ );
 	$dir_path = plugin_dir_path( __FILE__ );
@@ -176,7 +187,6 @@ function cni_blocks_register_blocks() {
 		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
 		filemtime( $dir_path . 'index.js' )
 	);
-
 	wp_register_script(
 		'cni-blocks-view',
 		$dir_url . 'view.js',
@@ -388,6 +398,8 @@ function cni_blocks_register_blocks() {
 	$heading_plus_dir_path = $dir_path . 'blocks/heading-plus/';
 	$circle_image_plus_dir_url  = $dir_url . 'blocks/circle-image-plus/';
 	$circle_image_plus_dir_path = $dir_path . 'blocks/circle-image-plus/';
+	$image_hotspot_plus_dir_url  = $dir_url . 'blocks/image-hotspot-plus/';
+	$image_hotspot_plus_dir_path = $dir_path . 'blocks/image-hotspot-plus/';
 	$generated_background_plus_dir_url  = $dir_url . 'blocks/generated-background-plus/';
 	$generated_background_plus_dir_path = $dir_path . 'blocks/generated-background-plus/';
 	$table_plus_dir_url    = $dir_url . 'blocks/table-plus/';
@@ -400,6 +412,11 @@ function cni_blocks_register_blocks() {
 		$heading_plus_dir_url . 'index.js',
 		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-rich-text' ),
 		filemtime( $heading_plus_dir_path . 'index.js' )
+	);
+	wp_localize_script(
+		'cni-blocks-heading-plus-editor',
+		'cniBlocksHeadingPlusConfig',
+		array( 'isLightning' => cni_blocks_is_lightning_theme() )
 	);
 
 	wp_register_script(
@@ -429,6 +446,28 @@ function cni_blocks_register_blocks() {
 		$circle_image_plus_dir_url . 'style.css',
 		array(),
 		filemtime( $circle_image_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-image-hotspot-plus-editor',
+		$image_hotspot_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $image_hotspot_plus_dir_path . 'index.js' )
+	);
+
+	wp_register_script(
+		'cni-blocks-image-hotspot-plus-view',
+		$image_hotspot_plus_dir_url . 'view.js',
+		array(),
+		filemtime( $image_hotspot_plus_dir_path . 'view.js' ),
+		true
+	);
+
+	wp_register_style(
+		'cni-blocks-image-hotspot-plus-style',
+		$image_hotspot_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $image_hotspot_plus_dir_path . 'style.css' )
 	);
 
 	wp_register_script(
@@ -672,6 +711,17 @@ function cni_blocks_register_blocks() {
 	);
 
 	register_block_type(
+		$image_hotspot_plus_dir_path,
+		array(
+			'editor_script'   => 'cni-blocks-image-hotspot-plus-editor',
+			'view_script'     => 'cni-blocks-image-hotspot-plus-view',
+			'style'           => 'cni-blocks-image-hotspot-plus-style',
+			'editor_style'    => 'cni-blocks-image-hotspot-plus-style',
+			'render_callback' => 'cni_blocks_render_image_hotspot_plus',
+		)
+	);
+
+	register_block_type(
 		$generated_background_plus_dir_path,
 		array(
 			'editor_script' => 'cni-blocks-generated-background-plus-editor',
@@ -775,6 +825,10 @@ register_block_type(
       'shadow'      => array( 'type' => 'boolean', 'default' => false ),
       'showCaption' => array( 'type' => 'boolean', 'default' => false ),
       'displayType' => array( 'type' => 'string', 'default' => 'grid' ),
+      'layoutMode'  => array( 'type' => 'string', 'default' => 'tile' ),
+      'stackPreset' => array( 'type' => 'string', 'default' => 'stack-01' ),
+      'stackOverlap' => array( 'type' => 'number', 'default' => 24 ),
+      'stackRotation' => array( 'type' => 'number', 'default' => 4 ),
       'borderOn'    => array( 'type' => 'boolean', 'default' => false ),
       'borderColor' => array( 'type' => 'string', 'default' => '#dddddd' ),
       'borderWidth' => array( 'type' => 'number', 'default' => 1 ),

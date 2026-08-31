@@ -114,6 +114,54 @@
     "centerLastRow": {
       "type": "boolean",
       "default": false
+    },
+    "layoutMode": {
+      "type": "string",
+      "default": "grid"
+    },
+    "cellColumnsPc": {
+      "type": "number",
+      "default": 3
+    },
+    "cellColumnsTablet": {
+      "type": "number",
+      "default": 2
+    },
+    "cellColumnsMobile": {
+      "type": "number",
+      "default": 1
+    },
+    "cellFirstColumn": {
+      "type": "string",
+      "default": "equal"
+    },
+    "cellMobileLayout": {
+      "type": "string",
+      "default": "stack"
+    },
+    "cellOuterBorder": {
+      "type": "string",
+      "default": "standard"
+    },
+    "cellInnerBorder": {
+      "type": "string",
+      "default": "thin"
+    },
+    "cellBorderColor": {
+      "type": "string",
+      "default": "#dddddd"
+    },
+    "cellPadding": {
+      "type": "string",
+      "default": "standard"
+    },
+    "cellRadius": {
+      "type": "string",
+      "default": "none"
+    },
+    "cellBackgroundColor": {
+      "type": "string",
+      "default": "#ffffff"
     }
   },
   "allowedBlocks": [

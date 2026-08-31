@@ -5,6 +5,7 @@
 	const { __ } = i18n;
 	const { useBlockProps, InnerBlocks, InspectorControls } = blockEditor;
 	const { Button, ColorPalette, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
+	const { useSelect } = data;
 	const CARD_BLOCK = 'cni-blocks/grid-card';
 	const GRID_TEMPLATE = [ [ CARD_BLOCK ] ];
 
@@ -14,6 +15,43 @@
 
 	function px( value, fallback ) {
 		return numberOr( value, fallback ) + 'px';
+	}
+
+	function isCellGrid( attributes ) {
+		return attributes.layoutMode === 'cell';
+	}
+
+	function cellBorderWidth( value ) {
+		return { none: 0, thin: 1, standard: 2, thick: 4 }[ value ] || 0;
+	}
+
+	function cellPadding( value ) {
+		return { none: 0, small: 12, standard: 24, large: 36, xlarge: 48 }[ value ] || 24;
+	}
+
+	function cellRadius( value ) {
+		return { none: 0, small: 6, medium: 14, large: 24 }[ value ] || 0;
+	}
+
+	function cellCardSettings( attributes ) {
+		const columnSpan = Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnSpan, 1 ) ) );
+		const rowSpan = Math.max( 1, Math.min( 4, numberOr( attributes.cellRowSpan, 1 ) ) );
+		const horizontal = [ 'left', 'center', 'right' ].indexOf( attributes.cellHorizontalAlign ) !== -1 ? attributes.cellHorizontalAlign : 'left';
+		const vertical = [ 'top', 'center', 'bottom' ].indexOf( attributes.cellVerticalAlign ) !== -1 ? attributes.cellVerticalAlign : 'top';
+		return {
+			columnSpan: columnSpan,
+			rowSpan: rowSpan,
+			horizontal: horizontal,
+			vertical: vertical,
+			style: {
+				'--cni-cell-column-span': columnSpan,
+				'--cni-cell-row-span': rowSpan,
+				'--cni-cell-text-align': horizontal,
+				'--cni-cell-content-align': { top: 'flex-start', center: 'center', bottom: 'flex-end' }[ vertical ],
+				...(attributes.cellBackgroundColor ? { '--cni-cell-background': attributes.cellBackgroundColor } : {}),
+				...(attributes.cellTextColor ? { '--cni-cell-text-color': attributes.cellTextColor } : {})
+			}
+		};
 	}
 
 	function cardAxisPadding( attributes, axis, device, fallback ) {
@@ -64,7 +102,7 @@
 			}
 		} );
 
-		if ( attributes.flushFirstImage ) {
+		if ( attributes.flushFirstImage && ! isCellGrid( attributes ) ) {
 			style[ '--cni-grid-first-image-ratio' ] = {
 				'16-9': '16 / 9',
 				'3-2': '3 / 2',
@@ -72,6 +110,26 @@
 			}[ attributes.firstImageAspectRatio ] || '4 / 3';
 			style[ '--cni-grid-first-image-fit' ] = attributes.firstImageFit === 'contain' ? 'contain' : 'cover';
 			style[ '--cni-grid-first-image-position' ] = [ 'top', 'bottom' ].indexOf( attributes.firstImagePosition ) !== -1 ? attributes.firstImagePosition : 'center';
+		}
+
+		if ( isCellGrid( attributes ) ) {
+			const columnsPc = Math.max( 1, Math.min( 6, numberOr( attributes.cellColumnsPc, 3 ) ) );
+			const columnsTablet = Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnsTablet, 2 ) ) );
+			const columnsMobile = Math.max( 1, Math.min( 2, numberOr( attributes.cellColumnsMobile, 1 ) ) );
+			style[ '--cni-cell-columns-pc' ] = columnsPc;
+			style[ '--cni-cell-columns-tablet' ] = columnsTablet;
+			style[ '--cni-cell-columns-mobile' ] = columnsMobile;
+			if ( columnsPc > 1 && [ '20', '25', '30', '35' ].indexOf( attributes.cellFirstColumn ) !== -1 ) {
+				style[ '--cni-cell-first-column' ] = attributes.cellFirstColumn + '%';
+				style[ '--cni-cell-columns-after-first' ] = columnsPc - 1;
+			}
+			style[ '--cni-cell-outer-border-width' ] = cellBorderWidth( attributes.cellOuterBorder ) + 'px';
+			style[ '--cni-cell-inner-border-width' ] = cellBorderWidth( attributes.cellInnerBorder ) + 'px';
+			style[ '--cni-cell-border-color' ] = attributes.cellBorderColor || '#dddddd';
+			style[ '--cni-cell-padding' ] = cellPadding( attributes.cellPadding ) + 'px';
+			style[ '--cni-cell-radius' ] = cellRadius( attributes.cellRadius ) + 'px';
+			style[ '--cni-cell-background' ] = attributes.cellBackgroundColor || '#ffffff';
+			style[ '--cni-cell-scroll-min-width' ] = Math.max( 640, columnsPc * 220 ) + 'px';
 		}
 
 		return style;
@@ -88,11 +146,42 @@
 			blockProps[ 'data-last-row-alignment' ] = 'center';
 		}
 
-		if ( attributes.flushFirstImage ) {
+		if ( attributes.flushFirstImage && ! isCellGrid( attributes ) ) {
 			blockProps.className = 'cni-grid--flush-first-image';
 		}
 
+		if ( isCellGrid( attributes ) ) {
+			blockProps.className = ( blockProps.className ? blockProps.className + ' ' : '' ) + 'cni-grid--cell';
+			blockProps[ 'data-cell-mobile-layout' ] = [ 'stack', 'scroll', 'compact' ].indexOf( attributes.cellMobileLayout ) !== -1 ? attributes.cellMobileLayout : 'stack';
+			if ( numberOr( attributes.cellColumnsPc, 3 ) > 1 && [ '20', '25', '30', '35' ].indexOf( attributes.cellFirstColumn ) !== -1 ) {
+				blockProps[ 'data-cell-first-column' ] = attributes.cellFirstColumn;
+			}
+		}
+
 		return blockProps;
+	}
+
+	/* Gutenberg adds its own inline grid columns to InnerBlocks in the editor.
+	 * Keep that editor-only value in sync with the same responsive rules used
+	 * by the saved CSS, so the first-column preset is visible while editing. */
+	function editorCellGridTemplate( attributes, device ) {
+		const columnsPc = Math.max( 1, Math.min( 6, numberOr( attributes.cellColumnsPc, 3 ) ) );
+		const columnsTablet = Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnsTablet, 2 ) ) );
+		const firstColumn = [ '20', '25', '30', '35' ].indexOf( attributes.cellFirstColumn ) !== -1 ? attributes.cellFirstColumn : '';
+		const mobileLayout = [ 'stack', 'scroll', 'compact' ].indexOf( attributes.cellMobileLayout ) !== -1 ? attributes.cellMobileLayout : 'stack';
+
+		if ( device === 'Mobile' ) {
+			if ( mobileLayout === 'stack' ) return '1fr';
+			if ( mobileLayout === 'compact' ) return 'repeat(2, minmax(0, 1fr))';
+		}
+
+		if ( device === 'Tablet' ) {
+			return 'repeat(' + columnsTablet + ', minmax(0, 1fr))';
+		}
+
+		return firstColumn && columnsPc > 1
+			? 'minmax(0, ' + firstColumn + '%) repeat(' + ( columnsPc - 1 ) + ', minmax(0, 1fr))'
+			: 'repeat(' + columnsPc + ', minmax(0, 1fr))';
 	}
 
 	function clearLastRowOffset( cards ) {
@@ -145,6 +234,12 @@
 			linkTarget: { type: 'boolean', default: false },
 			showLinkArrow: { type: 'boolean', default: false },
 			hoverEffect: { type: 'string', default: 'lift' },
+			cellBackgroundColor: { type: 'string', default: '' },
+			cellTextColor: { type: 'string', default: '' },
+			cellHorizontalAlign: { type: 'string', default: 'left' },
+			cellVerticalAlign: { type: 'string', default: 'top' },
+			cellColumnSpan: { type: 'number', default: 1 },
+			cellRowSpan: { type: 'number', default: 1 },
 		},
 		supports: {
 			inserter: false,
@@ -155,7 +250,8 @@
 			const { attributes, setAttributes } = props;
 			const linkUrl = attributes.linkUrl || '';
 			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
-			const blockProps = useBlockProps();
+			const cellSettings = cellCardSettings( attributes );
+			const blockProps = useBlockProps( { style: cellSettings.style } );
 
 			return el(
 				element.Fragment,
@@ -205,6 +301,19 @@
 								setAttributes( { hoverEffect: value } );
 							},
 						} )
+					),
+					el(
+						PanelBody,
+						{ title: __( 'セル設定', 'cni-blocks' ), initialOpen: false },
+						el( 'p', { className: 'components-base-control__help' }, __( '親のGrid+が「セルグリッド」の時だけ公開画面に適用されます。', 'cni-blocks' ) ),
+						el( 'p', null, __( 'セル背景色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.cellBackgroundColor || '', clearable: true, onChange: function( value ) { setAttributes( { cellBackgroundColor: value || '' } ); } } ),
+						el( 'p', null, __( 'セル文字色', 'cni-blocks' ) ),
+						el( ColorPalette, { value: attributes.cellTextColor || '', clearable: true, onChange: function( value ) { setAttributes( { cellTextColor: value || '' } ); } } ),
+						el( SelectControl, { label: __( '横位置', 'cni-blocks' ), value: cellSettings.horizontal, options: [ { label: __( '左', 'cni-blocks' ), value: 'left' }, { label: __( '中央', 'cni-blocks' ), value: 'center' }, { label: __( '右', 'cni-blocks' ), value: 'right' } ], onChange: function( value ) { setAttributes( { cellHorizontalAlign: value || 'left' } ); } } ),
+						el( SelectControl, { label: __( '縦位置', 'cni-blocks' ), value: cellSettings.vertical, options: [ { label: __( '上', 'cni-blocks' ), value: 'top' }, { label: __( '中央', 'cni-blocks' ), value: 'center' }, { label: __( '下', 'cni-blocks' ), value: 'bottom' } ], onChange: function( value ) { setAttributes( { cellVerticalAlign: value || 'top' } ); } } ),
+						el( RangeControl, { label: __( '横サイズ（セル数）', 'cni-blocks' ), value: cellSettings.columnSpan, min: 1, max: 4, onChange: function( value ) { setAttributes( { cellColumnSpan: Math.max( 1, Math.min( 4, numberOr( value, 1 ) ) ) } ); } } ),
+						el( RangeControl, { label: __( '縦サイズ（セル数）', 'cni-blocks' ), value: cellSettings.rowSpan, min: 1, max: 4, onChange: function( value ) { setAttributes( { cellRowSpan: Math.max( 1, Math.min( 4, numberOr( value, 1 ) ) ) } ); } } )
 					)
 				),
 				el(
@@ -226,12 +335,18 @@
 			const linkUrl = ( attributes.linkUrl || '' ).trim();
 			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
 			const classes = [ 'has-cni-grid-card-link' ];
+			const cellSettings = cellCardSettings( attributes );
 
 			if ( hoverEffect !== 'lift' ) {
 				classes.push( 'cni-grid-card--hover-' + hoverEffect );
 			}
 
 			const saveProps = linkUrl ? { className: classes.join( ' ' ) } : {};
+			const hasCellSettings = !! attributes.cellBackgroundColor || !! attributes.cellTextColor || cellSettings.horizontal !== 'left' || cellSettings.vertical !== 'top' || cellSettings.columnSpan !== 1 || cellSettings.rowSpan !== 1;
+			if ( hasCellSettings ) {
+				saveProps.className = ( saveProps.className ? saveProps.className + ' ' : '' ) + 'cni-grid-card--cell-configured';
+				saveProps.style = cellSettings.style;
+			}
 
 			return el(
 				'div',
@@ -291,6 +406,18 @@
 			equalHeight: { type: 'boolean', default: true },
 			alignButtonsBottom: { type: 'boolean', default: false },
 			centerLastRow: { type: 'boolean', default: false },
+			layoutMode: { type: 'string', default: 'grid' },
+			cellColumnsPc: { type: 'number', default: 3 },
+			cellColumnsTablet: { type: 'number', default: 2 },
+			cellColumnsMobile: { type: 'number', default: 1 },
+			cellFirstColumn: { type: 'string', default: 'equal' },
+			cellMobileLayout: { type: 'string', default: 'stack' },
+			cellOuterBorder: { type: 'string', default: 'standard' },
+			cellInnerBorder: { type: 'string', default: 'thin' },
+			cellBorderColor: { type: 'string', default: '#dddddd' },
+			cellPadding: { type: 'string', default: 'standard' },
+			cellRadius: { type: 'string', default: 'none' },
+			cellBackgroundColor: { type: 'string', default: '#ffffff' },
 		},
 		supports: {
 			align: [ 'wide', 'full' ],
@@ -299,7 +426,12 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes } = props;
+			const cellMode = isCellGrid( attributes );
 			const gridRef = element.useRef( null );
+			const editorDevice = useSelect( function( select ) {
+				const editorStore = select( 'core/editor' );
+				return editorStore && editorStore.getDeviceType ? editorStore.getDeviceType() : 'Desktop';
+			}, [] );
 			const addCard = function() {
 				const card = blocks.createBlock( CARD_BLOCK );
 
@@ -311,14 +443,14 @@
 
 			element.useEffect( function() {
 				const grid = gridRef.current;
-				const layout = grid ? grid.querySelector( ':scope > .block-editor-inner-blocks > .block-editor-block-list__layout' ) : null;
+				const layout = grid ? grid.querySelector( cellMode ? ':scope > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout' : ':scope > .block-editor-inner-blocks > .block-editor-block-list__layout' ) : null;
 
 				if ( ! layout ) {
 					return undefined;
 				}
 
 				const update = function() {
-					centerIncompleteLastRow( layout, !! attributes.centerLastRow );
+					centerIncompleteLastRow( layout, ! cellMode && !! attributes.centerLastRow );
 				};
 				const resizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver( update ) : null;
 				const mutationObserver = typeof window.MutationObserver === 'function' ? new window.MutationObserver( update ) : null;
@@ -339,7 +471,20 @@
 						mutationObserver.disconnect();
 					}
 				};
-			}, [ attributes.centerLastRow, props.clientId ] );
+			}, [ attributes.centerLastRow, cellMode, props.clientId ] );
+
+			element.useEffect( function() {
+				const grid = gridRef.current;
+				const layout = grid ? grid.querySelector( cellMode ? ':scope > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout' : ':scope > .block-editor-inner-blocks > .block-editor-block-list__layout' ) : null;
+
+				if ( ! layout ) return;
+
+				if ( cellMode ) {
+					layout.style.setProperty( 'grid-template-columns', editorCellGridTemplate( attributes, editorDevice ) );
+				} else {
+					layout.style.removeProperty( 'grid-template-columns' );
+				}
+			}, [ cellMode, editorDevice, attributes.cellColumnsPc, attributes.cellColumnsTablet, attributes.cellFirstColumn, attributes.cellMobileLayout, props.clientId ] );
 
 			return el(
 				element.Fragment,
@@ -347,6 +492,22 @@
 				el(
 					InspectorControls,
 					null,
+					el( PanelBody, { title: __( 'レイアウトモード', 'cni-blocks' ), initialOpen: true },
+						el( SelectControl, { label: __( 'モード', 'cni-blocks' ), value: cellMode ? 'cell' : 'grid', options: [ { label: __( '通常グリッド', 'cni-blocks' ), value: 'grid' }, { label: __( 'セルグリッド', 'cni-blocks' ), value: 'cell' } ], onChange: function( value ) { setAttributes( { layoutMode: value === 'cell' ? 'cell' : 'grid' } ); } } ),
+						cellMode ? el( 'p', { className: 'components-base-control__help' }, __( '各Grid+ Cardがセルになります。セルを選択すると、背景色・文字色・揃え・Spanを設定できます。', 'cni-blocks' ) ) : null
+					),
+					cellMode ? el( PanelBody, { title: __( 'セルグリッド', 'cni-blocks' ), initialOpen: true },
+						el( RangeControl, { label: __( 'PC列数', 'cni-blocks' ), value: Math.max( 1, Math.min( 6, numberOr( attributes.cellColumnsPc, 3 ) ) ), min: 1, max: 6, onChange: function( value ) { setAttributes( { cellColumnsPc: Math.max( 1, Math.min( 6, numberOr( value, 3 ) ) ) } ); } } ),
+						el( SelectControl, { label: __( 'PC 1列目の幅', 'cni-blocks' ), value: attributes.cellFirstColumn || 'equal', disabled: numberOr( attributes.cellColumnsPc, 3 ) < 2, options: [ { label: __( '均等', 'cni-blocks' ), value: 'equal' }, { label: __( '狭い（20%）', 'cni-blocks' ), value: '20' }, { label: __( '標準（25%）', 'cni-blocks' ), value: '25' }, { label: __( '広い（30%）', 'cni-blocks' ), value: '30' }, { label: __( '特大（35%）', 'cni-blocks' ), value: '35' } ], onChange: function( value ) { setAttributes( { cellFirstColumn: value || 'equal' } ); } } ),
+						el( RangeControl, { label: __( 'タブレット列数', 'cni-blocks' ), value: Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnsTablet, 2 ) ) ), min: 1, max: 4, onChange: function( value ) { setAttributes( { cellColumnsTablet: Math.max( 1, Math.min( 4, numberOr( value, 2 ) ) ) } ); } } ),
+						el( SelectControl, { label: __( 'モバイル表示', 'cni-blocks' ), value: attributes.cellMobileLayout || 'stack', options: [ { label: __( '縦に並べる（1列）', 'cni-blocks' ), value: 'stack' }, { label: __( '横スクロールで比較する', 'cni-blocks' ), value: 'scroll' }, { label: __( '2列に縮小する', 'cni-blocks' ), value: 'compact' } ], onChange: function( value ) { setAttributes( { cellMobileLayout: value || 'stack' } ); } } ),
+						el( SelectControl, { label: __( '外枠', 'cni-blocks' ), value: attributes.cellOuterBorder || 'standard', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '細い（1px）', 'cni-blocks' ), value: 'thin' }, { label: __( '標準（2px）', 'cni-blocks' ), value: 'standard' }, { label: __( '太い（4px）', 'cni-blocks' ), value: 'thick' } ], onChange: function( value ) { setAttributes( { cellOuterBorder: value || 'none' } ); } } ),
+						el( SelectControl, { label: __( '内枠', 'cni-blocks' ), value: attributes.cellInnerBorder || 'thin', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '細い（1px）', 'cni-blocks' ), value: 'thin' }, { label: __( '標準（2px）', 'cni-blocks' ), value: 'standard' }, { label: __( '太い（4px）', 'cni-blocks' ), value: 'thick' } ], onChange: function( value ) { setAttributes( { cellInnerBorder: value || 'none' } ); } } ),
+						el( 'p', null, __( '罫線色', 'cni-blocks' ) ), el( ColorPalette, { value: attributes.cellBorderColor || '#dddddd', clearable: false, onChange: function( value ) { setAttributes( { cellBorderColor: value || '#dddddd' } ); } } ),
+						el( SelectControl, { label: __( 'セル余白', 'cni-blocks' ), value: attributes.cellPadding || 'standard', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '小', 'cni-blocks' ), value: 'small' }, { label: __( '標準', 'cni-blocks' ), value: 'standard' }, { label: __( '大', 'cni-blocks' ), value: 'large' }, { label: __( '特大', 'cni-blocks' ), value: 'xlarge' } ], onChange: function( value ) { setAttributes( { cellPadding: value || 'standard' } ); } } ),
+						el( SelectControl, { label: __( '外側の角丸', 'cni-blocks' ), value: attributes.cellRadius || 'none', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '小', 'cni-blocks' ), value: 'small' }, { label: __( '中', 'cni-blocks' ), value: 'medium' }, { label: __( '大', 'cni-blocks' ), value: 'large' } ], onChange: function( value ) { setAttributes( { cellRadius: value || 'none' } ); } } ),
+						el( 'p', null, __( 'セルの標準背景色', 'cni-blocks' ) ), el( ColorPalette, { value: attributes.cellBackgroundColor || '#ffffff', clearable: false, onChange: function( value ) { setAttributes( { cellBackgroundColor: value || '#ffffff' } ); } } )
+					) : null,
 					el(
 						PanelBody,
 						{ title: __( 'カードの最小幅', 'cni-blocks' ), initialOpen: true },
@@ -473,12 +634,10 @@
 				el(
 					'div',
 					blockProps,
-					el( InnerBlocks, {
-						allowedBlocks: [ CARD_BLOCK ],
-						orientation: 'horizontal',
-						template: GRID_TEMPLATE,
-						templateLock: false,
-						renderAppender: false,
+					cellMode ? el( 'div', { className: 'cni-cell-grid-scroll' }, el( InnerBlocks, {
+						allowedBlocks: [ CARD_BLOCK ], orientation: 'horizontal', template: GRID_TEMPLATE, templateLock: false, renderAppender: false,
+					} ) ) : el( InnerBlocks, {
+						allowedBlocks: [ CARD_BLOCK ], orientation: 'horizontal', template: GRID_TEMPLATE, templateLock: false, renderAppender: false,
 					} ),
 					el(
 						'div',
@@ -491,7 +650,7 @@
 								variant: 'secondary',
 								onClick: addCard,
 							},
-							__( 'カードを追加', 'cni-blocks' )
+							cellMode ? __( 'セルを追加', 'cni-blocks' ) : __( 'カードを追加', 'cni-blocks' )
 						)
 					)
 				)
@@ -500,6 +659,15 @@
 		save: function( props ) {
 			const attributes = props.attributes;
 			const blockProps = blockEditor.useBlockProps.save( getGridBlockProps( attributes ) );
+			const cellMode = isCellGrid( attributes );
+			if ( cellMode ) {
+				return el( 'div', blockProps,
+					el( 'div', { className: 'cni-cell-grid-scroll', tabIndex: 0, role: 'region', 'aria-label': __( 'セルグリッド', 'cni-blocks' ) },
+						el( 'div', { className: 'cni-cell-grid-content' }, el( InnerBlocks.Content ) )
+					),
+					attributes.cellMobileLayout === 'scroll' ? el( 'p', { className: 'cni-cell-grid-scroll-hint' }, __( '横にスワイプして表示できます', 'cni-blocks' ) ) : null
+				);
+			}
 
 			return el( 'div', blockProps, el( InnerBlocks.Content ) );
 		},
