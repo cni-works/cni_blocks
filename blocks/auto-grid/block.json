@@ -147,6 +147,14 @@
       "type": "string",
       "default": "thin"
     },
+    "cellVerticalBorder": {
+      "type": "string",
+      "default": ""
+    },
+    "cellHorizontalBorder": {
+      "type": "string",
+      "default": ""
+    },
     "cellBorderColor": {
       "type": "string",
       "default": "#dddddd"
@@ -162,6 +170,10 @@
     "cellBackgroundColor": {
       "type": "string",
       "default": "#ffffff"
+    },
+    "cellTransparentBackground": {
+      "type": "boolean",
+      "default": false
     }
   },
   "allowedBlocks": [

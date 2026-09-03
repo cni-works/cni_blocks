@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.40.1
+ * Version: 1.40.2
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -264,17 +264,54 @@ function cni_blocks_register_blocks() {
 	);
 
 	$post_type_options = array();
+	$post_list_taxonomies = array();
 	foreach ( cni_blocks_post_list_public_post_types() as $post_type ) {
 		$post_type_options[] = array(
 			'label' => $post_type->labels->singular_name,
 			'value' => $post_type->name,
 		);
+
+		$post_list_taxonomies[ $post_type->name ] = array();
+		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
+			if ( empty( $taxonomy->public ) || empty( $taxonomy->hierarchical ) ) {
+				continue;
+			}
+
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy->name,
+					'hide_empty' => false,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+				)
+			);
+			if ( is_wp_error( $terms ) ) {
+				continue;
+			}
+
+			$term_options = array();
+			foreach ( $terms as $term ) {
+				$term_options[] = array(
+					'label' => $term->name,
+					'value' => (int) $term->term_id,
+				);
+			}
+
+			$post_list_taxonomies[ $post_type->name ][] = array(
+				'label' => $taxonomy->labels->singular_name,
+				'value' => $taxonomy->name,
+				'terms' => $term_options,
+			);
+		}
 	}
 
 	wp_localize_script(
 		'cni-blocks-post-list-editor',
 		'cniPostListSettings',
-		array( 'postTypes' => $post_type_options )
+		array(
+			'postTypes'  => $post_type_options,
+			'taxonomies' => $post_list_taxonomies,
+		)
 	);
 
 	wp_register_style(

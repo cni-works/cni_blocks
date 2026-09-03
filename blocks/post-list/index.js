@@ -4,12 +4,13 @@
 	const el = element.createElement;
 	const { __ } = i18n;
 	const { useBlockProps, InspectorControls } = blockEditor;
-	const { ColorPalette, PanelBody, RangeControl, SelectControl, ToggleControl } = components;
+	const { CheckboxControl, ColorPalette, PanelBody, RangeControl, SelectControl, ToggleControl } = components;
 	const ServerSideRender = serverSideRender.ServerSideRender || serverSideRender.default || serverSideRender;
 	const settings = window.cniPostListSettings || {};
 	const postTypes = Array.isArray( settings.postTypes ) && settings.postTypes.length
 		? settings.postTypes
 		: [ { label: __( '投稿', 'cni-blocks' ), value: 'post' } ];
+	const taxonomiesByPostType = settings.taxonomies && typeof settings.taxonomies === 'object' ? settings.taxonomies : {};
 
 	function numberOr( value, fallback ) {
 		return typeof value === 'number' ? value : fallback;
@@ -23,6 +24,8 @@
 		category: 'cni-blocks',
 		attributes: {
 			postType: { type: 'string', default: 'post' },
+			filterTaxonomy: { type: 'string', default: '' },
+			filterTermIds: { type: 'array', default: [] },
 			postsPerPage: { type: 'number', default: 6 },
 			offset: { type: 'number', default: 0 },
 			sortOrder: { type: 'string', default: 'newest' },
@@ -65,6 +68,10 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes } = props;
+			const availableTaxonomies = Array.isArray( taxonomiesByPostType[ attributes.postType || 'post' ] ) ? taxonomiesByPostType[ attributes.postType || 'post' ] : [];
+			const selectedTaxonomy = availableTaxonomies.find( function( taxonomy ) { return taxonomy.value === attributes.filterTaxonomy; } );
+			const termOptions = selectedTaxonomy && Array.isArray( selectedTaxonomy.terms ) ? selectedTaxonomy.terms : [];
+			const selectedTermIds = Array.isArray( attributes.filterTermIds ) ? attributes.filterTermIds.map( function( id ) { return parseInt( id, 10 ) || 0; } ).filter( function( id ) { return id > 0; } ) : [];
 			const displayType = attributes.displayType || 'card';
 			const isGrid = displayType !== 'list';
 			const isCard = displayType === 'card';
@@ -88,8 +95,29 @@
 							label: __( '投稿タイプ', 'cni-blocks' ),
 							value: attributes.postType || 'post',
 							options: postTypes,
-							onChange: function( value ) { setAttributes( { postType: value } ); },
+							onChange: function( value ) { setAttributes( { postType: value, filterTaxonomy: '', filterTermIds: [] } ); },
 						} ),
+						availableTaxonomies.length ? el( SelectControl, {
+							label: __( '絞り込む分類', 'cni-blocks' ),
+							value: attributes.filterTaxonomy || '',
+							options: [ { label: __( '指定しない（すべて表示）', 'cni-blocks' ), value: '' } ].concat( availableTaxonomies ),
+							onChange: function( value ) { setAttributes( { filterTaxonomy: value || '', filterTermIds: [] } ); },
+						} ) : null,
+						selectedTaxonomy ? el( 'div', { className: 'cni-post-list__term-filter' },
+							el( 'p', null, __( '表示するカテゴリー（複数選択可・未選択ですべて表示）', 'cni-blocks' ) ),
+							termOptions.length ? termOptions.map( function( term ) {
+								const termId = parseInt( term.value, 10 ) || 0;
+								return el( CheckboxControl, {
+									key: termId,
+									label: term.label,
+									checked: selectedTermIds.indexOf( termId ) !== -1,
+									onChange: function( checked ) {
+										const nextIds = checked ? selectedTermIds.concat( [ termId ] ) : selectedTermIds.filter( function( id ) { return id !== termId; } );
+										setAttributes( { filterTermIds: nextIds } );
+									},
+								} );
+							} ) : el( 'p', { className: 'components-base-control__help' }, __( '選択できるカテゴリーがありません。', 'cni-blocks' ) )
+						) : null,
 						el( RangeControl, {
 							label: __( '表示件数', 'cni-blocks' ),
 							value: numberOr( attributes.postsPerPage, 6 ),
