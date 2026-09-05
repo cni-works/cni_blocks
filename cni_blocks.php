@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.40.2
+ * Version: 1.40.3
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -52,6 +52,7 @@ require_once plugin_dir_path( __FILE__ ) . 'blocks/custom-field/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/visual-embed/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/circle-image-plus/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/image-hotspot-plus/render.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/image-text-layer/render.php';
 
 /**
  * Locate the first Outer+ hero block in the current singular post.
@@ -437,6 +438,8 @@ function cni_blocks_register_blocks() {
 	$circle_image_plus_dir_path = $dir_path . 'blocks/circle-image-plus/';
 	$image_hotspot_plus_dir_url  = $dir_url . 'blocks/image-hotspot-plus/';
 	$image_hotspot_plus_dir_path = $dir_path . 'blocks/image-hotspot-plus/';
+	$image_text_layer_dir_url  = $dir_url . 'blocks/image-text-layer/';
+	$image_text_layer_dir_path = $dir_path . 'blocks/image-text-layer/';
 	$generated_background_plus_dir_url  = $dir_url . 'blocks/generated-background-plus/';
 	$generated_background_plus_dir_path = $dir_path . 'blocks/generated-background-plus/';
 	$table_plus_dir_url    = $dir_url . 'blocks/table-plus/';
@@ -505,6 +508,20 @@ function cni_blocks_register_blocks() {
 		$image_hotspot_plus_dir_url . 'style.css',
 		array(),
 		filemtime( $image_hotspot_plus_dir_path . 'style.css' )
+	);
+
+	wp_register_script(
+		'cni-blocks-image-text-layer-editor',
+		$image_text_layer_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $image_text_layer_dir_path . 'index.js' )
+	);
+
+	wp_register_style(
+		'cni-blocks-image-text-layer-style',
+		$image_text_layer_dir_url . 'style.css',
+		array(),
+		filemtime( $image_text_layer_dir_path . 'style.css' )
 	);
 
 	wp_register_script(
@@ -755,6 +772,16 @@ function cni_blocks_register_blocks() {
 			'style'           => 'cni-blocks-image-hotspot-plus-style',
 			'editor_style'    => 'cni-blocks-image-hotspot-plus-style',
 			'render_callback' => 'cni_blocks_render_image_hotspot_plus',
+		)
+	);
+
+	register_block_type(
+		$image_text_layer_dir_path,
+		array(
+			'editor_script'   => 'cni-blocks-image-text-layer-editor',
+			'style'           => 'cni-blocks-image-text-layer-style',
+			'editor_style'    => 'cni-blocks-image-text-layer-style',
+			'render_callback' => 'cni_blocks_render_image_text_layer',
 		)
 	);
 

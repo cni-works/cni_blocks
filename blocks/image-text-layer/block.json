@@ -1,0 +1,23 @@
+{
+  "apiVersion": 3,
+  "name": "cni-blocks/image-text-layer",
+  "title": "画像テキストレイヤー",
+  "category": "cni-blocks",
+  "icon": "format-image",
+  "description": "背景画像の上へ実テキストを自由配置し、PCとスマホで個別に調整します。",
+  "textdomain": "cni-blocks",
+  "attributes": {
+    "imageId": { "type": "number", "default": 0 },
+    "imageUrl": { "type": "string", "default": "" },
+    "imageAlt": { "type": "string", "default": "" },
+    "mobileImageId": { "type": "number", "default": 0 },
+    "mobileImageUrl": { "type": "string", "default": "" },
+    "mobileImageAlt": { "type": "string", "default": "" },
+    "layers": { "type": "array", "default": [] }
+  },
+  "supports": {
+    "align": [ "wide", "full" ],
+    "anchor": true,
+    "html": false
+  }
+}

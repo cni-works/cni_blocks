@@ -6,7 +6,7 @@
 	const { useEffect, useState } = element;
 	const { useSelect } = data;
 	const { AlignmentToolbar, BlockControls, ColorPalette, InspectorControls, MediaUpload, MediaUploadCheck, RichText, RichTextToolbarButton, useBlockProps } = blockEditor;
-	const { Button, Modal, PanelBody, RangeControl, SelectControl, TextControl, ToolbarDropdownMenu, ToolbarGroup, ToolbarButton } = components;
+	const { Button, ColorPicker, Modal, PanelBody, RangeControl, SelectControl, TextControl, ToolbarDropdownMenu, ToolbarGroup, ToolbarButton } = components;
 	const { applyFormat, create, insert, registerFormatType, removeFormat } = richText;
 	const inlineColorFormat = 'cni-blocks/heading-inline-color';
 	const inlineSizeFormat = 'cni-blocks/heading-inline-size';
@@ -202,14 +202,21 @@
 		edit: function( props ) {
 			const activeAttributes = props.activeAttributes || {};
 			return el( HeadingFormatControl, { formatProps: props, title: __( '選択文字の色', 'cni-blocks' ), icon: 'art', renderContent: function( close ) {
+				const currentColor = activeAttributes.style ? activeAttributes.style.replace( /^color:\s*/, '' ).replace( /;$/, '' ) : undefined;
+				const applyColor = function( color, shouldClose ) {
+					props.onChange( color ? applyFormat( props.value, { type: inlineColorFormat, attributes: { style: 'color:' + color } } ) : removeFormat( props.value, inlineColorFormat ) );
+					if ( shouldClose ) close();
+				};
 				return el( 'div', { className: 'cni-heading-plus__format-popover' },
 					el( ColorPalette, {
-						value: activeAttributes.style ? activeAttributes.style.replace( /^color:\s*/, '' ).replace( /;$/, '' ) : undefined,
-						onChange: function( color ) {
-							props.onChange( color ? applyFormat( props.value, { type: inlineColorFormat, attributes: { style: 'color:' + color } } ) : removeFormat( props.value, inlineColorFormat ) );
-							close();
-						},
+						value: currentColor,
+						disableCustomColors: true,
+						onChange: function( color ) { applyColor( color, true ); },
 					} ),
+					el( 'div', { className: 'cni-heading-plus__format-color-picker' },
+						el( 'p', null, __( 'カスタムカラー', 'cni-blocks' ) ),
+						el( ColorPicker, { color: currentColor || '#000000', enableAlpha: false, onChange: function( color ) { applyColor( color, false ); } } )
+					),
 					props.isActive ? el( Button, { variant: 'secondary', onClick: function() { props.onChange( removeFormat( props.value, inlineColorFormat ) ); close(); } }, __( '文字色を解除', 'cni-blocks' ) ) : null
 				);
 			} } );
