@@ -99,7 +99,7 @@
 			'--cni-grid-card-padding-mobile': px( attributes.cardPaddingMobile, 16 ),
 			'--cni-grid-gap-x': px( attributes.gapHorizontal, 24 ),
 			'--cni-grid-gap-y': px( attributes.gapVertical, 24 ),
-			'--cni-grid-card-background': attributes.cardBackgroundColor || '#ffffff',
+			'--cni-grid-card-background': attributes.cardTransparentBackground ? 'transparent' : ( attributes.cardBackgroundColor || '#ffffff' ),
 			'--cni-grid-card-radius': px( attributes.cardRadius, 8 ),
 			'--cni-grid-card-shadow': attributes.cardShadow ? '0 8px 24px rgba(0, 0, 0, 0.12)' : 'none',
 			'--cni-grid-card-border-width': attributes.cardBorder ? px( attributes.cardBorderWidth, 1 ) : '0px',
@@ -630,12 +630,15 @@
 					el(
 						PanelBody,
 						{ title: __( 'カードデザイン', 'cni-blocks' ), initialOpen: false },
-						el( 'p', null, __( 'カード背景色', 'cni-blocks' ) ),
-						el( ColorPalette, {
-							value: attributes.cardBackgroundColor || '#ffffff',
-							onChange: function( value ) { setAttributes( { cardBackgroundColor: value || '#ffffff' } ); },
-							clearable: false,
-						} ),
+						el( ToggleControl, { label: __( 'カード背景を透明にする', 'cni-blocks' ), checked: !! attributes.cardTransparentBackground, help: __( '枠線・角丸・影の設定は維持されます。', 'cni-blocks' ), onChange: function( value ) { setAttributes( { cardTransparentBackground: !! value } ); } } ),
+						! attributes.cardTransparentBackground ? el( element.Fragment, null,
+							el( 'p', null, __( 'カード背景色', 'cni-blocks' ) ),
+							el( ColorPalette, {
+								value: attributes.cardBackgroundColor || '#ffffff',
+								onChange: function( value ) { setAttributes( { cardBackgroundColor: value || '#ffffff' } ); },
+								clearable: false,
+							} )
+						) : null,
 						el( RangeControl, { label: __( '角丸（px）', 'cni-blocks' ), value: numberOr( attributes.cardRadius, 8 ), min: 0, max: 80, onChange: function( value ) { setAttributes( { cardRadius: numberOr( value, 8 ) } ); } } ),
 						el( ToggleControl, { label: __( '影を表示', 'cni-blocks' ), checked: !!attributes.cardShadow, onChange: function( value ) { setAttributes( { cardShadow: !!value } ); } } ),
 						el( ToggleControl, { label: __( '枠線を表示', 'cni-blocks' ), checked: !!attributes.cardBorder, onChange: function( value ) { setAttributes( { cardBorder: !!value } ); } } ),

@@ -83,6 +83,10 @@
       "type": "string",
       "default": "#ffffff"
     },
+    "cardTransparentBackground": {
+      "type": "boolean",
+      "default": false
+    },
     "cardRadius": {
       "type": "number",
       "default": 8

@@ -73,6 +73,7 @@
     ,"backgroundTextXMobile": { "type": "number", "default": 0 }
     ,"backgroundTextYMobile": { "type": "number", "default": 0 }
     ,"headingDesignLineThickness": { "type": "number", "default": 2 }
+    ,"headingDesignSlashScale": { "type": "number", "default": 1 }
     ,"customDesignId": { "type": "string", "default": "" }
     ,"originalDesignId": { "type": "string", "default": "" }
     ,"textDecorationOutlineColor": { "type": "string", "default": "" }

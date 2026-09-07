@@ -63,6 +63,11 @@
 		const design = headingDesignFor( attributes );
 		return !! design && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 && numberOr( attributes.layoutVersion, 2 ) >= 3;
 	}
+	/* layoutVersion describes the block layout contract, rather than the
+	 * currently selected visual treatment. A V3 block remains V3 even after
+	 * switching back to an ordinary heading design, so its outer spacing keeps
+	 * the same owner (the wrapper). */
+	function isV3Layout( attributes ) { return numberOr( attributes.layoutVersion, 2 ) >= 3; }
 	function designPreview( design, text, style ) {
 		const previewText = text || design.sample;
 		if ( design.category === 'heading' && design.id === 'eyebrow-title' ) return el( 'span', { className: 'cni-heading-plus__design-preview is-eyebrow', style: style }, el( 'span', { className: 'cni-heading-plus__eyebrow' }, 'OUR SERVICE' ), el( 'span', { className: 'cni-heading-plus__effect-target' }, previewText ) );
@@ -71,9 +76,37 @@
 		if ( design.category === 'heading' && design.id === 'speech-underline' ) return el( 'span', { className: 'cni-heading-plus__design-preview is-speech', style: style }, el( 'span', { className: 'cni-heading-plus__effect-target' }, previewText ), el( 'span', { className: 'cni-heading-plus__speech-line', 'aria-hidden': 'true' } ) );
 		return el( 'span', { className: 'cni-heading-plus__design-sample cni-heading-plus__effect-target', style: style }, previewText );
 	}
+	function designPreviewStyle( design, attributes, applyMode ) {
+		const primarySize = Math.max( 1, numberOr( attributes.fontSizePc, 32 ) );
+		const secondarySize = numberOr( attributes.secondarySizePc, 14 );
+		const headingFont = applyMode === 'preset' ? design.fontFamily : ( attributes.fontFamily || 'inherit' );
+		const headingWeight = applyMode === 'preset' ? design.fontWeight : ( attributes.fontWeight || '700' );
+		const secondaryFont = attributes.secondaryFontFamily || attributes.fontFamily || headingFont;
+		const secondaryWeight = attributes.secondaryFontWeight || attributes.fontWeight || '700';
+		return {
+			fontFamily: headingFont && headingFont !== 'inherit' ? '"' + headingFont + '", sans-serif' : 'inherit',
+			fontWeight: headingWeight,
+			color: design.primaryColor || attributes.headingDesignPrimaryColor || attributes.textColor || 'inherit',
+			'--cni-preview-secondary-font': secondaryFont && secondaryFont !== 'inherit' ? '"' + secondaryFont + '", sans-serif' : 'inherit',
+			'--cni-preview-secondary-weight': secondaryWeight,
+			'--cni-preview-secondary-color': attributes.secondaryColor || design.accentColor || attributes.headingDesignAccentColor || '#2998cf',
+			'--cni-preview-secondary-size': ( secondarySize / primarySize ) + 'em',
+			'--cni-preview-secondary-gap': ( numberOr( attributes.secondaryGapPc, 8 ) / primarySize ) + 'em',
+			'--cni-preview-secondary-letter-spacing': ( numberOr( attributes.secondaryLetterSpacing, 1.5 ) / primarySize ) + 'em',
+			'--cni-preview-secondary-line-height': numberOr( attributes.secondaryLineHeight, 1.2 ),
+			'--cni-preview-bg-text-opacity': Math.max( 0, Math.min( 100, numberOr( attributes.backgroundTextOpacity, 14 ) ) ) / 100,
+		};
+	}
 	function fontUnit( value ) { return [ 'px', 'rem', 'vh' ].indexOf( value ) !== -1 ? value : 'px'; }
 	function fontSizeValue( value, unit, fallback ) { return numberOr( value, fallback ) + fontUnit( unit ); }
 	function headingDefaultSizes( tag ) { return { h2: { pc: 32, tablet: 28, mobile: 21 }, h3: { pc: 24, tablet: 22, mobile: 17.5 }, h4: { pc: 20, tablet: 18, mobile: 15.75 }, p: { pc: 1, tablet: 1, mobile: 1 }, span: { pc: 1, tablet: 1, mobile: 1 } }[ tag ] || { pc: 32, tablet: 28, mobile: 21 }; }
+	function headingDefaultMargins( tag ) { return { h1: { pc: [ 40, 16 ], mobile: [ 30, 12 ] }, h2: { pc: [ 40, 16 ], mobile: [ 30, 12 ] }, h3: { pc: [ 32, 12 ], mobile: [ 24, 10 ] }, h4: { pc: [ 24, 8 ], mobile: [ 18, 8 ] }, h5: { pc: [ 20, 8 ], mobile: [ 20, 8 ] }, h6: { pc: [ 20, 8 ], mobile: [ 20, 8 ] } }[ tag ] || { pc: [ 0, 0 ], mobile: [ 0, 0 ] }; }
+	function preferredSecondaryWeight( weights, preferred ) {
+		const target = parseInt( preferred || '700', 10 );
+		if ( weights.indexOf( String( target ) ) !== -1 ) return String( target );
+		if ( weights.indexOf( '700' ) !== -1 ) return '700';
+		return weights.reduce( function( closest, weight ) { return Math.abs( parseInt( weight, 10 ) - target ) < Math.abs( parseInt( closest, 10 ) - target ) ? weight : closest; }, weights[ 0 ] );
+	}
 	function fontRangeMaximum( unit ) { return unit === 'rem' ? 10 : ( unit === 'vh' ? 30 : 160 ); }
 	function fontRangeStep( unit ) { return unit === 'px' ? 0.5 : 0.05; }
 	function convertFontSizeUnit( value, fromUnit, toUnit, base ) { const current = numberOr( value, 0 ); if ( fromUnit === toUnit ) return current; const pixels = fromUnit === 'rem' ? current * base : ( fromUnit === 'vh' ? current * ( base === 14 ? 8 : 9 ) : current ); const converted = toUnit === 'rem' ? pixels / base : ( toUnit === 'vh' ? pixels / ( base === 14 ? 8 : 9 ) : pixels ); return Math.round( converted * 100 ) / 100; }
@@ -127,6 +160,13 @@
 		};
 		if ( typeof a.marginTop === 'number' ) style[ '--cni-heading-margin-top' ] = a.marginTop + 'px';
 		if ( typeof a.marginBottom === 'number' ) style[ '--cni-heading-margin-bottom' ] = a.marginBottom + 'px';
+		if ( isV3Layout( a ) ) {
+			const margins = headingDefaultMargins( textTag( a ) );
+			style[ '--cni-heading-outer-margin-top' ] = ( typeof a.marginTop === 'number' ? a.marginTop : margins.pc[ 0 ] ) + 'px';
+			style[ '--cni-heading-outer-margin-bottom' ] = ( typeof a.marginBottom === 'number' ? a.marginBottom : margins.pc[ 1 ] ) + 'px';
+			style[ '--cni-heading-outer-margin-top-mobile' ] = ( typeof a.marginTop === 'number' ? a.marginTop : margins.mobile[ 0 ] ) + 'px';
+			style[ '--cni-heading-outer-margin-bottom-mobile' ] = ( typeof a.marginBottom === 'number' ? a.marginBottom : margins.mobile[ 1 ] ) + 'px';
+		}
 		const legacyDesign = textDesignFor( a.textDesign );
 		const headingDesign = headingDesignFor( a );
 		const decoration = textDecorationFor( a );
@@ -138,6 +178,7 @@
 			style[ '--cni-heading-structure-accent' ] = a.headingDesignAccentColor || ( legacyDesign && legacyDesign.category === 'heading' && a.textDesignAccentColor ) || headingDesign.accentColor;
 		}
 		if ( headingDesign && [ 'accent-underline', 'left-bar', 'left-bar-band' ].indexOf( headingDesign.id ) !== -1 && typeof a.headingDesignLineThickness === 'number' ) style[ '--cni-heading-structure-line-width' ] = Math.max( .5, Math.min( 16, a.headingDesignLineThickness ) ) + 'px';
+		if ( headingDesign && headingDesign.id === 'center-slash' ) style[ '--cni-heading-structure-slash-scale' ] = Math.max( .4, Math.min( 3, numberOr( a.headingDesignSlashScale, 1 ) ) );
 		if ( decoration ) {
 			const decorationPrimary = a.textDecorationPrimaryColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignPrimaryColor ) || decoration.primaryColor;
 			const decorationHighlight = a.textDecorationHighlightColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignHighlightColor ) || decoration.highlightColor || decoration.primaryColor;
@@ -152,10 +193,10 @@
 			style[ '--cni-heading-design-accent' ] = decorationAccent;
 			style[ '--cni-heading-decoration-outline' ] = a.textDecorationOutlineColor || '#ffffff';
 		}
-		if ( isV3Secondary( a ) ) {
+		if ( isV3Layout( a ) ) {
 			style[ '--cni-secondary-font' ] = a.secondaryFontFamily ? '"' + a.secondaryFontFamily + '", sans-serif' : 'inherit';
 			style[ '--cni-secondary-weight' ] = a.secondaryFontWeight || a.fontWeight || '700';
-			style[ '--cni-secondary-color' ] = a.secondaryColor || ( headingDesign && headingDesign.accentColor ) || '#2998cf';
+			style[ '--cni-secondary-color' ] = a.secondaryColor || a.headingDesignAccentColor || ( headingDesign && headingDesign.accentColor ) || '#2998cf';
 			style[ '--cni-secondary-size-pc' ] = numberOr( a.secondarySizePc, 14 ) + 'px';
 			style[ '--cni-secondary-size-mobile' ] = numberOr( a.secondarySizeMobile, 12 ) + 'px';
 			style[ '--cni-secondary-letter-spacing' ] = numberOr( a.secondaryLetterSpacing, 1.5 ) + 'px';
@@ -216,7 +257,7 @@
 			layoutVersion: 1,
 		} );
 	}
-	function setMarginPreset( props, attribute, value ) { const next = {}; next[ attribute ] = value; if ( props.attributes.legacyLayout ) next.legacyLayout = false; next.layoutVersion = 2; props.setAttributes( next ); }
+	function setMarginPreset( props, attribute, value ) { const next = {}; next[ attribute ] = value; if ( props.attributes.legacyLayout ) { next.legacyLayout = false; next.layoutVersion = 2; } props.setAttributes( next ); }
 	function marginControls( props, attribute, label, icon ) {
 		const presets = [ [ __( '標準', 'cni-blocks' ), undefined ], [ '0', 0 ], [ 'XXS', 4 ], [ 'XS', 8 ], [ 'S', 16 ], [ 'M', 24 ], [ 'L', 32 ], [ 'XL', 40 ], [ 'XXL', 56 ] ];
 		const currentValue = typeof props.attributes[ attribute ] === 'number' ? props.attributes[ attribute ] : undefined;
@@ -255,11 +296,11 @@
 		else if ( headingDesign && ! textDecoration ) props[ 'data-cni-text-design' ] = headingDesign.id;
 		else if ( textDecoration && ! headingDesign ) props[ 'data-cni-text-design' ] = textDecoration.id;
 		if ( headingDesign ) props[ 'data-cni-heading-design' ] = headingDesign.id;
-		if ( isV3Secondary( a ) ) {
+		if ( isV3Layout( a ) ) {
 			props[ 'data-cni-secondary-layout' ] = 'v3';
 			if ( a.secondaryFontFamily ) props[ 'data-secondary-google-font' ] = a.secondaryFontFamily;
-			if ( headingDesign.id === 'eyebrow-title' && a.secondaryAlignment && a.secondaryAlignment !== 'inherit' ) props[ 'data-secondary-alignment' ] = a.secondaryAlignment;
-			if ( headingDesign.id === 'number-title' ) props[ 'data-number-vertical-alignment' ] = a.numberVerticalAlignment || 'baseline';
+			if ( headingDesign && headingDesign.id === 'eyebrow-title' && a.secondaryAlignment && a.secondaryAlignment !== 'inherit' ) props[ 'data-secondary-alignment' ] = a.secondaryAlignment;
+			if ( headingDesign && headingDesign.id === 'number-title' ) props[ 'data-number-vertical-alignment' ] = a.numberVerticalAlignment || 'baseline';
 		}
 		if ( a.legacyLayout ) props[ 'data-cni-legacy-layout' ] = 'true';
 		if ( ! a.legacyLayout && numberOr( a.layoutVersion, 2 ) >= 2 ) props[ 'data-cni-layout-version' ] = String( numberOr( a.layoutVersion, 2 ) );
@@ -375,7 +416,7 @@
 		title: __( '見出し+', 'cni-blocks' ), icon: 'heading', category: 'cni-blocks',
 		description: __( '端末別の文字サイズ、Google Fonts、テキストデザインを設定できる見出しです。', 'cni-blocks' ),
 		attributes: {
-			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, legacyLayout: { type: 'boolean', default: false }, layoutVersion: { type: 'number', default: 2 }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 }, textDesign: { type: 'string', default: '' }, textDesignPrimaryColor: { type: 'string', default: '' }, textDesignHighlightColor: { type: 'string', default: '' }, textDesignAccentColor: { type: 'string', default: '' }, headingDesign: { type: 'string', default: '' }, textDecoration: { type: 'string', default: '' }, headingDesignPrimaryColor: { type: 'string', default: '' }, headingDesignAccentColor: { type: 'string', default: '' }, textDecorationPrimaryColor: { type: 'string', default: '' }, textDecorationHighlightColor: { type: 'string', default: '' }, textDecorationAccentColor: { type: 'string', default: '' }, textDecorationOutlineColor: { type: 'string', default: '' }, headingEyebrow: { type: 'string', default: '' }, headingNumber: { type: 'string', default: '' }, headingBackdropText: { type: 'string', default: '' }, secondaryFontFamily: { type: 'string', default: '' }, secondaryFontWeight: { type: 'string', default: '' }, secondaryColor: { type: 'string', default: '' }, secondarySizePc: { type: 'number', default: 14 }, secondarySizeMobile: { type: 'number', default: 12 }, secondaryLetterSpacing: { type: 'number', default: 1.5 }, secondaryLineHeight: { type: 'number', default: 1.2 }, secondaryGapPc: { type: 'number', default: 8 }, secondaryGapMobile: { type: 'number', default: 6 }, secondaryAlignment: { type: 'string', default: 'inherit' }, numberVerticalAlignment: { type: 'string', default: 'baseline' }, backgroundTextOpacity: { type: 'number', default: 14 }, backgroundTextX: { type: 'number', default: 0 }, backgroundTextY: { type: 'number', default: 0 }, backgroundTextXMobile: { type: 'number', default: 0 }, backgroundTextYMobile: { type: 'number', default: 0 }, headingDesignLineThickness: { type: 'number', default: 2 }, customDesignId: { type: 'string', default: '' }, originalDesignId: { type: 'string', default: '' },
+			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, legacyLayout: { type: 'boolean', default: false }, layoutVersion: { type: 'number', default: 2 }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 }, textDesign: { type: 'string', default: '' }, textDesignPrimaryColor: { type: 'string', default: '' }, textDesignHighlightColor: { type: 'string', default: '' }, textDesignAccentColor: { type: 'string', default: '' }, headingDesign: { type: 'string', default: '' }, textDecoration: { type: 'string', default: '' }, headingDesignPrimaryColor: { type: 'string', default: '' }, headingDesignAccentColor: { type: 'string', default: '' }, textDecorationPrimaryColor: { type: 'string', default: '' }, textDecorationHighlightColor: { type: 'string', default: '' }, textDecorationAccentColor: { type: 'string', default: '' }, textDecorationOutlineColor: { type: 'string', default: '' }, headingEyebrow: { type: 'string', default: '' }, headingNumber: { type: 'string', default: '' }, headingBackdropText: { type: 'string', default: '' }, secondaryFontFamily: { type: 'string', default: '' }, secondaryFontWeight: { type: 'string', default: '' }, secondaryColor: { type: 'string', default: '' }, secondarySizePc: { type: 'number', default: 14 }, secondarySizeMobile: { type: 'number', default: 12 }, secondaryLetterSpacing: { type: 'number', default: 1.5 }, secondaryLineHeight: { type: 'number', default: 1.2 }, secondaryGapPc: { type: 'number', default: 8 }, secondaryGapMobile: { type: 'number', default: 6 }, secondaryAlignment: { type: 'string', default: 'inherit' }, numberVerticalAlignment: { type: 'string', default: 'baseline' }, backgroundTextOpacity: { type: 'number', default: 14 }, backgroundTextX: { type: 'number', default: 0 }, backgroundTextY: { type: 'number', default: 0 }, backgroundTextXMobile: { type: 'number', default: 0 }, backgroundTextYMobile: { type: 'number', default: 0 }, headingDesignLineThickness: { type: 'number', default: 2 }, headingDesignSlashScale: { type: 'number', default: 1 }, customDesignId: { type: 'string', default: '' }, originalDesignId: { type: 'string', default: '' },
 		},
 		transforms: {
 			from: [ {
@@ -479,14 +520,15 @@
 							palette( __( '見出しデザイン：アクセントカラー', 'cni-blocks' ), a.headingDesignAccentColor || activeHeadingDesign.accentColor, function( value ) { props.setAttributes( { headingDesignAccentColor: value || activeHeadingDesign.accentColor } ); } )
 						) : null,
 						activeHeadingDesign && [ 'accent-underline', 'left-bar', 'left-bar-band' ].indexOf( activeHeadingDesign.id ) !== -1 ? el( RangeControl, { label: __( 'アクセント線の太さ（px）', 'cni-blocks' ), value: numberOr( a.headingDesignLineThickness, 2 ), min: .5, max: 16, step: .5, onChange: function( value ) { props.setAttributes( { headingDesignLineThickness: value } ); } } ) : null,
+						activeHeadingDesign && activeHeadingDesign.id === 'center-slash' ? el( RangeControl, { label: __( 'スラッシュの大きさ（文字サイズ比）', 'cni-blocks' ), help: __( '文字サイズの変更に連動します。', 'cni-blocks' ), value: numberOr( a.headingDesignSlashScale, 1 ), min: .4, max: 3, step: .1, onChange: function( value ) { props.setAttributes( { headingDesignSlashScale: value } ); } } ) : null,
 						activeHeadingDesign && activeHeadingDesign.id === 'eyebrow-title' ? el( TextControl, { label: __( '英字サブタイトル', 'cni-blocks' ), value: a.headingEyebrow || '', placeholder: 'OUR SERVICE', onChange: function( value ) { props.setAttributes( { headingEyebrow: value } ); } } ) : null,
 						activeHeadingDesign && activeHeadingDesign.id === 'number-title' ? el( TextControl, { label: __( '番号', 'cni-blocks' ), value: a.headingNumber || '', placeholder: '01', onChange: function( value ) { props.setAttributes( { headingNumber: value } ); } } ) : null,
 						activeHeadingDesign && activeHeadingDesign.id === 'backdrop-title' ? el( TextControl, { label: __( '背面の英字', 'cni-blocks' ), value: a.headingBackdropText || '', placeholder: 'ABOUT', onChange: function( value ) { props.setAttributes( { headingBackdropText: value } ); } } ) : null,
 						isV3Secondary( a ) ? el( 'div', { className: 'cni-heading-plus__secondary-controls' },
 							el( 'p', { className: 'cni-heading-plus__design-mode-label' }, __( '補助要素の文字設定（PC／スマホ）', 'cni-blocks' ) ),
-							el( SelectControl, { label: __( '補助要素のフォント', 'cni-blocks' ), value: a.secondaryFontFamily || '', options: [ { label: __( '主見出しと同じ', 'cni-blocks' ), value: '' } ].concat( googleFonts.filter( function( font ) { return !! font; } ).map( function( font ) { return { label: font, value: font }; } ) ), onChange: function( value ) { const weights = fontWeights[ value || a.fontFamily ] || [ '300', '400', '500', '600', '700', '800', '900' ]; props.setAttributes( { secondaryFontFamily: value, secondaryFontWeight: value && weights.indexOf( a.secondaryFontWeight ) === -1 ? weights[ 0 ] : a.secondaryFontWeight } ); } } ),
+							el( SelectControl, { label: __( '補助要素のフォント', 'cni-blocks' ), value: a.secondaryFontFamily || '', options: [ { label: __( '主見出しと同じ', 'cni-blocks' ), value: '' } ].concat( googleFonts.filter( function( font ) { return !! font; } ).map( function( font ) { return { label: font, value: font }; } ) ), onChange: function( value ) { const weights = fontWeights[ value || a.fontFamily ] || [ '300', '400', '500', '600', '700', '800', '900' ]; props.setAttributes( { secondaryFontFamily: value, secondaryFontWeight: value ? preferredSecondaryWeight( weights, a.secondaryFontWeight || a.fontWeight ) : '' } ); } } ),
 							el( SelectControl, { label: __( '補助要素の太さ', 'cni-blocks' ), value: a.secondaryFontWeight || '', options: [ { label: __( '主見出しと同じ', 'cni-blocks' ), value: '' } ].concat( ( fontWeights[ a.secondaryFontFamily || a.fontFamily ] || [ '300', '400', '500', '600', '700', '800', '900' ] ).map( function( weight ) { return { label: weight, value: weight }; } ) ), onChange: function( value ) { props.setAttributes( { secondaryFontWeight: value } ); } } ),
-							palette( __( '補助要素の色', 'cni-blocks' ), a.secondaryColor || activeHeadingDesign.accentColor, function( value ) { props.setAttributes( { secondaryColor: value || '' } ); } ),
+							palette( __( '補助要素の色', 'cni-blocks' ), a.secondaryColor || a.headingDesignAccentColor || activeHeadingDesign.accentColor, function( value ) { props.setAttributes( { secondaryColor: value || '' } ); } ),
 							el( RangeControl, { label: __( '文字サイズ：PC（px）', 'cni-blocks' ), value: numberOr( a.secondarySizePc, 14 ), min: 6, max: 160, step: .5, onChange: function( value ) { props.setAttributes( { secondarySizePc: value } ); } } ),
 							el( RangeControl, { label: __( '文字サイズ：スマホ（px）', 'cni-blocks' ), value: numberOr( a.secondarySizeMobile, 12 ), min: 6, max: 100, step: .5, onChange: function( value ) { props.setAttributes( { secondarySizeMobile: value } ); } } ),
 							el( RangeControl, { label: __( '文字間隔（px）', 'cni-blocks' ), value: numberOr( a.secondaryLetterSpacing, 1.5 ), min: -5, max: 30, step: .5, onChange: function( value ) { props.setAttributes( { secondaryLetterSpacing: value } ); } } ),
@@ -552,7 +594,7 @@
 					) : null,
 					activeDesignTab !== 'original' ? el( 'div', { className: 'cni-heading-plus__design-library' }, textDesigns.filter( function( design ) { return ( design.category || 'text' ) === activeDesignTab; } ).map( function( design ) {
 						const isSelected = activeDesignTab === 'heading' ? !! ( activeHeadingDesign && activeHeadingDesign.id === design.id ) : !! ( activeTextDecoration && activeTextDecoration.id === design.id );
-						const previewStyle = designApplyMode === 'keep' ? { fontFamily: 'inherit', color: a.textColor || 'inherit' } : null;
+						const previewStyle = activeDesignTab === 'heading' ? designPreviewStyle( design, a, designApplyMode ) : ( designApplyMode === 'keep' ? { fontFamily: a.fontFamily ? '"' + a.fontFamily + '", sans-serif' : 'inherit', color: a.textColor || 'inherit' } : null );
 						return el( 'button', { key: design.id, type: 'button', className: 'cni-heading-plus__design-card' + ( isSelected ? ' is-selected' : '' ), 'data-cni-text-design': design.id, onClick: function() { const next = activeDesignTab === 'heading' ? { headingDesign: design.id, headingDesignPrimaryColor: design.primaryColor, headingDesignAccentColor: design.accentColor } : { textDecoration: design.id, textDecorationPrimaryColor: design.primaryColor, textDecorationHighlightColor: design.highlightColor || '', textDecorationAccentColor: design.accentColor, textDecorationOutlineColor: '#ffffff' }; next.customDesignId = ''; next.originalDesignId = ''; if ( activeDesignTab === 'heading' && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 ) next.layoutVersion = 3; if ( designApplyMode === 'preset' ) { next.fontFamily = design.fontFamily; next.fontWeight = design.fontWeight; } props.setAttributes( next ); setIsDesignModalOpen( false ); }, 'aria-pressed': isSelected },
 							designPreview( design, a.content ? a.content.replace( /<[^>]*>/g, '' ) : '', previewStyle ),
 							el( 'strong', null, design.label ),
