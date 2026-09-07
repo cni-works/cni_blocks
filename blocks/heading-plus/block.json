@@ -4,26 +4,79 @@
   "title": "見出し+",
   "category": "cni-blocks",
   "icon": "heading",
-  "description": "端末別の文字サイズ、Google Fonts、字間、色を設定できる見出しです。",
-  "keywords": [ "見出し", "タイトル", "Google Fonts" ],
+  "description": "端末別の文字サイズ、Google Fonts、テキストデザインを設定できる見出しです。",
+  "keywords": [ "見出し", "タイトル", "Google Fonts", "文字装飾", "テキストデザイン" ],
   "textdomain": "cni-blocks",
   "attributes": {
-    "content": { "type": "string", "source": "html", "selector": ".cni-heading-plus__text", "default": "見出しを入力" },
+    "content": { "type": "string", "source": "html", "selector": ".cni-heading-plus__text", "default": "" },
     "level": { "type": "number", "default": 2 },
+    "tagName": { "type": "string", "default": "" },
+    "marginTop": { "type": "number" },
+    "marginBottom": { "type": "number" },
+    "legacyLayout": { "type": "boolean", "default": false },
+    "layoutVersion": { "type": "number", "default": 2 },
+    "inlineImageId": { "type": "number", "default": 0 },
+    "inlineImageUrl": { "type": "string", "default": "" },
+    "inlineImageAlt": { "type": "string", "default": "" },
+    "inlineImagePosition": { "type": "string", "default": "before" },
+    "inlineImageSize": { "type": "number", "default": 1.05 },
+    "writingMode": { "type": "string", "default": "horizontal-tb" },
+    "mobileWritingMode": { "type": "string", "default": "horizontal-tb" },
+    "verticalOrientation": { "type": "string", "default": "mixed" },
+    "verticalPosition": { "type": "string", "default": "right" },
+    "verticalHeight": { "type": "number", "default": 320 },
     "fontFamily": { "type": "string", "default": "" },
     "fontWeight": { "type": "string", "default": "700" },
     "fontStyle": { "type": "string", "default": "normal" },
     "textTransform": { "type": "string", "default": "none" },
-    "fontSizePc": { "type": "number", "default": 40 },
-    "fontSizeTablet": { "type": "number", "default": 34 },
-    "fontSizeMobile": { "type": "number", "default": 28 },
+    "fontSizePc": { "type": "number", "default": 32 },
+    "fontSizeTablet": { "type": "number", "default": 28 },
+    "fontSizeMobile": { "type": "number", "default": 21 },
+    "fontSizeUnitPc": { "type": "string", "default": "px" },
+    "fontSizeUnitTablet": { "type": "string", "default": "px" },
+    "fontSizeUnitMobile": { "type": "string", "default": "px" },
     "lineHeight": { "type": "number", "default": 1.3 },
     "letterSpacing": { "type": "number", "default": 0 },
     "textColor": { "type": "string", "default": "" },
     "backgroundColor": { "type": "string", "default": "" },
     "alignment": { "type": "string", "default": "left" },
     "paddingVertical": { "type": "number", "default": 0 },
-    "paddingHorizontal": { "type": "number", "default": 0 }
+    "paddingHorizontal": { "type": "number", "default": 0 },
+    "textDesign": { "type": "string", "default": "" },
+    "textDesignPrimaryColor": { "type": "string", "default": "" },
+    "textDesignHighlightColor": { "type": "string", "default": "" },
+    "textDesignAccentColor": { "type": "string", "default": "" }
+    ,"headingDesign": { "type": "string", "default": "" }
+    ,"textDecoration": { "type": "string", "default": "" }
+    ,"headingDesignPrimaryColor": { "type": "string", "default": "" }
+    ,"headingDesignAccentColor": { "type": "string", "default": "" }
+    ,"textDecorationPrimaryColor": { "type": "string", "default": "" }
+    ,"textDecorationHighlightColor": { "type": "string", "default": "" }
+    ,"textDecorationAccentColor": { "type": "string", "default": "" }
+    ,"headingEyebrow": { "type": "string", "default": "" }
+    ,"headingNumber": { "type": "string", "default": "" }
+    ,"headingBackdropText": { "type": "string", "default": "" }
+    ,"secondaryFontFamily": { "type": "string", "default": "" }
+    ,"secondaryFontWeight": { "type": "string", "default": "" }
+    ,"secondaryColor": { "type": "string", "default": "" }
+    ,"secondarySizePc": { "type": "number", "default": 14 }
+    ,"secondarySizeMobile": { "type": "number", "default": 12 }
+    ,"secondaryLetterSpacing": { "type": "number", "default": 1.5 }
+    ,"secondaryLineHeight": { "type": "number", "default": 1.2 }
+    ,"secondaryGapPc": { "type": "number", "default": 8 }
+    ,"secondaryGapMobile": { "type": "number", "default": 6 }
+    ,"secondaryAlignment": { "type": "string", "default": "inherit" }
+    ,"numberVerticalAlignment": { "type": "string", "default": "baseline" }
+    ,"backgroundTextOpacity": { "type": "number", "default": 14 }
+    ,"backgroundTextX": { "type": "number", "default": 0 }
+    ,"backgroundTextY": { "type": "number", "default": 0 }
+    ,"backgroundTextXMobile": { "type": "number", "default": 0 }
+    ,"backgroundTextYMobile": { "type": "number", "default": 0 }
+    ,"headingDesignLineThickness": { "type": "number", "default": 2 }
+    ,"headingDesignSlashScale": { "type": "number", "default": 1 }
+    ,"customDesignId": { "type": "string", "default": "" }
+    ,"originalDesignId": { "type": "string", "default": "" }
+    ,"textDecorationOutlineColor": { "type": "string", "default": "" }
   },
   "supports": { "anchor": true, "html": false }
 }

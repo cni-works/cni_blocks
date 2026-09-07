@@ -19,6 +19,9 @@
     "borderWidth": { "type": "number", "default": 1 },
     "borderColor": { "type": "string", "default": "#dddddd" },
     "cellPadding": { "type": "number", "default": 12 },
+    "cellPaddingVertical": { "type": "number", "default": 12 },
+    "cellPaddingHorizontal": { "type": "number", "default": 12 },
+    "fontSize": { "type": "number", "default": 0 },
     "tableBackgroundColor": { "type": "string", "default": "" },
     "headerBackgroundColor": { "type": "string", "default": "#f5f5f5" },
     "striped": { "type": "boolean", "default": false }

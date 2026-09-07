@@ -25,6 +25,30 @@
     "hoverEffect": {
       "type": "string",
       "default": "lift"
+    },
+    "cellBackgroundColor": {
+      "type": "string",
+      "default": ""
+    },
+    "cellTextColor": {
+      "type": "string",
+      "default": ""
+    },
+    "cellHorizontalAlign": {
+      "type": "string",
+      "default": "left"
+    },
+    "cellVerticalAlign": {
+      "type": "string",
+      "default": "top"
+    },
+    "cellColumnSpan": {
+      "type": "number",
+      "default": 1
+    },
+    "cellRowSpan": {
+      "type": "number",
+      "default": 1
     }
   },
   "supports": {

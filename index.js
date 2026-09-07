@@ -806,6 +806,10 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     shadow: { type: 'boolean', default: false },
     showCaption: { type: 'boolean', default: false },
     displayType: { type: 'string', default: 'grid' },
+    layoutMode: { type: 'string', default: 'tile' },
+    stackPreset: { type: 'string', default: 'stack-01' },
+    stackOverlap: { type: 'number', default: 24 },
+    stackRotation: { type: 'number', default: 4 },
     borderOn: { type: 'boolean', default: false },
     borderColor: { type: 'string', default: '#dddddd' },
     borderWidth: { type: 'number', default: 1 },
@@ -824,6 +828,11 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const shadow = !!attributes.shadow;
     const showCaption = !!attributes.showCaption;
     const displayType = attributes.displayType || 'grid';
+    const layoutMode = attributes.layoutMode === 'stack' ? 'stack' : 'tile';
+    const isStack = layoutMode === 'stack';
+    const stackPreset = [ 'stack-01', 'stack-02', 'stack-03', 'stack-04', 'stack-05' ].indexOf(attributes.stackPreset) !== -1 ? attributes.stackPreset : 'stack-01';
+    const stackOverlap = typeof attributes.stackOverlap === 'number' ? attributes.stackOverlap : 24;
+    const stackRotation = typeof attributes.stackRotation === 'number' ? attributes.stackRotation : 4;
     const lightbox = attributes.lightbox !== false;
     const borderOn = !!attributes.borderOn;
     const borderColor = attributes.borderColor || '#dddddd';
@@ -833,7 +842,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const masonryColumnsPc = attributes.masonryColumnsPc || 3;
 
     const blockProps = useBlockProps({
-      className: 'cni-tile-gallery cni-display-' + displayType + ' cni-editor-preview-' + previewDevice + (borderOn ? ' cni-has-border' : ''),
+      className: 'cni-tile-gallery cni-display-' + displayType + ' cni-editor-preview-' + previewDevice + (isStack ? ' cni-layout-stack cni-' + stackPreset : '') + (borderOn ? ' cni-has-border' : ''),
       'data-display-type': displayType,
       style: {
         '--cni-tile-cols-sp': columnsSp,
@@ -843,7 +852,11 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-border-color': borderColor,
         '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
         '--cni-masonry-cols-sp': masonryColumnsSp,
-        '--cni-masonry-cols-pc': masonryColumnsPc
+        '--cni-masonry-cols-pc': masonryColumnsPc,
+        ...(isStack ? {
+          '--cni-stack-overlap': stackOverlap + 'px',
+          '--cni-stack-rotation': stackRotation + 'deg'
+        } : {})
       }
     });
 
@@ -856,7 +869,12 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       gap: gap + 'px'
     };
 
-    if (displayType === 'masonry') {
+    if (isStack) {
+      tileGridStyle.gridTemplateColumns = '1fr';
+      tileGridStyle.gridTemplateRows = '1fr';
+      tileGridStyle.minHeight = 'clamp(280px, 48vw, 640px)';
+      tileGridStyle.gap = '0';
+    } else if (displayType === 'masonry') {
       tileGridStyle.display = 'block';
       tileGridStyle.columns = editorMasonryCols;
       tileGridStyle.columnGap = gap + 'px';
@@ -871,7 +889,9 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const getEditorItemStyle = function(index) {
       const itemStyle = { margin: 0 };
 
-      if (displayType === 'masonry') {
+      if (isStack) {
+        itemStyle.gridArea = '1 / 1';
+      } else if (displayType === 'masonry') {
         itemStyle.breakInside = 'avoid';
         itemStyle.marginBottom = gap + 'px';
       } else if (displayType === 'justified') {
@@ -888,8 +908,8 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const tileImageStyle = {
       display: 'block',
       width: '100%',
-      height: displayType === 'justified' ? '180px' : 'auto',
-      objectFit: displayType === 'justified' ? 'cover' : undefined,
+      height: !isStack && displayType === 'justified' ? '180px' : 'auto',
+      objectFit: !isStack && displayType === 'justified' ? 'cover' : undefined,
       borderRadius: radius + 'px',
       border: borderOn ? borderWidth + 'px solid ' + borderColor : '0',
       boxShadow: shadow ? '0 8px 20px rgba(0,0,0,.18)' : 'none'
@@ -911,8 +931,32 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
       element.Fragment,
       null,
       el(InspectorControls, null,
-        el(PanelBody, { title: __('表示タイプ', 'cni-blocks'), initialOpen: true },
+        el(PanelBody, { title: __('レイアウト', 'cni-blocks'), initialOpen: true },
           el(SelectControl, {
+            label: __('レイアウト', 'cni-blocks'),
+            value: layoutMode,
+            options: [
+              { label: __('Tile（通常のギャラリー）', 'cni-blocks'), value: 'tile' },
+              { label: __('Stack（重なりギャラリー）', 'cni-blocks'), value: 'stack' }
+            ],
+            onChange: (v) => setAttributes({ layoutMode: v === 'stack' ? 'stack' : 'tile' })
+          }),
+          isStack ? el(SelectControl, {
+            label: __('Stackデザイン', 'cni-blocks'),
+            value: stackPreset,
+            options: [
+              { label: __('Stack 01 — 整列スタック', 'cni-blocks'), value: 'stack-01' },
+              { label: __('Stack 02 — ポラロイド', 'cni-blocks'), value: 'stack-02' },
+              { label: __('Stack 03 — 中央主役', 'cni-blocks'), value: 'stack-03' },
+              { label: __('Stack 04 — 斜めコラージュ', 'cni-blocks'), value: 'stack-04' },
+              { label: __('Stack 05 — カード束', 'cni-blocks'), value: 'stack-05' }
+            ],
+            onChange: (v) => setAttributes({ stackPreset: v || 'stack-01' })
+          }) : null,
+          isStack ? el(RangeControl, { label: __('重なり量(px)', 'cni-blocks'), value: stackOverlap, min: 0, max: 80, onChange: (v) => setAttributes({ stackOverlap: typeof v === 'number' ? v : 24 }) }) : null,
+          isStack ? el(RangeControl, { label: __('回転量(度)', 'cni-blocks'), value: stackRotation, min: 0, max: 12, onChange: (v) => setAttributes({ stackRotation: typeof v === 'number' ? v : 4 }) }) : null,
+          isStack ? el('p', { className: 'components-base-control__help' }, __('画像は2〜5枚がおすすめです。追加順が重なり順に反映されます。', 'cni-blocks')) : null,
+          !isStack ? el(SelectControl, {
             label: __('表示タイプ', 'cni-blocks'),
             value: displayType,
             options: [
@@ -923,7 +967,7 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
               { label: 'single-thumbnail', value: 'single-thumbnail' }
             ],
             onChange: (v) => setAttributes({ displayType: v || 'grid' })
-          }),
+          }) : null,
           el(SelectControl, {
             label: __('編集プレビュー', 'cni-blocks'),
             value: previewDevice,
@@ -945,8 +989,8 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
             onChange: (v) => setAttributes({ borderColor: v || '#dddddd' })
           }) : null,
           borderOn ? el(RangeControl, { label: __('外枠太さ(px)', 'cni-blocks'), value: borderWidth, min: 1, max: 12, onChange: (v) => setAttributes({ borderWidth: v || 1 }) }) : null,
-          displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(スマホ)', 'cni-blocks'), value: masonryColumnsSp, min: 1, max: 4, onChange: (v) => setAttributes({ masonryColumnsSp: v || 1 }) }) : null,
-          displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(PC)', 'cni-blocks'), value: masonryColumnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ masonryColumnsPc: v || 2 }) }) : null,
+          !isStack && displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(スマホ)', 'cni-blocks'), value: masonryColumnsSp, min: 1, max: 4, onChange: (v) => setAttributes({ masonryColumnsSp: v || 1 }) }) : null,
+          !isStack && displayType === 'masonry' ? el(RangeControl, { label: __('Masonry列数(PC)', 'cni-blocks'), value: masonryColumnsPc, min: 2, max: 6, onChange: (v) => setAttributes({ masonryColumnsPc: v || 2 }) }) : null,
           el(ToggleControl, { label: __('影をつける', 'cni-blocks'), checked: shadow, onChange: (v) => setAttributes({ shadow: !!v }) }),
           el(ToggleControl, { label: __('キャプション表示', 'cni-blocks'), checked: showCaption, onChange: (v) => setAttributes({ showCaption: !!v }) })
         ),
@@ -982,12 +1026,17 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
     const { attributes } = props;
     const images = attributes.images || [];
     const displayType = attributes.displayType || 'grid';
+    const layoutMode = attributes.layoutMode === 'stack' ? 'stack' : 'tile';
+    const isStack = layoutMode === 'stack';
+    const stackPreset = [ 'stack-01', 'stack-02', 'stack-03', 'stack-04', 'stack-05' ].indexOf(attributes.stackPreset) !== -1 ? attributes.stackPreset : 'stack-01';
+    const stackOverlap = typeof attributes.stackOverlap === 'number' ? attributes.stackOverlap : 24;
+    const stackRotation = typeof attributes.stackRotation === 'number' ? attributes.stackRotation : 4;
     const lightbox = attributes.lightbox !== false;
     const borderOn = !!attributes.borderOn;
     const borderWidth = typeof attributes.borderWidth === 'number' ? attributes.borderWidth : 1;
     const borderColor = attributes.borderColor || '#dddddd';
     const blockProps = blockEditor.useBlockProps.save({
-      className: 'cni-tile-gallery cni-display-' + displayType + (borderOn ? ' cni-has-border' : ''),
+      className: 'cni-tile-gallery cni-display-' + displayType + (isStack ? ' cni-layout-stack cni-' + stackPreset : '') + (borderOn ? ' cni-has-border' : ''),
       'data-display-type': displayType,
       'data-lightbox': attributes.lightbox !== false ? '1' : '0',
       style: {
@@ -998,7 +1047,11 @@ blocks.registerBlockType( 'cni-blocks/tile-gallery', {
         '--cni-tile-border-color': borderColor,
         '--cni-tile-border-width': (borderOn ? borderWidth : 0) + 'px',
         '--cni-masonry-cols-sp': attributes.masonryColumnsSp || 2,
-        '--cni-masonry-cols-pc': attributes.masonryColumnsPc || 3
+        '--cni-masonry-cols-pc': attributes.masonryColumnsPc || 3,
+        ...(isStack ? {
+          '--cni-stack-overlap': stackOverlap + 'px',
+          '--cni-stack-rotation': stackRotation + 'deg'
+        } : {})
       }
     });
 

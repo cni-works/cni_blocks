@@ -88,6 +88,28 @@ function cni_blocks_render_post_list( $attributes ) {
 		$sort_order = 'newest';
 	}
 
+	$filter_taxonomy = isset( $attributes['filterTaxonomy'] ) ? sanitize_key( $attributes['filterTaxonomy'] ) : '';
+	$filter_term_ids = isset( $attributes['filterTermIds'] ) && is_array( $attributes['filterTermIds'] ) ? array_values( array_filter( array_map( 'absint', $attributes['filterTermIds'] ) ) ) : array();
+	$tax_query       = array();
+	$taxonomies      = get_object_taxonomies( $post_type, 'objects' );
+	if ( ! empty( $filter_term_ids ) && isset( $taxonomies[ $filter_taxonomy ] ) && ! empty( $taxonomies[ $filter_taxonomy ]->public ) && ! empty( $taxonomies[ $filter_taxonomy ]->hierarchical ) ) {
+		$valid_term_ids = array();
+		foreach ( $filter_term_ids as $filter_term_id ) {
+			$term = get_term( $filter_term_id, $filter_taxonomy );
+			if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+				$valid_term_ids[] = $filter_term_id;
+			}
+		}
+		if ( ! empty( $valid_term_ids ) ) {
+			$tax_query[] = array(
+				'taxonomy' => $filter_taxonomy,
+				'field'    => 'term_id',
+				'terms'    => $valid_term_ids,
+				'operator' => 'IN',
+			);
+		}
+	}
+
 	$display_type = isset( $attributes['displayType'] ) ? sanitize_key( $attributes['displayType'] ) : 'card';
 	if ( ! in_array( $display_type, array( 'card', 'horizontal', 'media', 'list' ), true ) ) {
 		$display_type = 'card';
@@ -153,8 +175,7 @@ function cni_blocks_render_post_list( $attributes ) {
 	$text_card_title_background = isset( $attributes['textCardTitleBackgroundColor'] ) ? sanitize_hex_color( $attributes['textCardTitleBackgroundColor'] ) : '';
 	$text_card_title_background = $text_card_title_background ? $text_card_title_background : 'transparent';
 
-	$query = new WP_Query(
-		array(
+	$query_args = array(
 			'post_type'           => $post_type,
 			'post_status'         => 'publish',
 			'posts_per_page'      => $posts_per_page,
@@ -163,8 +184,12 @@ function cni_blocks_render_post_list( $attributes ) {
 			'order'               => $sort_options[ $sort_order ]['order'],
 			'ignore_sticky_posts' => true,
 			'no_found_rows'       => true,
-		)
 	);
+	if ( ! empty( $tax_query ) ) {
+		$query_args['tax_query'] = $tax_query;
+	}
+
+	$query = new WP_Query( $query_args );
 
 	$style = implode(
 		';',

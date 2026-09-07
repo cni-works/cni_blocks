@@ -5,7 +5,7 @@
 
 .cni-post-list__items {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cni-post-list-min-width-pc, 280px)), 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--cni-post-list-min-width-pc, 280px)), 1fr));
 	gap: var(--cni-post-list-gap, 24px);
 }
 
@@ -617,7 +617,7 @@
 	.cni-post-list--card .cni-post-list__items,
 	.cni-post-list--horizontal .cni-post-list__items,
 	.cni-post-list--media .cni-post-list__items {
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cni-post-list-min-width-tablet, 280px)), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--cni-post-list-min-width-tablet, 280px)), 1fr));
 	}
 }
 
@@ -625,7 +625,7 @@
 	.cni-post-list--card .cni-post-list__items,
 	.cni-post-list--horizontal .cni-post-list__items,
 	.cni-post-list--media .cni-post-list__items {
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cni-post-list-min-width-mobile, 280px)), 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--cni-post-list-min-width-mobile, 280px)), 1fr));
 	}
 
 	.cni-post-list--horizontal .cni-post-list__item,

@@ -13,6 +13,9 @@
 		'Dancing Script': [ '400', '500', '600', '700' ], 'Tangerine': [ '400', '700' ],
 	};
 	const loaded = {};
+	const textDesignFonts = {
+		'simple-shadow': 'Noto Sans JP', 'frame-label': 'Zen Kaku Gothic New', 'white-label': 'Zen Kaku Gothic New', 'elegant-gradient': 'Noto Serif JP', 'pop-outline-shadow': 'M PLUS Rounded 1c', 'sale-price': 'Noto Sans JP', 'outline': 'Montserrat', 'gold-metal': 'Noto Serif JP', 'marker-underline': 'Zen Kaku Gothic New', 'neon': 'M PLUS Rounded 1c', 'accent-underline': 'Noto Sans JP', 'center-slash': 'Zen Kaku Gothic New', 'left-bar': 'Noto Sans JP', 'left-bar-band': 'Noto Sans JP', 'short-underline': 'Noto Sans JP', 'double-underline': 'Noto Sans JP', 'center-underline': 'Noto Sans JP', 'side-lines': 'Noto Sans JP', 'corner-frame': 'Noto Sans JP', 'speech-underline': 'Noto Sans JP', 'eyebrow-title': 'Montserrat', 'number-title': 'Montserrat', 'backdrop-title': 'Montserrat'
+	};
 
 	function prepareRuby( root ) {
 		root.querySelectorAll( '.wp-block-cni-blocks-heading-plus ruby[data-cni-ruby]:not([data-cni-ruby-ready])' ).forEach( function( ruby ) {
@@ -42,8 +45,7 @@
 		} );
 	}
 
-	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-google-font]' ).forEach( function( heading ) {
-		const family = heading.getAttribute( 'data-google-font' );
+	function loadFont( family ) {
 		if ( ! family || allowedFonts.indexOf( family ) === -1 || loaded[ family ] ) return;
 		loaded[ family ] = true;
 		const available = fontWeights[ family ] || [ '300', '400', '500', '600', '700', '800', '900' ];
@@ -52,6 +54,21 @@
 		link.rel = 'stylesheet';
 		link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent( family ).replace( /%20/g, '+' ) + weights + '&display=swap';
 		document.head.appendChild( link );
+	}
+
+	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-google-font]' ).forEach( function( heading ) {
+		loadFont( heading.getAttribute( 'data-google-font' ) );
+	} );
+	/* Structural designs use an auxiliary font even when the main heading keeps
+	 * the theme font. Load it explicitly so editor and front cannot diverge. */
+	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-cni-heading-design]' ).forEach( function( heading ) {
+		loadFont( textDesignFonts[ heading.getAttribute( 'data-cni-heading-design' ) ] );
+	} );
+	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-secondary-google-font]' ).forEach( function( heading ) {
+		loadFont( heading.getAttribute( 'data-secondary-google-font' ) );
+	} );
+	document.querySelectorAll( '.cni-image-text-layer__item[data-cni-text-design]' ).forEach( function( layer ) {
+		loadFont( textDesignFonts[ layer.getAttribute( 'data-cni-text-design' ) ] );
 	} );
 
 	prepareRuby( document );

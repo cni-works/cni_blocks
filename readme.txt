@@ -1,7 +1,7 @@
 === cni_blocks ===
 Requires at least: 6.3
 Requires PHP: 7.4
-Stable tag: 1.34.1
+Stable tag: 1.40.4
 
 Includes:
 - Slide Gallery block (cni-blocks/slide-gallery)

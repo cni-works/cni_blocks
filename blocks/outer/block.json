@@ -35,6 +35,26 @@
       "type": "string",
       "default": ""
     },
+    "backgroundType": {
+      "type": "string",
+      "default": "solid"
+    },
+    "diagonalAccentColor": {
+      "type": "string",
+      "default": "#1e73be"
+    },
+    "diagonalDirection": {
+      "type": "string",
+      "default": "down-right"
+    },
+    "diagonalAngle": {
+      "type": "number",
+      "default": -1
+    },
+    "diagonalSplitPosition": {
+      "type": "number",
+      "default": 50
+    },
     "backgroundImageId": {
       "type": "number",
       "default": 0
@@ -42,6 +62,18 @@
     "backgroundImageUrl": {
       "type": "string",
       "default": ""
+    },
+    "backgroundVideoId": {
+      "type": "number",
+      "default": 0
+    },
+    "backgroundVideoUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "isHero": {
+      "type": "boolean",
+      "default": false
     },
     "tabletBackgroundImageId": {
       "type": "number",
@@ -79,6 +111,18 @@
       "type": "string",
       "default": "cover"
     },
+    "backgroundOffsetX": {
+      "type": "number",
+      "default": 0
+    },
+    "backgroundOffsetY": {
+      "type": "number",
+      "default": 0
+    },
+    "disableBackgroundOffsetOnMobile": {
+      "type": "boolean",
+      "default": true
+    },
     "overlayColor": {
       "type": "string",
       "default": "#000000"
@@ -86,6 +130,42 @@
     "overlayOpacity": {
       "type": "number",
       "default": 0
+    },
+    "overlayType": {
+      "type": "string",
+      "default": "solid"
+    },
+    "overlayGradientPreset": {
+      "type": "string",
+      "default": "custom"
+    },
+    "overlayGradientStartColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "overlayGradientEndColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "overlayGradientStartOpacity": {
+      "type": "number",
+      "default": 90
+    },
+    "overlayGradientEndOpacity": {
+      "type": "number",
+      "default": 0
+    },
+    "overlayGradientStartPosition": {
+      "type": "number",
+      "default": 0
+    },
+    "overlayGradientEndPosition": {
+      "type": "number",
+      "default": 70
+    },
+    "overlayGradientAngle": {
+      "type": "number",
+      "default": 90
     },
     "contentWidth": {
       "type": "number",
@@ -142,6 +222,22 @@
     "borderRadius": {
       "type": "number",
       "default": 0
+    },
+    "creativeBackgroundEffect": {
+      "type": "string",
+      "default": "none"
+    },
+    "creativeFrameEffect": {
+      "type": "string",
+      "default": "none"
+    },
+    "creativeFrameColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "creativeContentEffect": {
+      "type": "string",
+      "default": "none"
     },
     "topDividerType": {
       "type": "string",
