@@ -131,6 +131,42 @@
       "type": "number",
       "default": 0
     },
+    "overlayType": {
+      "type": "string",
+      "default": "solid"
+    },
+    "overlayGradientPreset": {
+      "type": "string",
+      "default": "custom"
+    },
+    "overlayGradientStartColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "overlayGradientEndColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "overlayGradientStartOpacity": {
+      "type": "number",
+      "default": 90
+    },
+    "overlayGradientEndOpacity": {
+      "type": "number",
+      "default": 0
+    },
+    "overlayGradientStartPosition": {
+      "type": "number",
+      "default": 0
+    },
+    "overlayGradientEndPosition": {
+      "type": "number",
+      "default": 70
+    },
+    "overlayGradientAngle": {
+      "type": "number",
+      "default": 90
+    },
     "contentWidth": {
       "type": "number",
       "default": 0

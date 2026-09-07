@@ -146,5 +146,9 @@
 }
 
 @media (max-width: 767px) {
-	.wp-block-cni-blocks-circle-image-plus { --cni-circle-size: min(var(--cni-circle-size), 88vw); }
+	/* --cni-circle-size 自身をここで参照すると循環参照になり、画像全体が 0px になる。 */
+	.cni-circle-image-plus__link,
+	.cni-circle-image-plus__visual {
+		width: min(var(--cni-circle-size), 100%, 88vw);
+	}
 }

@@ -357,6 +357,45 @@
 		return 'calc(' + x + ' + ' + offsetX + 'px) calc(' + y + ' + ' + offsetY + 'px)';
 	}
 
+	function hexToRgba( color, opacity ) {
+		const value = String( color || '' ).trim();
+		const shortMatch = /^#([0-9a-f]{3})$/i.exec( value );
+		const longMatch = /^#([0-9a-f]{6})$/i.exec( value );
+		let hex = '';
+
+		if ( shortMatch ) {
+			hex = shortMatch[ 1 ].split( '' ).map( function( character ) { return character + character; } ).join( '' );
+		} else if ( longMatch ) {
+			hex = longMatch[ 1 ];
+		} else {
+			return 'rgba(0, 0, 0, 0)';
+		}
+
+		return 'rgba(' + parseInt( hex.slice( 0, 2 ), 16 ) + ', ' + parseInt( hex.slice( 2, 4 ), 16 ) + ', ' + parseInt( hex.slice( 4, 6 ), 16 ) + ', ' + ( numberInRange( opacity, 0, 100, 0 ) / 100 ) + ')';
+	}
+
+	function gradientOverlayBackground( attributes ) {
+		const angle = numberInRange( attributes.overlayGradientAngle, 0, 360, 90 );
+		const startPosition = numberInRange( attributes.overlayGradientStartPosition, 0, 100, 0 );
+		const endPosition = Math.max( startPosition, numberInRange( attributes.overlayGradientEndPosition, 0, 100, 70 ) );
+		const startColor = hexToRgba( attributes.overlayGradientStartColor || '#ffffff', attributes.overlayGradientStartOpacity );
+		const endColor = hexToRgba( attributes.overlayGradientEndColor || '#ffffff', attributes.overlayGradientEndOpacity );
+
+		return 'linear-gradient(' + angle + 'deg, ' + startColor + ' ' + startPosition + '%, ' + endColor + ' ' + endPosition + '%)';
+	}
+
+	function gradientPresetAttributes( preset ) {
+		const presets = {
+			'left-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 92, overlayGradientStartPosition: 0, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 90 },
+			'right-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 0, overlayGradientStartPosition: 28, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 92, overlayGradientEndPosition: 100, overlayGradientAngle: 90 },
+			'top-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 92, overlayGradientStartPosition: 0, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 180 },
+			'bottom-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 0, overlayGradientStartPosition: 28, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 92, overlayGradientEndPosition: 100, overlayGradientAngle: 180 },
+			'left-dark': { overlayGradientStartColor: '#000000', overlayGradientStartOpacity: 72, overlayGradientStartPosition: 0, overlayGradientEndColor: '#000000', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 90 },
+		};
+
+		return presets[ preset ] || null;
+	}
+
 	function getOuterStyle( attributes ) {
 		const desktopImage = cssUrl( attributes.backgroundImageUrl );
 		const tabletImage = attributes.tabletBackgroundImageUrl
@@ -367,6 +406,7 @@
 			: tabletImage;
 
 		const diagonalBackground = hasDiagonalBackground( attributes );
+		const isGradientOverlay = attributes.overlayType === 'gradient';
 		const style = {
 			'--cni-outer-background-color': attributes.backgroundColor || 'transparent',
 			'--cni-outer-background-image': diagonalBackground ? diagonalBackgroundImage( attributes ) : desktopImage,
@@ -385,6 +425,12 @@
 			'--cni-outer-border-color': attributes.borderColor || '#dddddd',
 			'--cni-outer-border-radius': px( attributes.borderRadius ),
 		};
+		if ( isGradientOverlay ) {
+			style['--cni-outer-overlay-background'] = gradientOverlayBackground( attributes );
+			style['--cni-outer-overlay-opacity'] = 1;
+		} else if ( attributes.overlayType === 'none' ) {
+			style['--cni-outer-overlay-opacity'] = 0;
+		}
 
 		if ( attributes.backgroundDisplay === 'cover-fixed' && ! diagonalBackground ) {
 			style['--cni-outer-background-attachment'] = 'fixed';
@@ -648,6 +694,15 @@
 			disableBackgroundOffsetOnMobile: { type: 'boolean', default: true },
 			overlayColor: { type: 'string', default: '#000000' },
 			overlayOpacity: { type: 'number', default: 0 },
+			overlayType: { type: 'string', default: 'solid' },
+			overlayGradientPreset: { type: 'string', default: 'custom' },
+			overlayGradientStartColor: { type: 'string', default: '#ffffff' },
+			overlayGradientEndColor: { type: 'string', default: '#ffffff' },
+			overlayGradientStartOpacity: { type: 'number', default: 90 },
+			overlayGradientEndOpacity: { type: 'number', default: 0 },
+			overlayGradientStartPosition: { type: 'number', default: 0 },
+			overlayGradientEndPosition: { type: 'number', default: 70 },
+			overlayGradientAngle: { type: 'number', default: 90 },
 			contentWidth: { type: 'number', default: 0 },
 			minHeightPc: { type: 'number', default: 0 },
 			minHeightTablet: { type: 'number', default: 0 },
@@ -896,20 +951,95 @@
 								onChange: function( value ) { setAttributes( { disableBackgroundOffsetOnMobile: !! value } ); },
 							} )
 						) : null,
-						el( 'p', null, __( 'オーバーレイ色', 'cni-blocks' ) ),
-						el( ColorPalette, {
-							colors: colorPalette,
-							value: attributes.overlayColor || '#000000',
-							onChange: function( value ) { setAttributes( { overlayColor: value || '#000000' } ); },
-							clearable: false,
+						el( SelectControl, {
+							label: __( 'オーバーレイ', 'cni-blocks' ),
+							value: attributes.overlayType === 'none' || attributes.overlayType === 'gradient' ? attributes.overlayType : 'solid',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( '単色', 'cni-blocks' ), value: 'solid' },
+								{ label: __( 'グラデーション', 'cni-blocks' ), value: 'gradient' },
+							],
+							onChange: function( value ) { setAttributes( { overlayType: value === 'gradient' || value === 'none' ? value : 'solid' } ); },
 						} ),
-						el( RangeControl, {
-							label: __( 'オーバーレイ透明度（%）', 'cni-blocks' ),
-							value: attributes.overlayOpacity || 0,
-							min: 0,
-							max: 100,
-							onChange: function( value ) { setAttributes( { overlayOpacity: typeof value === 'number' ? value : 0 } ); },
-						} )
+						attributes.overlayType !== 'none' && attributes.overlayType !== 'gradient'
+							? el(
+								element.Fragment,
+								null,
+								el( 'p', null, __( 'オーバーレイ色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayColor || '#000000',
+									onChange: function( value ) { setAttributes( { overlayColor: value || '#000000' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( 'オーバーレイ透明度（%）', 'cni-blocks' ),
+									value: attributes.overlayOpacity || 0,
+									min: 0,
+									max: 100,
+									onChange: function( value ) { setAttributes( { overlayOpacity: typeof value === 'number' ? value : 0 } ); },
+								} )
+							) : null,
+						attributes.overlayType === 'gradient'
+							? el(
+								element.Fragment,
+								null,
+								el( SelectControl, {
+									label: __( 'グラデーションプリセット', 'cni-blocks' ),
+									value: attributes.overlayGradientPreset || 'custom',
+									options: [
+										{ label: __( 'カスタム', 'cni-blocks' ), value: 'custom' },
+										{ label: __( '左を明るく（文字を載せやすい）', 'cni-blocks' ), value: 'left-light' },
+										{ label: __( '右を明るく（文字を載せやすい）', 'cni-blocks' ), value: 'right-light' },
+										{ label: __( '上を明るく', 'cni-blocks' ), value: 'top-light' },
+										{ label: __( '下を明るく', 'cni-blocks' ), value: 'bottom-light' },
+										{ label: __( '左を暗く（白文字向け）', 'cni-blocks' ), value: 'left-dark' },
+									],
+									onChange: function( value ) {
+										const preset = gradientPresetAttributes( value );
+										setAttributes( Object.assign( { overlayGradientPreset: value || 'custom' }, preset || {} ) );
+									},
+								} ),
+								el( 'p', null, __( '開始色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayGradientStartColor || '#ffffff',
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartColor: value || '#ffffff' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( '開始色の不透明度（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientStartOpacity, 0, 100, 90 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartOpacity: numberInRange( value, 0, 100, 90 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '開始位置（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientStartPosition, 0, 100, 0 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartPosition: numberInRange( value, 0, 100, 0 ) } ); },
+								} ),
+								el( 'p', null, __( '終了色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayGradientEndColor || '#ffffff',
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndColor: value || '#ffffff' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( '終了色の不透明度（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientEndOpacity, 0, 100, 0 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndOpacity: numberInRange( value, 0, 100, 0 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '終了位置（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientEndPosition, 0, 100, 70 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndPosition: numberInRange( value, 0, 100, 70 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '角度（°：90で左から右）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientAngle, 0, 360, 90 ), min: 0, max: 360,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientAngle: numberInRange( value, 0, 360, 90 ) } ); },
+								} )
+							) : null
 					),
 					el(
 						PanelBody,

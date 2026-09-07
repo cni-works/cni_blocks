@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.40.3
+ * Version: 1.40.4
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -12,6 +12,8 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+require_once plugin_dir_path( __FILE__ ) . 'includes/heading-plus-custom-designs.php';
 
 $cni_blocks_updater_file = plugin_dir_path( __FILE__ ) . 'includes/updater/class-github-release-updater.php';
 
@@ -434,6 +436,8 @@ function cni_blocks_register_blocks() {
 
 	$heading_plus_dir_url  = $dir_url . 'blocks/heading-plus/';
 	$heading_plus_dir_path = $dir_path . 'blocks/heading-plus/';
+	$text_designs_dir_url  = $dir_url . 'blocks/shared/';
+	$text_designs_dir_path = $dir_path . 'blocks/shared/';
 	$circle_image_plus_dir_url  = $dir_url . 'blocks/circle-image-plus/';
 	$circle_image_plus_dir_path = $dir_path . 'blocks/circle-image-plus/';
 	$image_hotspot_plus_dir_url  = $dir_url . 'blocks/image-hotspot-plus/';
@@ -448,15 +452,25 @@ function cni_blocks_register_blocks() {
 	$counter_plus_dir_path = $dir_path . 'blocks/counter-plus/';
 
 	wp_register_script(
+		'cni-blocks-text-designs',
+		$text_designs_dir_url . 'text-designs.js',
+		array(),
+		filemtime( $text_designs_dir_path . 'text-designs.js' )
+	);
+
+	wp_register_script(
 		'cni-blocks-heading-plus-editor',
 		$heading_plus_dir_url . 'index.js',
-		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-rich-text' ),
+		array( 'cni-blocks-text-designs', 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-data', 'wp-rich-text' ),
 		filemtime( $heading_plus_dir_path . 'index.js' )
 	);
 	wp_localize_script(
 		'cni-blocks-heading-plus-editor',
 		'cniBlocksHeadingPlusConfig',
-		array( 'isLightning' => cni_blocks_is_lightning_theme() )
+		array(
+			'isLightning'    => cni_blocks_is_lightning_theme(),
+			'customDesigns'  => cni_blocks_heading_custom_designs(),
+		)
 	);
 
 	wp_register_script(
@@ -513,14 +527,14 @@ function cni_blocks_register_blocks() {
 	wp_register_script(
 		'cni-blocks-image-text-layer-editor',
 		$image_text_layer_dir_url . 'index.js',
-		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		array( 'cni-blocks-text-designs', 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
 		filemtime( $image_text_layer_dir_path . 'index.js' )
 	);
 
 	wp_register_style(
 		'cni-blocks-image-text-layer-style',
 		$image_text_layer_dir_url . 'style.css',
-		array(),
+		array( 'cni-blocks-heading-plus-style' ),
 		filemtime( $image_text_layer_dir_path . 'style.css' )
 	);
 
@@ -779,6 +793,7 @@ function cni_blocks_register_blocks() {
 		$image_text_layer_dir_path,
 		array(
 			'editor_script'   => 'cni-blocks-image-text-layer-editor',
+			'view_script'     => 'cni-blocks-heading-plus-view',
 			'style'           => 'cni-blocks-image-text-layer-style',
 			'editor_style'    => 'cni-blocks-image-text-layer-style',
 			'render_callback' => 'cni_blocks_render_image_text_layer',

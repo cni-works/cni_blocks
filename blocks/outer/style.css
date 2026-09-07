@@ -21,7 +21,7 @@
 	z-index: 1;
 	pointer-events: none;
 	border-radius: inherit;
-	background: var(--cni-outer-overlay-color, #000);
+	background: var(--cni-outer-overlay-background, var(--cni-outer-overlay-color, #000));
 	opacity: var(--cni-outer-overlay-opacity, 0);
 }
 

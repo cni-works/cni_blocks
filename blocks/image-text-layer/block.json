@@ -4,7 +4,7 @@
   "title": "画像テキストレイヤー",
   "category": "cni-blocks",
   "icon": "format-image",
-  "description": "背景画像の上へ実テキストを自由配置し、PCとスマホで個別に調整します。",
+  "description": "背景画像の上へ見出し+互換の実テキストや画像を自由配置し、PCとスマホで個別に調整します。",
   "textdomain": "cni-blocks",
   "attributes": {
     "imageId": { "type": "number", "default": 0 },

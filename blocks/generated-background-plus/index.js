@@ -35,6 +35,9 @@
 		friendly: Object.assign( { backgroundStyle: 'bokeh', baseColor: '#fffdf8', patternColor: '#f59e0b', patternOpacity: 22, patternDensity: 42, bokehShape: 'circle', bokehSize: 'normal', bokehBlur: 'strong', contentOverlay: 'none', backgroundMotion: 'none' }, COMPOSITION_PRESETS.surround ),
 		tech: Object.assign( { backgroundStyle: 'soft-polygons', baseColor: '#f7fbff', patternColor: '#38bdf8', patternOpacity: 18, patternDensity: 42, generatedPatternSize: 'large', generatedPatternVariation: 'normal', generatedPatternBalance: 'right', generatedPatternCharacter: 'wide', contentOverlay: 'light', backgroundMotion: 'none' }, COMPOSITION_PRESETS.left ),
 		cta: Object.assign( { backgroundStyle: 'spots', colorPreset: 'warm', colorCount: 4, intensity: 'normal', blurLevel: 'soft', spotSize: 'large', contentOverlay: 'light', backgroundMotion: 'color-breathe', motionSpeed: 'verySlow', motionStrength: 'subtle', motionMobile: 'static' }, COLOR_PRESETS.warm, COMPOSITION_PRESETS.center ),
+		'fluid-pop': Object.assign( { backgroundStyle: 'fluid-shapes', fluidShapeDensity: 'rich', fluidColorMode: 'multicolor', fluidShapeStyle: 'mixed', baseColor: '#fffdf8', color1: '#fb7185', color2: '#facc15', color3: '#38bdf8', color4: '#c084fc', color5: '#34d399', patternOpacity: 42, generatedPatternSize: 'large', generatedPatternBalance: 'right', generatedPatternCharacter: 'organic', contentOverlay: 'light', backgroundMotion: 'fluid-morph', motionSpeed: 'slow', motionStrength: 'subtle', motionMobile: 'static' }, COMPOSITION_PRESETS.left ),
+		'fluid-milky': Object.assign( { backgroundStyle: 'fluid-shapes', fluidShapeDensity: 'rich', fluidColorMode: 'multicolor', fluidShapeStyle: 'mixed', baseColor: '#f7fbff', color1: '#a5b4fc', color2: '#bae6fd', color3: '#fbcfe8', color4: '#ddd6fe', color5: '#bbf7d0', patternOpacity: 30, generatedPatternSize: 'large', generatedPatternBalance: 'balanced', generatedPatternCharacter: 'organic', contentOverlay: 'light', backgroundMotion: 'fluid-morph', motionSpeed: 'verySlow', motionStrength: 'subtle', motionMobile: 'static' }, COMPOSITION_PRESETS.center ),
+		'liquid-neon': Object.assign( { backgroundStyle: 'metaballs', baseColor: '#07152e', color1: '#1478ff', color2: '#7c3aed', color3: '#ec4899', patternOpacity: 68, contentOverlay: 'dark', backgroundMotion: 'metaball-flow', motionSpeed: 'slow', motionStrength: 'subtle', motionMobile: 'static' }, COMPOSITION_PRESETS.left ),
 	};
 	function clamp( value, min, max ) { return Math.max( min, Math.min( max, value ) ); }
 	function numberInRange( value, min, max, fallback ) { return clamp( typeof value === 'number' ? value : fallback, min, max ); }
@@ -282,12 +285,12 @@
 	}
 	function fluidShapeLayout( balance ) {
 		const layouts = {
-			left: [ { x: '78%', y: '28%' }, { x: '72%', y: '78%' } ],
-			right: [ { x: '22%', y: '28%' }, { x: '28%', y: '78%' } ],
-			top: [ { x: '76%', y: '70%' }, { x: '22%', y: '76%' } ],
-			bottom: [ { x: '76%', y: '26%' }, { x: '24%', y: '22%' } ],
-			center: [ { x: '18%', y: '24%' }, { x: '82%', y: '76%' } ],
-			balanced: [ { x: '80%', y: '24%' }, { x: '18%', y: '78%' } ],
+			left: [ { x: '78%', y: '28%' }, { x: '72%', y: '78%' }, { x: '94%', y: '58%' }, { x: '56%', y: '12%' }, { x: '58%', y: '96%' } ],
+			right: [ { x: '22%', y: '28%' }, { x: '28%', y: '78%' }, { x: '6%', y: '58%' }, { x: '44%', y: '12%' }, { x: '42%', y: '96%' } ],
+			top: [ { x: '76%', y: '70%' }, { x: '22%', y: '76%' }, { x: '52%', y: '92%' }, { x: '94%', y: '48%' }, { x: '6%', y: '52%' } ],
+			bottom: [ { x: '76%', y: '26%' }, { x: '24%', y: '22%' }, { x: '52%', y: '6%' }, { x: '94%', y: '48%' }, { x: '6%', y: '52%' } ],
+			center: [ { x: '18%', y: '24%' }, { x: '82%', y: '76%' }, { x: '82%', y: '20%' }, { x: '16%', y: '78%' }, { x: '50%', y: '92%' } ],
+			balanced: [ { x: '80%', y: '24%' }, { x: '18%', y: '78%' }, { x: '90%', y: '76%' }, { x: '12%', y: '20%' }, { x: '52%', y: '48%' } ],
 		};
 		return layouts[ balance ] || layouts.balanced;
 	}
@@ -373,7 +376,11 @@
 		if ( ( attributes.backgroundStyle === 'mesh' || attributes.backgroundStyle === 'spots' ) && motion === 'color-breathe' ) return [ 1, 2 ].map( function( index ) { return el( 'span', { key: 'motion-color-' + index, className: 'cni-generated-background-plus__motion-color cni-generated-background-plus__motion-color--' + index } ); } );
 		if ( ( attributes.backgroundStyle === 'mesh' || attributes.backgroundStyle === 'spots' ) && motion === 'focus-shift' ) return el( 'span', { className: 'cni-generated-background-plus__motion-focus' } );
 		if ( attributes.backgroundStyle === 'rings' && motion === 'ring-ripple' ) return [ 1, 2, 3 ].map( function( index ) { return el( 'span', { key: 'motion-ripple-' + index, className: 'cni-generated-background-plus__motion-ripple cni-generated-background-plus__motion-ripple--' + index } ); } );
-		if ( attributes.backgroundStyle === 'fluid-shapes' ) return [ 1, 2 ].map( function( index ) { return el( 'span', { key: 'fluid-shape-' + index, className: 'cni-generated-background-plus__fluid-shape cni-generated-background-plus__fluid-shape--' + index } ); } );
+		if ( attributes.backgroundStyle === 'fluid-shapes' ) {
+			const count = attributes.fluidShapeDensity === 'rich' ? 5 : ( attributes.fluidShapeDensity === 'standard' ? 4 : 2 );
+			return Array.from( { length: count }, function( unused, index ) { const number = index + 1; return el( 'span', { key: 'fluid-shape-' + number, className: 'cni-generated-background-plus__fluid-shape cni-generated-background-plus__fluid-shape--' + number } ); } );
+		}
+		if ( attributes.backgroundStyle === 'metaballs' ) return el( 'span', { className: 'cni-generated-background-plus__metaball-layer' }, [ 1, 2, 3 ].map( function( index ) { return el( 'span', { key: 'metaball-' + index, className: 'cni-generated-background-plus__metaball cni-generated-background-plus__metaball--' + index } ); } ) );
 		if ( attributes.backgroundStyle === 'bokeh' && [ 'bokeh-float', 'bokeh-breathe', 'bokeh-wobble' ].indexOf( motion ) !== -1 ) {
 			const dots = balancedBokehDots( normalizedBokehDots( attributes.bokehDots ), attributes.bokehBalance ).slice( 0, Math.min( 5, bokehDotCount( attributes.patternDensity ) ) );
 			const color = hexColor( attributes.patternColor, '#ec4899' ); const opacity = numberInRange( attributes.patternOpacity, 5, 80, 20 ) / 100; const variation = numberInRange( attributes.bokehSizeVariation, 0, 100, 70 ) / 100; const scale = bokehSizeScale( attributes.bokehSize );
@@ -449,16 +456,28 @@
 		}
 		if ( a.backgroundStyle === 'bokeh' ) style['--cni-generated-bokeh-image'] = bokehImage( a );
 		if ( [ 'pixel-wave', 'soft-polygons', 'confetti', 'rings', 'flow-lines', 'halftone', 'tile-geometry' ].indexOf( a.backgroundStyle ) !== -1 ) style['--cni-generated-pattern-image'] = patternImage( a.backgroundStyle, a );
-		if ( a.backgroundStyle === 'rings' || a.backgroundStyle === 'fluid-shapes' ) {
+		if ( a.backgroundStyle === 'rings' || a.backgroundStyle === 'fluid-shapes' || a.backgroundStyle === 'metaballs' ) {
 			const fluidLayout = fluidShapeLayout( a.generatedPatternBalance || 'balanced' );
-			style['--cni-generated-fluid-x-1'] = fluidLayout[0].x;
-			style['--cni-generated-fluid-y-1'] = fluidLayout[0].y;
-			style['--cni-generated-fluid-x-2'] = fluidLayout[1].x;
-			style['--cni-generated-fluid-y-2'] = fluidLayout[1].y;
-			style['--cni-generated-fluid-color-1'] = colorWithAlpha( patternColor, Math.min( 0.50, patternOpacity * 1.35 ) );
-			style['--cni-generated-fluid-color-2'] = colorWithAlpha( mixWithWhite( patternColor, 0.48 ), Math.min( 0.46, patternOpacity * 1.08 ) );
+			for ( let index = 0; index < 5; index += 1 ) {
+				style['--cni-generated-fluid-x-' + ( index + 1 )] = fluidLayout[index].x;
+				style['--cni-generated-fluid-y-' + ( index + 1 )] = fluidLayout[index].y;
+			}
+			const fluidColors = a.fluidColorMode === 'multicolor'
+				? [ a.color1 || '#fb7185', a.color2 || '#facc15', a.color3 || '#38bdf8', a.color4 || '#c084fc', a.color5 || '#34d399' ]
+				: [ patternColor, mixWithWhite( patternColor, 0.48 ), mixWithWhite( patternColor, 0.20 ), mixWithWhite( patternColor, 0.68 ), patternColor ];
+			style['--cni-generated-fluid-color-1'] = colorWithAlpha( fluidColors[0], Math.min( 0.50, patternOpacity * 1.35 ) );
+			style['--cni-generated-fluid-color-2'] = colorWithAlpha( fluidColors[1], Math.min( 0.46, patternOpacity * 1.08 ) );
+			style['--cni-generated-fluid-color-3'] = colorWithAlpha( fluidColors[2], Math.min( 0.36, patternOpacity * 0.90 ) );
+			style['--cni-generated-fluid-color-4'] = colorWithAlpha( fluidColors[3], Math.min( 0.28, patternOpacity * 0.72 ) );
+			style['--cni-generated-fluid-color-5'] = colorWithAlpha( fluidColors[4], Math.min( 0.24, patternOpacity * 0.62 ) );
 			style['--cni-generated-fluid-size'] = { small: '30%', normal: '46%', large: '62%' }[ a.generatedPatternSize ] || '46%';
 			style['--cni-generated-fluid-size-2'] = { small: '22%', normal: '34%', large: '46%' }[ a.generatedPatternSize ] || '34%';
+			style['--cni-generated-fluid-size-3'] = { small: '16%', normal: '24%', large: '32%' }[ a.generatedPatternSize ] || '24%';
+			style['--cni-generated-fluid-size-4'] = { small: '10%', normal: '16%', large: '22%' }[ a.generatedPatternSize ] || '16%';
+			style['--cni-generated-fluid-size-5'] = { small: '7%', normal: '11%', large: '16%' }[ a.generatedPatternSize ] || '11%';
+			style['--cni-generated-metaball-color-1'] = colorWithAlpha( a.color1 || '#1478ff', Math.min( 0.92, patternOpacity * 1.35 ) );
+			style['--cni-generated-metaball-color-2'] = colorWithAlpha( a.color2 || '#7c3aed', Math.min( 0.88, patternOpacity * 1.25 ) );
+			style['--cni-generated-metaball-color-3'] = colorWithAlpha( a.color3 || '#ec4899', Math.min( 0.84, patternOpacity * 1.18 ) );
 		}
 		if ( a.backgroundMotion && a.backgroundMotion !== 'none' ) {
 			const motionDistance = { subtle: '3.5%', normal: '6%' }[ a.motionStrength ] || '3.5%';
@@ -475,6 +494,9 @@
 				style['--cni-generated-fluid-motion-distance-negative'] = '-' + fluidMotion.distance;
 				style['--cni-generated-fluid-motion-scale-up'] = fluidMotion.scaleUp;
 				style['--cni-generated-fluid-motion-scale-down'] = fluidMotion.scaleDown;
+			}
+			if ( a.backgroundStyle === 'metaballs' && a.backgroundMotion === 'metaball-flow' ) {
+				style['--cni-generated-motion-duration'] = { normal: '24s', slow: '34s', verySlow: '48s' }[ a.motionSpeed ] || '34s';
 			}
 			if ( a.backgroundStyle === 'bokeh' ) style['--cni-generated-bokeh-motion-fade'] = bokehMotionFade( a.bokehBlur );
 		}
@@ -521,6 +543,7 @@
 			'data-presentation-level': a.presentationLevel || 'basic',
 			'data-composition-preset': a.compositionPreset || 'custom',
 			'data-generated-pattern-character': a.generatedPatternCharacter || '',
+			'data-fluid-shape-style': a.fluidShapeStyle || 'classic',
 		};
 		if ( a.backgroundMotion && a.backgroundMotion !== 'none' ) {
 			props['data-background-motion'] = a.backgroundMotion;
@@ -543,7 +566,7 @@
 		useOuterBorder: { type: 'boolean', default: false }, borderStyle: { type: 'string', default: 'solid' }, borderWidth: { type: 'number', default: 0 }, borderColor: { type: 'string', default: '#dddddd' }, outerBorderRadius: { type: 'number', default: 0 },
 		topDividerType: { type: 'string', default: 'none' }, topDividerColor: { type: 'string', default: '#ffffff' }, topDividerHeight: { type: 'number', default: 80 }, topDividerFlip: { type: 'boolean', default: false }, topDividerCloudDensity: { type: 'number', default: 2 }, topDividerDirection: { type: 'string', default: 'inward' }, topDividerShapeWidth: { type: 'number', default: 100 }, topDividerZigzagCount: { type: 'number', default: 6 },
 		bottomDividerType: { type: 'string', default: 'none' }, bottomDividerColor: { type: 'string', default: '#ffffff' }, bottomDividerHeight: { type: 'number', default: 80 }, bottomDividerFlip: { type: 'boolean', default: false }, bottomDividerCloudDensity: { type: 'number', default: 2 }, bottomDividerDirection: { type: 'string', default: 'inward' }, bottomDividerShapeWidth: { type: 'number', default: 100 }, bottomDividerZigzagCount: { type: 'number', default: 6 },
-			backgroundStyle: { type: 'string', default: 'mesh' }, colorPreset: { type: 'string', default: 'mist' }, colorCount: { type: 'number', default: 3 }, baseColor: { type: 'string', default: '#f8fafc' }, color1: { type: 'string', default: '#bfdbfe' }, color2: { type: 'string', default: '#ddd6fe' }, color3: { type: 'string', default: '#fbcfe8' }, color4: { type: 'string', default: '#fde68a' }, color5: { type: 'string', default: '#bbf7d0' }, intensity: { type: 'string', default: 'soft' }, blurLevel: { type: 'string', default: 'normal' }, spotSize: { type: 'string', default: 'large' }, positionPreset: { type: 'string', default: 'balanced' }, spotPositions: { type: 'array', default: DEFAULT_POSITIONS }, brightness: { type: 'string', default: 'normal' }, saturation: { type: 'string', default: 'normal' }, centerSpace: { type: 'string', default: 'normal' }, contentOverlay: { type: 'string', default: 'none' }, designPreset: { type: 'string', default: 'custom' }, presentationLevel: { type: 'string', default: 'basic' }, compositionPreset: { type: 'string', default: 'custom' }, patternColor: { type: 'string', default: '#64748b' }, patternOpacity: { type: 'number', default: 20 }, patternDensity: { type: 'number', default: 50 }, patternAngle: { type: 'number', default: 45 }, patternPlacement: { type: 'string', default: 'center' }, patternSeed: { type: 'number', default: 1729 }, generatedPatternSize: { type: 'string', default: 'normal' }, generatedPatternVariation: { type: 'string', default: 'normal' }, generatedPatternBalance: { type: 'string', default: 'balanced' }, generatedPatternCharacter: { type: 'string', default: '' }, geometryType: { type: 'string', default: 'diagonal' }, bokehShape: { type: 'string', default: 'circle' }, bokehAutoShades: { type: 'boolean', default: true }, bokehSize: { type: 'string', default: 'normal' }, bokehBlur: { type: 'string', default: 'normal' }, bokehBalance: { type: 'string', default: 'balanced' }, bokehSizeVariation: { type: 'number', default: 70 }, bokehDots: { type: 'array', default: DEFAULT_BOKEH_DOTS }, backgroundMotion: { type: 'string', default: 'none' }, motionSpeed: { type: 'string', default: 'slow' }, motionStrength: { type: 'string', default: 'subtle' }, motionMobile: { type: 'string', default: 'static' },
+			backgroundStyle: { type: 'string', default: 'mesh' }, colorPreset: { type: 'string', default: 'mist' }, colorCount: { type: 'number', default: 3 }, baseColor: { type: 'string', default: '#f8fafc' }, color1: { type: 'string', default: '#bfdbfe' }, color2: { type: 'string', default: '#ddd6fe' }, color3: { type: 'string', default: '#fbcfe8' }, color4: { type: 'string', default: '#fde68a' }, color5: { type: 'string', default: '#bbf7d0' }, intensity: { type: 'string', default: 'soft' }, blurLevel: { type: 'string', default: 'normal' }, spotSize: { type: 'string', default: 'large' }, positionPreset: { type: 'string', default: 'balanced' }, spotPositions: { type: 'array', default: DEFAULT_POSITIONS }, brightness: { type: 'string', default: 'normal' }, saturation: { type: 'string', default: 'normal' }, centerSpace: { type: 'string', default: 'normal' }, contentOverlay: { type: 'string', default: 'none' }, designPreset: { type: 'string', default: 'custom' }, presentationLevel: { type: 'string', default: 'basic' }, compositionPreset: { type: 'string', default: 'custom' }, patternColor: { type: 'string', default: '#64748b' }, patternOpacity: { type: 'number', default: 20 }, patternDensity: { type: 'number', default: 50 }, patternAngle: { type: 'number', default: 45 }, patternPlacement: { type: 'string', default: 'center' }, patternSeed: { type: 'number', default: 1729 }, generatedPatternSize: { type: 'string', default: 'normal' }, generatedPatternVariation: { type: 'string', default: 'normal' }, generatedPatternBalance: { type: 'string', default: 'balanced' }, generatedPatternCharacter: { type: 'string', default: '' }, fluidShapeDensity: { type: 'string', default: 'classic' }, fluidColorMode: { type: 'string', default: 'tone' }, fluidShapeStyle: { type: 'string', default: 'classic' }, geometryType: { type: 'string', default: 'diagonal' }, bokehShape: { type: 'string', default: 'circle' }, bokehAutoShades: { type: 'boolean', default: true }, bokehSize: { type: 'string', default: 'normal' }, bokehBlur: { type: 'string', default: 'normal' }, bokehBalance: { type: 'string', default: 'balanced' }, bokehSizeVariation: { type: 'number', default: 70 }, bokehDots: { type: 'array', default: DEFAULT_BOKEH_DOTS }, backgroundMotion: { type: 'string', default: 'none' }, motionSpeed: { type: 'string', default: 'slow' }, motionStrength: { type: 'string', default: 'subtle' }, motionMobile: { type: 'string', default: 'static' },
 	};
 	const legacyAttributes = Object.assign( {}, attributes, {
 		spotPositions: { type: 'array', default: [ { x: 16, y: 18, size: 100 }, { x: 84, y: 24, size: 96 }, { x: 55, y: 84, size: 104 }, { x: 18, y: 76, size: 82 }, { x: 84, y: 76, size: 86 } ] },
@@ -573,6 +596,8 @@
 			const currentLayout = layoutValues( a );
 			const isSpotStyle = a.backgroundStyle === 'mesh' || a.backgroundStyle === 'spots';
 			const isBokehStyle = a.backgroundStyle === 'bokeh';
+			const isFluidStyle = a.backgroundStyle === 'fluid-shapes';
+			const isMetaballStyle = a.backgroundStyle === 'metaballs';
 			const generatedPatternStyles = [ 'pixel-wave', 'soft-polygons', 'confetti', 'rings', 'flow-lines', 'halftone', 'tile-geometry', 'fluid-shapes' ];
 			const isGeneratedPatternStyle = generatedPatternStyles.indexOf( a.backgroundStyle ) !== -1;
 			const usesPlacement = isSpotStyle || isBokehStyle || isGeneratedPatternStyle;
@@ -582,6 +607,7 @@
 			if ( isBokehStyle ) motionOptions.splice( 1, 0, { label: __( 'ぼかしドット：漂う', 'cni-blocks' ), value: 'bokeh-float' }, { label: __( 'ぼかしドット：呼吸', 'cni-blocks' ), value: 'bokeh-breathe' }, { label: __( 'ぼかしドット：ゆらぐ', 'cni-blocks' ), value: 'bokeh-wobble' } );
 			if ( a.backgroundStyle === 'rings' ) motionOptions.splice( 1, 0, { label: __( '波紋が広がる', 'cni-blocks' ), value: 'ring-ripple' } );
 			if ( a.backgroundStyle === 'fluid-shapes' ) motionOptions.splice( 1, 0, { label: __( '流体シェイプ：ゆらぐ', 'cni-blocks' ), value: 'fluid-morph' } );
+			if ( a.backgroundStyle === 'metaballs' ) motionOptions.splice( 1, 0, { label: __( '液体がゆっくり溶け合う', 'cni-blocks' ), value: 'metaball-flow' } );
 			if ( supportsPatternMotion ) motionOptions.splice( 1, 0, { label: __( 'パターン背景の移動', 'cni-blocks' ), value: 'pattern-slide' } );
 			const select = function( label, key, fallback, options ) { return el( SelectControl, { label: label, value: a[ key ] || fallback, options: options, onChange: function( value ) { const next = {}; next[ key ] = value; set( next ); } } ); };
 			const applyColorPreset = function( preset ) { set( Object.assign( { colorPreset: preset }, COLOR_PRESETS[ preset ] || COLOR_PRESETS.mist ) ); };
@@ -626,12 +652,21 @@
 			return el( element.Fragment, null,
 				el( InspectorControls, null,
 					el( PanelBody, { title: __( 'デザインプリセット', 'cni-blocks' ), initialOpen: true },
-						el( SelectControl, { label: __( 'デザイン意図', 'cni-blocks' ), value: a.designPreset || 'custom', help: __( '用途に合う背景・配色・構図をまとめて適用します。適用後は個別に調整できます。', 'cni-blocks' ), options: [ { label: __( 'カスタム（指定なし）', 'cni-blocks' ), value: 'custom' }, { label: __( '信頼感・法人（おすすめ）', 'cni-blocks' ), value: 'corporate' }, { label: __( '上質・美容', 'cni-blocks' ), value: 'beauty' }, { label: __( '親しみ・店舗／子育て', 'cni-blocks' ), value: 'friendly' }, { label: __( '先進的・IT', 'cni-blocks' ), value: 'tech' }, { label: __( 'キャンペーン／CTA', 'cni-blocks' ), value: 'cta' } ], onChange: applyDesignPreset } ),
+						el( SelectControl, { label: __( 'デザイン意図', 'cni-blocks' ), value: a.designPreset || 'custom', help: __( '用途に合う背景・配色・構図をまとめて適用します。適用後は個別に調整できます。', 'cni-blocks' ), options: [ { label: __( 'カスタム（指定なし）', 'cni-blocks' ), value: 'custom' }, { label: __( '信頼感・法人（おすすめ）', 'cni-blocks' ), value: 'corporate' }, { label: __( '上質・美容', 'cni-blocks' ), value: 'beauty' }, { label: __( '親しみ・店舗／子育て', 'cni-blocks' ), value: 'friendly' }, { label: __( '先進的・IT', 'cni-blocks' ), value: 'tech' }, { label: __( 'キャンペーン／CTA', 'cni-blocks' ), value: 'cta' }, { label: __( 'ポップ・フローティング', 'cni-blocks' ), value: 'fluid-pop' }, { label: __( 'ミルキー・フローティング', 'cni-blocks' ), value: 'fluid-milky' }, { label: __( 'リキッド・ネオン', 'cni-blocks' ), value: 'liquid-neon' } ], onChange: applyDesignPreset } ),
 						el( SelectControl, { label: __( '演出レベル', 'cni-blocks' ), value: a.presentationLevel || 'basic', options: [ { label: __( '基本：本文・通常セクション向け', 'cni-blocks' ), value: 'basic' }, { label: __( '印象：サービス紹介・導線向け', 'cni-blocks' ), value: 'impression' }, { label: __( '主役：ファーストビュー・CTA向け', 'cni-blocks' ), value: 'hero' } ], onChange: applyPresentationLevel } ),
 						el( SelectControl, { label: __( '構図', 'cni-blocks' ), value: a.compositionPreset || 'custom', options: [ { label: __( 'カスタム', 'cni-blocks' ), value: 'custom' }, { label: __( '中央に文章', 'cni-blocks' ), value: 'center' }, { label: __( '左に文章・右に装飾', 'cni-blocks' ), value: 'left' }, { label: __( '右に文章・左に装飾', 'cni-blocks' ), value: 'right' }, { label: __( '上に文章・下に装飾', 'cni-blocks' ), value: 'top' }, { label: __( '周囲を装飾・中央を明るく抜く', 'cni-blocks' ), value: 'surround' } ], onChange: applyCompositionPreset } )
 					),
 					el( PanelBody, { title: __( '背景生成', 'cni-blocks' ), initialOpen: true },
-						el( SelectControl, { label: __( 'スタイル', 'cni-blocks' ), value: a.backgroundStyle || 'mesh', options: [ { label: __( 'ソフトメッシュ', 'cni-blocks' ), value: 'mesh' }, { label: __( 'ブラースポット', 'cni-blocks' ), value: 'spots' }, { label: __( 'ぼかしドット', 'cni-blocks' ), value: 'bokeh' }, { label: __( 'ソフトポリゴン', 'cni-blocks' ), value: 'soft-polygons' }, { label: __( 'ピクセルウェーブ', 'cni-blocks' ), value: 'pixel-wave' }, { label: __( 'コンフェッティ', 'cni-blocks' ), value: 'confetti' }, { label: __( 'リング／輪郭ドット', 'cni-blocks' ), value: 'rings' }, { label: __( '流線・曲線', 'cni-blocks' ), value: 'flow-lines' }, { label: __( '流体シェイプ', 'cni-blocks' ), value: 'fluid-shapes' }, { label: __( 'ハーフトーン', 'cni-blocks' ), value: 'halftone' }, { label: __( 'タイル幾何学', 'cni-blocks' ), value: 'tile-geometry' }, { label: __( 'ノイズ', 'cni-blocks' ), value: 'noise' }, { label: __( 'ドット', 'cni-blocks' ), value: 'dots' }, { label: __( 'グリッド', 'cni-blocks' ), value: 'grid' }, { label: __( '波形', 'cni-blocks' ), value: 'waves' }, { label: __( '幾何学模様', 'cni-blocks' ), value: 'geometry' } ], onChange: function( value ) { const generated = generatedPatternStyles.indexOf( value ) !== -1; const placement = value === 'pixel-wave' ? 'center' : ( value === 'halftone' ? 'right' : ( value === 'flow-lines' ? 'horizontal' : a.patternPlacement ) ); set( { backgroundStyle: value || 'mesh', backgroundMotion: 'none', generatedPatternCharacter: '', patternPlacement: placement, baseColor: value === 'bokeh' || generated ? '#ffffff' : a.baseColor, patternColor: ( value === 'bokeh' || generated ) && a.patternColor === '#64748b' ? '#38bdf8' : a.patternColor } ); } } ),
+						el( SelectControl, { label: __( 'スタイル', 'cni-blocks' ), value: a.backgroundStyle || 'mesh', options: [ { label: __( 'ソフトメッシュ', 'cni-blocks' ), value: 'mesh' }, { label: __( 'ブラースポット', 'cni-blocks' ), value: 'spots' }, { label: __( 'ぼかしドット', 'cni-blocks' ), value: 'bokeh' }, { label: __( 'ソフトポリゴン', 'cni-blocks' ), value: 'soft-polygons' }, { label: __( 'ピクセルウェーブ', 'cni-blocks' ), value: 'pixel-wave' }, { label: __( 'コンフェッティ', 'cni-blocks' ), value: 'confetti' }, { label: __( 'リング／輪郭ドット', 'cni-blocks' ), value: 'rings' }, { label: __( '流線・曲線', 'cni-blocks' ), value: 'flow-lines' }, { label: __( '流体シェイプ', 'cni-blocks' ), value: 'fluid-shapes' }, { label: __( '溶け合う流体（メタボール）', 'cni-blocks' ), value: 'metaballs' }, { label: __( 'ハーフトーン', 'cni-blocks' ), value: 'halftone' }, { label: __( 'タイル幾何学', 'cni-blocks' ), value: 'tile-geometry' }, { label: __( 'ノイズ', 'cni-blocks' ), value: 'noise' }, { label: __( 'ドット', 'cni-blocks' ), value: 'dots' }, { label: __( 'グリッド', 'cni-blocks' ), value: 'grid' }, { label: __( '波形', 'cni-blocks' ), value: 'waves' }, { label: __( '幾何学模様', 'cni-blocks' ), value: 'geometry' } ], onChange: function( value ) { const generated = generatedPatternStyles.indexOf( value ) !== -1; const placement = value === 'pixel-wave' ? 'center' : ( value === 'halftone' ? 'right' : ( value === 'flow-lines' ? 'horizontal' : a.patternPlacement ) ); set( { backgroundStyle: value || 'mesh', backgroundMotion: 'none', generatedPatternCharacter: '', patternPlacement: placement, baseColor: value === 'bokeh' || generated ? '#ffffff' : a.baseColor, patternColor: ( value === 'bokeh' || generated ) && a.patternColor === '#64748b' ? '#38bdf8' : a.patternColor } ); } } ),
+						isFluidStyle ? el( SelectControl, { label: __( 'シェイプ密度', 'cni-blocks' ), value: a.fluidShapeDensity || 'classic', options: [ { label: __( 'クラシック（2個）', 'cni-blocks' ), value: 'classic' }, { label: __( '標準（4個）', 'cni-blocks' ), value: 'standard' }, { label: __( 'リッチ（5個・おすすめ）', 'cni-blocks' ), value: 'rich' } ], onChange: function( value ) { set( { fluidShapeDensity: value || 'classic', designPreset: 'custom' } ); } } ) : null,
+						isFluidStyle ? el( SelectControl, { label: __( '配色', 'cni-blocks' ), value: a.fluidColorMode || 'tone', options: [ { label: __( '単色の濃淡', 'cni-blocks' ), value: 'tone' }, { label: __( 'シェイプごとに色を指定', 'cni-blocks' ), value: 'multicolor' } ], onChange: function( value ) { set( { fluidColorMode: value === 'multicolor' ? 'multicolor' : 'tone', designPreset: 'custom' } ); } } ) : null,
+						isFluidStyle ? el( SelectControl, { label: __( 'シェイプ構成', 'cni-blocks' ), value: a.fluidShapeStyle || 'classic', options: [ { label: __( '基本（Blob中心）', 'cni-blocks' ), value: 'classic' }, { label: __( '丸だけ', 'cni-blocks' ), value: 'circle' }, { label: __( '角丸図形', 'cni-blocks' ), value: 'rounded' }, { label: __( '混在（Blob・丸・角丸）', 'cni-blocks' ), value: 'mixed' } ], onChange: function( value ) { set( { fluidShapeStyle: value || 'classic', designPreset: 'custom' } ); } } ) : null,
+						isFluidStyle && a.fluidColorMode === 'multicolor' ? [ 1, 2, 3, 4, 5 ].map( function( index ) { return el( 'div', { key: 'fluid-color-' + index }, palette( __( 'シェイプ色 ', 'cni-blocks' ) + index, a[ 'color' + index ], function( value ) { const next = { designPreset: 'custom' }; next[ 'color' + index ] = value || COLOR_PRESETS.mist[ 'color' + index ]; set( next ); } ) ); } ) : null,
+						isMetaballStyle ? el( element.Fragment, null,
+							palette( __( '液体カラー 1', 'cni-blocks' ), a.color1, function( value ) { set( { color1: value || '#1478ff', designPreset: 'custom' } ); } ),
+							palette( __( '液体カラー 2', 'cni-blocks' ), a.color2, function( value ) { set( { color2: value || '#7c3aed', designPreset: 'custom' } ); } ),
+							palette( __( '液体カラー 3', 'cni-blocks' ), a.color3, function( value ) { set( { color3: value || '#ec4899', designPreset: 'custom' } ); } )
+						) : null,
 						isSpotStyle ? el( SelectControl, { label: __( '配色プリセット', 'cni-blocks' ), value: a.colorPreset || 'mist', options: [ { label: __( 'ミスト', 'cni-blocks' ), value: 'mist' }, { label: __( 'ブルーム', 'cni-blocks' ), value: 'bloom' }, { label: __( 'クール', 'cni-blocks' ), value: 'cool' }, { label: __( 'ウォーム', 'cni-blocks' ), value: 'warm' }, { label: __( 'モノトーン', 'cni-blocks' ), value: 'mono' }, { label: __( 'カスタム', 'cni-blocks' ), value: 'custom' } ], onChange: function( value ) { if ( value !== 'custom' ) applyColorPreset( value ); else set( { colorPreset: 'custom' } ); } } ) : null,
 						isSpotStyle ? el( SelectControl, { label: __( '色数', 'cni-blocks' ), value: String( a.colorCount || 3 ), options: [ { label: '2', value: '2' }, { label: '3', value: '3' }, { label: '4', value: '4' }, { label: '5', value: '5' } ], onChange: function( value ) { set( { colorCount: parseInt( value, 10 ) || 3 } ); } } ) : null,
 						palette( __( 'ベース背景色', 'cni-blocks' ), a.baseColor, function( value ) { set( { baseColor: value || '#f8fafc', colorPreset: 'custom' } ); } ),
