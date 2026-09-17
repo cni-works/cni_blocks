@@ -14,7 +14,7 @@
 	};
 	const loaded = {};
 	const textDesignFonts = {
-		'simple-shadow': 'Noto Sans JP', 'frame-label': 'Zen Kaku Gothic New', 'white-label': 'Zen Kaku Gothic New', 'elegant-gradient': 'Noto Serif JP', 'pop-outline-shadow': 'M PLUS Rounded 1c', 'sale-price': 'Noto Sans JP', 'outline': 'Montserrat', 'gold-metal': 'Noto Serif JP', 'marker-underline': 'Zen Kaku Gothic New', 'neon': 'M PLUS Rounded 1c', 'accent-underline': 'Noto Sans JP', 'center-slash': 'Zen Kaku Gothic New', 'left-bar': 'Noto Sans JP', 'left-bar-band': 'Noto Sans JP', 'short-underline': 'Noto Sans JP', 'double-underline': 'Noto Sans JP', 'center-underline': 'Noto Sans JP', 'side-lines': 'Noto Sans JP', 'corner-frame': 'Noto Sans JP', 'speech-underline': 'Noto Sans JP', 'eyebrow-title': 'Montserrat', 'number-title': 'Montserrat', 'backdrop-title': 'Montserrat'
+		'simple-shadow': 'Noto Sans JP', 'frame-label': 'Zen Kaku Gothic New', 'white-label': 'Zen Kaku Gothic New', 'elegant-gradient': 'Noto Serif JP', 'pop-outline-shadow': 'M PLUS Rounded 1c', 'sale-price': 'Noto Sans JP', 'outline': 'Montserrat', 'gold-metal': 'Noto Serif JP', 'marker-underline': 'Zen Kaku Gothic New', 'neon': 'M PLUS Rounded 1c', 'accent-underline': 'Noto Sans JP', 'center-slash': 'Zen Kaku Gothic New', 'left-bar': 'Noto Sans JP', 'left-bar-band': 'Noto Sans JP', 'short-underline': 'Noto Sans JP', 'double-underline': 'Noto Sans JP', 'center-underline': 'Noto Sans JP', 'side-lines': 'Noto Sans JP', 'left-line': 'Noto Sans JP', 'right-line': 'Noto Sans JP', 'corner-frame': 'Noto Sans JP', 'speech-underline': 'Noto Sans JP', 'eyebrow-title': 'Montserrat', 'number-title': 'Montserrat', 'backdrop-title': 'Montserrat'
 	};
 
 	function prepareRuby( root ) {

@@ -49,6 +49,12 @@
     "cellRowSpan": {
       "type": "number",
       "default": 1
+    },
+    "badge": {
+      "type": "object",
+      "default": {
+        "enabled": false
+      }
     }
   },
   "supports": {

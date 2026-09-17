@@ -551,6 +551,35 @@
 		}
 		return save ? blockEditor.useBlockProps.save( props ) : useBlockProps( props );
 	}
+	/* Saved blocks from before fluidShapeStyle was introduced already contain
+	 * the current layout, pattern and motion markup. Their only difference is
+	 * the absence of this later data attribute, so retain an exact validator
+	 * instead of asking every existing page to recover and re-save. */
+	function preFluidShapeStylePropsForSave( a ) {
+		const props = {
+			style: styleFor( a ),
+			className: hasOutwardDivider( a ) ? 'cni-generated-background-plus--has-outward-divider' : '',
+			'data-content-width': a.contentWidth || 'standard',
+			'data-min-height': a.minHeight || 'auto',
+			'data-vertical-align': a.verticalAlign || 'center',
+			'data-horizontal-align': a.horizontalAlign || 'left',
+			'data-padding-y': a.paddingY || 'standard',
+			'data-padding-x': a.paddingX || 'small',
+			'data-border-radius': a.borderRadius || 'none',
+			'data-overflow': a.overflow || 'hidden',
+			'data-background-style': a.backgroundStyle || 'mesh',
+			'data-content-overlay': a.contentOverlay || 'none',
+			'data-geometry-type': a.geometryType || 'diagonal',
+			'data-presentation-level': a.presentationLevel || 'basic',
+			'data-composition-preset': a.compositionPreset || 'custom',
+			'data-generated-pattern-character': a.generatedPatternCharacter || '',
+		};
+		if ( a.backgroundMotion && a.backgroundMotion !== 'none' ) {
+			props['data-background-motion'] = a.backgroundMotion;
+			props['data-motion-mobile'] = a.motionMobile || 'static';
+		}
+		return blockEditor.useBlockProps.save( props );
+	}
 	function legacyPropsForSave( a ) {
 		return blockEditor.useBlockProps.save( {
 			style: legacyStyleFor( a ),
@@ -582,6 +611,12 @@
 		attributes: attributes,
 		supports: { align: [ 'wide', 'full' ], anchor: true, html: false },
 		deprecated: [ {
+			attributes: attributes,
+			save: function( props ) {
+				const a = props.attributes;
+				return el( 'section', preFluidShapeStylePropsForSave( a ), el( 'div', { className: 'cni-generated-background-plus__background', 'aria-hidden': 'true' }, motionElements( a ) ), dividerElement( 'top', a ), el( 'div', { className: 'cni-generated-background-plus__inner' }, el( InnerBlocks.Content ) ), dividerElement( 'bottom', a ) );
+			},
+		}, {
 			attributes: legacyAttributes,
 			save: function( props ) {
 				const a = props.attributes;

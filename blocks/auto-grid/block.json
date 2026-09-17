@@ -19,6 +19,14 @@
       "type": "number",
       "default": 0
     },
+    "cardMaxWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "cardMaxWidthAlignment": {
+      "type": "string",
+      "default": "left"
+    },
     "cardPaddingPc": {
       "type": "number",
       "default": 24
@@ -119,6 +127,34 @@
       "type": "boolean",
       "default": false
     },
+    "flowArrowStyle": {
+      "type": "string",
+      "default": "none"
+    },
+    "flowArrowColor": {
+      "type": "string",
+      "default": "#1e73be"
+    },
+    "flowArrowSize": {
+      "type": "number",
+      "default": 24
+    },
+    "flowArrowMobileDirection": {
+      "type": "string",
+      "default": "down"
+    },
+    "flowArrowVerticalAlign": {
+      "type": "string",
+      "default": "auto"
+    },
+    "flowArrowOffsetY": {
+      "type": "number",
+      "default": 0
+    },
+    "flowArrowOffsetX": {
+      "type": "number",
+      "default": 0
+    },
     "layoutMode": {
       "type": "string",
       "default": "grid"
@@ -166,6 +202,22 @@
     "cellPadding": {
       "type": "string",
       "default": "standard"
+    },
+    "cellPaddingTop": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingRight": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingBottom": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingLeft": {
+      "type": "number",
+      "default": -1
     },
     "cellRadius": {
       "type": "string",

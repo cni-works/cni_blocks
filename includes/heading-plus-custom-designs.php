@@ -73,18 +73,52 @@ function cni_blocks_heading_custom_design_declarations( $value ) {
 	return $value;
 }
 
+function cni_blocks_heading_custom_design_device_value( $design, $device, $part ) {
+	$key = 'base' === $device ? $part . '_css' : $device . '_' . $part . '_css';
+	return cni_blocks_heading_custom_design_declarations( $design[ $key ] ?? '' );
+}
+
+function cni_blocks_heading_custom_design_basic_rules( $design, $device, $scope ) {
+	$base   = cni_blocks_heading_custom_design_device_value( $design, $device, 'base' );
+	$before = cni_blocks_heading_custom_design_device_value( $design, $device, 'before' );
+	$after  = cni_blocks_heading_custom_design_device_value( $design, $device, 'after' );
+	$rules  = array();
+	if ( '' !== $base ) {
+		$rules[] = $scope . '{' . $base . '}';
+	}
+	if ( '' !== $before ) {
+		$rules[] = $scope . '::before{' . $before . '}';
+	}
+	if ( '' !== $after ) {
+		$rules[] = $scope . '::after{' . $after . '}';
+	}
+	return $rules;
+}
+
 function cni_blocks_heading_custom_design_basic_css( $design ) {
 	$scope = '.cni-heading-custom--' . $design['id'] . ' .cni-heading-plus__custom-layer';
 	$rules = array();
-	$base  = cni_blocks_heading_custom_design_declarations( $design['base_css'] ?? '' );
-	$before = cni_blocks_heading_custom_design_declarations( $design['before_css'] ?? '' );
-	$after  = cni_blocks_heading_custom_design_declarations( $design['after_css'] ?? '' );
-	if ( ( '' !== $before || '' !== $after ) && false === stripos( $base, 'position:' ) ) {
-		$base = 'position:relative;display:inline-block;' . $base;
+	$base = cni_blocks_heading_custom_design_device_value( $design, 'base', 'base' );
+	$has_pseudo = false;
+	foreach ( array( 'base', 'tablet', 'mobile' ) as $device ) {
+		$has_pseudo = $has_pseudo || '' !== cni_blocks_heading_custom_design_device_value( $design, $device, 'before' ) || '' !== cni_blocks_heading_custom_design_device_value( $design, $device, 'after' );
 	}
-	if ( '' !== $base ) $rules[] = $scope . '{' . $base . '}';
-	if ( '' !== $before ) $rules[] = $scope . '::before{' . $before . '}';
-	if ( '' !== $after ) $rules[] = $scope . '::after{' . $after . '}';
+	if ( $has_pseudo && false === stripos( $base, 'position:' ) ) {
+		$rules[] = $scope . '{position:relative;display:inline-block;}';
+	}
+	$rules = array_merge( $rules, cni_blocks_heading_custom_design_basic_rules( $design, 'base', $scope ) );
+	$tablet = cni_blocks_heading_custom_design_basic_rules( $design, 'tablet', $scope );
+	$mobile = cni_blocks_heading_custom_design_basic_rules( $design, 'mobile', $scope );
+	if ( ! empty( $tablet ) ) {
+		$rules[] = '@media (max-width:1024px){' . implode( '', $tablet ) . '}';
+		$editor_scope = '.editor-styles-wrapper .cni-heading-custom--' . $design['id'] . '[data-editor-device="Tablet"] .cni-heading-plus__custom-layer';
+		$rules = array_merge( $rules, cni_blocks_heading_custom_design_basic_rules( $design, 'tablet', $editor_scope ) );
+	}
+	if ( ! empty( $mobile ) ) {
+		$rules[] = '@media (max-width:767px){' . implode( '', $mobile ) . '}';
+		$editor_scope = '.editor-styles-wrapper .cni-heading-custom--' . $design['id'] . '[data-editor-device="Mobile"] .cni-heading-plus__custom-layer';
+		$rules = array_merge( $rules, cni_blocks_heading_custom_design_basic_rules( $design, 'mobile', $editor_scope ) );
+	}
 	return implode( "\n", $rules );
 }
 
@@ -106,7 +140,13 @@ function cni_blocks_heading_sanitize_custom_designs( $value ) {
 		$base_css   = cni_blocks_heading_custom_design_declarations( $design['base_css'] ?? '' );
 		$before_css = cni_blocks_heading_custom_design_declarations( $design['before_css'] ?? '' );
 		$after_css  = cni_blocks_heading_custom_design_declarations( $design['after_css'] ?? '' );
-		if ( '' === $name || ( '' === $base_css && '' === $before_css && '' === $after_css && '' === cni_blocks_heading_custom_design_css( $css, $id ) ) ) {
+		$tablet_base_css   = cni_blocks_heading_custom_design_declarations( $design['tablet_base_css'] ?? '' );
+		$tablet_before_css = cni_blocks_heading_custom_design_declarations( $design['tablet_before_css'] ?? '' );
+		$tablet_after_css  = cni_blocks_heading_custom_design_declarations( $design['tablet_after_css'] ?? '' );
+		$mobile_base_css   = cni_blocks_heading_custom_design_declarations( $design['mobile_base_css'] ?? '' );
+		$mobile_before_css = cni_blocks_heading_custom_design_declarations( $design['mobile_before_css'] ?? '' );
+		$mobile_after_css  = cni_blocks_heading_custom_design_declarations( $design['mobile_after_css'] ?? '' );
+		if ( '' === $name || ( '' === $base_css && '' === $before_css && '' === $after_css && '' === $tablet_base_css && '' === $tablet_before_css && '' === $tablet_after_css && '' === $mobile_base_css && '' === $mobile_before_css && '' === $mobile_after_css && '' === cni_blocks_heading_custom_design_css( $css, $id ) ) ) {
 			continue;
 		}
 		$clean[] = array(
@@ -116,6 +156,12 @@ function cni_blocks_heading_sanitize_custom_designs( $value ) {
 			'base_css' => $base_css,
 			'before_css' => $before_css,
 			'after_css' => $after_css,
+			'tablet_base_css' => $tablet_base_css,
+			'tablet_before_css' => $tablet_before_css,
+			'tablet_after_css' => $tablet_after_css,
+			'mobile_base_css' => $mobile_base_css,
+			'mobile_before_css' => $mobile_before_css,
+			'mobile_after_css' => $mobile_after_css,
 		);
 	}
 	return array_slice( $clean, 0, 30 );
@@ -128,7 +174,7 @@ function cni_blocks_heading_custom_designs() {
 
 function cni_blocks_heading_preset_attribute_keys() {
 	return array(
-		'level', 'tagName', 'marginTop', 'marginBottom', 'legacyLayout', 'layoutVersion', 'inlineImageId', 'inlineImageUrl', 'inlineImageAlt', 'inlineImagePosition', 'inlineImageSize', 'writingMode', 'mobileWritingMode', 'verticalOrientation', 'verticalPosition', 'verticalHeight', 'fontFamily', 'fontWeight', 'fontStyle', 'textTransform', 'fontSizePc', 'fontSizeTablet', 'fontSizeMobile', 'fontSizeUnitPc', 'fontSizeUnitTablet', 'fontSizeUnitMobile', 'lineHeight', 'letterSpacing', 'textColor', 'backgroundColor', 'alignment', 'paddingVertical', 'paddingHorizontal', 'textDesign', 'textDesignPrimaryColor', 'textDesignHighlightColor', 'textDesignAccentColor', 'headingDesign', 'textDecoration', 'headingDesignPrimaryColor', 'headingDesignAccentColor', 'textDecorationPrimaryColor', 'textDecorationHighlightColor', 'textDecorationAccentColor', 'headingEyebrow', 'headingNumber', 'headingBackdropText', 'secondaryFontFamily', 'secondaryFontWeight', 'secondaryColor', 'secondarySizePc', 'secondarySizeMobile', 'secondaryLetterSpacing', 'secondaryLineHeight', 'secondaryGapPc', 'secondaryGapMobile', 'secondaryAlignment', 'numberVerticalAlignment', 'backgroundTextOpacity', 'backgroundTextX', 'backgroundTextY', 'backgroundTextXMobile', 'backgroundTextYMobile', 'headingDesignLineThickness', 'headingDesignSlashScale'
+		'level', 'tagName', 'marginTop', 'marginBottom', 'legacyLayout', 'layoutVersion', 'inlineImageId', 'inlineImageUrl', 'inlineImageAlt', 'inlineImagePosition', 'inlineImageSize', 'writingMode', 'mobileWritingMode', 'verticalOrientation', 'verticalPosition', 'verticalHeight', 'fontFamily', 'fontWeight', 'fontStyle', 'textTransform', 'fontSizePc', 'fontSizeTablet', 'fontSizeMobile', 'fontSizeUnitPc', 'fontSizeUnitTablet', 'fontSizeUnitMobile', 'lineHeight', 'letterSpacing', 'textColor', 'backgroundColor', 'alignment', 'paddingVertical', 'paddingHorizontal', 'textDesign', 'textDesignPrimaryColor', 'textDesignHighlightColor', 'textDesignAccentColor', 'headingDesign', 'textDecoration', 'headingDesignPrimaryColor', 'headingDesignAccentColor', 'headingDesignLineColor', 'headingDesignLineLength', 'headingDesignLineGap', 'textDecorationPrimaryColor', 'textDecorationHighlightColor', 'textDecorationAccentColor', 'headingEyebrow', 'headingNumber', 'headingBackdropText', 'secondaryFontFamily', 'secondaryFontWeight', 'secondaryColor', 'secondarySizePc', 'secondarySizeMobile', 'secondaryLetterSpacing', 'secondaryLineHeight', 'secondaryGapPc', 'secondaryGapMobile', 'secondaryAlignment', 'numberVerticalAlignment', 'backgroundTextOpacity', 'backgroundTextX', 'backgroundTextY', 'backgroundTextXMobile', 'backgroundTextYMobile', 'headingDesignLineThickness', 'headingDesignSlashScale'
 	);
 }
 
@@ -199,7 +245,7 @@ function cni_blocks_heading_custom_design_settings_page() {
 		return;
 	}
 	$designs = cni_blocks_heading_custom_designs();
-	$designs[] = array( 'id' => '', 'name' => '', 'category' => '', 'css' => '', 'base_css' => '', 'before_css' => '', 'after_css' => '' );
+	$designs[] = array( 'id' => '', 'name' => '', 'category' => '', 'css' => '', 'base_css' => '', 'before_css' => '', 'after_css' => '', 'tablet_base_css' => '', 'tablet_before_css' => '', 'tablet_after_css' => '', 'mobile_base_css' => '', 'mobile_before_css' => '', 'mobile_after_css' => '' );
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'CNI Blocks｜見出し+ オリジナルデザイン', 'cni-blocks' ); ?></h1>
@@ -209,11 +255,18 @@ function cni_blocks_heading_custom_design_settings_page() {
 			.cni-heading-custom-preview .cni-heading-plus__custom-layer { position:relative; display:inline-block; font-size:32px; font-weight:700; line-height:1.35; color:#172033; }
 			.cni-heading-custom-preview__label { display:block; margin-bottom:6px; color:#50575e; font-size:12px; }
 			.cni-heading-custom-delete-note { margin:4px 0 14px 24px; color:#8a2424; }
+			.cni-heading-custom-device-tabs { display:flex; gap:6px; margin:16px 0 10px; }
+			.cni-heading-custom-device-tabs button { padding:6px 12px; border:1px solid #8c8f94; border-radius:3px; background:#fff; cursor:pointer; }
+			.cni-heading-custom-device-tabs button.is-active { border-color:#2271b1; background:#2271b1; color:#fff; }
+			.cni-heading-custom-device-field { display:none; }
+			details[data-cni-device="desktop"] .cni-heading-custom-device-field[data-device="desktop"],details[data-cni-device="tablet"] .cni-heading-custom-device-field[data-device="tablet"],details[data-cni-device="mobile"] .cni-heading-custom-device-field[data-device="mobile"] { display:block; }
+			.cni-heading-custom-preview[data-preview-device="tablet"] { max-width:768px; }
+			.cni-heading-custom-preview[data-preview-device="mobile"] { max-width:375px; }
 		</style>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'cni_blocks_heading_custom_designs' ); ?>
 			<?php foreach ( $designs as $index => $design ) : ?>
-				<details style="margin:16px 0;padding:12px;background:#fff;border:1px solid #ccd0d4" <?php echo $index === count( $designs ) - 1 ? 'open' : ''; ?>>
+				<details data-cni-device="desktop" style="margin:16px 0;padding:12px;background:#fff;border:1px solid #ccd0d4" <?php echo $index === count( $designs ) - 1 ? 'open' : ''; ?>>
 					<summary><strong><?php echo esc_html( $design['name'] ?: __( '新しいオリジナルデザイン', 'cni-blocks' ) ); ?></strong></summary>
 					<input type="hidden" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][id]" value="<?php echo esc_attr( $design['id'] ); ?>" />
 					<span class="cni-heading-custom-preview__label"><?php esc_html_e( 'ライブラリ表示プレビュー', 'cni-blocks' ); ?></span>
@@ -221,10 +274,10 @@ function cni_blocks_heading_custom_design_settings_page() {
 					<p><label><?php esc_html_e( 'デザイン名', 'cni-blocks' ); ?><br /><input class="regular-text" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][name]" value="<?php echo esc_attr( $design['name'] ); ?>" /></label></p>
 					<p><label><input type="checkbox" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][delete]" value="1" /> <?php esc_html_e( '保存時にこのデザインを削除する', 'cni-blocks' ); ?></label></p>
 					<p class="cni-heading-custom-delete-note"><?php esc_html_e( '削除する場合はチェックして、ページ下部の「オリジナルデザインを保存」を押します。', 'cni-blocks' ); ?></p>
-					<p><label><?php esc_html_e( '装飾CSS（任意）', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][base_css]" placeholder="display: inline-block;&#10;padding: .3em .7em;&#10;border-bottom: 3px solid #2998cf;"><?php echo esc_textarea( $design['base_css'] ?? '' ); ?></textarea></label><br /><span class="description"><?php esc_html_e( '線・背景・余白・影などを記入します。色やフォントをここに書いた場合は、そのCSSが見出し+の通常設定より優先されます。セレクタや波括弧は不要です。', 'cni-blocks' ); ?></span></p>
-					<details><summary><?php esc_html_e( 'Before装飾を追加', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( 'Before CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][before_css]"><?php echo esc_textarea( $design['before_css'] ?? '' ); ?></textarea></label></p></details>
-					<details><summary><?php esc_html_e( 'After装飾を追加', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( 'After CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][after_css]"><?php echo esc_textarea( $design['after_css'] ?? '' ); ?></textarea></label></p></details>
-					<details><summary><?php esc_html_e( '高度なCSS（制作者向け）', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( '高度なCSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="8" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][css]" placeholder="&amp; { ... }&#10;&amp;::after { ... }"><?php echo esc_textarea( $design['css'] ); ?></textarea></label></p></details>
+					<div class="cni-heading-custom-device-tabs" role="tablist" aria-label="<?php esc_attr_e( '端末別CSS', 'cni-blocks' ); ?>"><button type="button" class="is-active" data-device="desktop"><?php esc_html_e( 'Desktop / Base', 'cni-blocks' ); ?></button><button type="button" data-device="tablet"><?php esc_html_e( 'Tablet', 'cni-blocks' ); ?></button><button type="button" data-device="mobile"><?php esc_html_e( 'Mobile', 'cni-blocks' ); ?></button></div>
+					<div class="cni-heading-custom-device-field" data-device="desktop"><p><label><?php esc_html_e( '装飾CSS（Desktop / Base）', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][base_css]" placeholder="display: inline-block;&#10;padding: .3em .7em;&#10;border-bottom: 3px solid #2998cf;"><?php echo esc_textarea( $design['base_css'] ?? '' ); ?></textarea></label><br /><span class="description"><?php esc_html_e( 'PCを基準にします。色やフォントをここに書いた場合は、見出し+の通常設定より優先されます。セレクタや波括弧、@mediaは不要です。', 'cni-blocks' ); ?></span></p><details><summary><?php esc_html_e( 'Before装飾を追加', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( 'Before CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][before_css]"><?php echo esc_textarea( $design['before_css'] ?? '' ); ?></textarea></label></p></details><details><summary><?php esc_html_e( 'After装飾を追加', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( 'After CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][after_css]"><?php echo esc_textarea( $design['after_css'] ?? '' ); ?></textarea></label></p></details><details><summary><?php esc_html_e( '高度なCSS（制作者向け）', 'cni-blocks' ); ?></summary><p><label><?php esc_html_e( '高度なCSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="8" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][css]" placeholder="&amp; { ... }&#10;&amp;::after { ... }"><?php echo esc_textarea( $design['css'] ); ?></textarea></label></p></details></div>
+					<div class="cni-heading-custom-device-field" data-device="tablet"><p><strong><?php esc_html_e( 'Tablet Override（幅1024px以下）', 'cni-blocks' ); ?></strong><br /><span class="description"><?php esc_html_e( '空欄はDesktop / Baseを継承します。変更したい宣言だけを入力してください。', 'cni-blocks' ); ?></span></p><p><label><?php esc_html_e( '装飾CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][tablet_base_css]"><?php echo esc_textarea( $design['tablet_base_css'] ?? '' ); ?></textarea></label></p><details><summary><?php esc_html_e( 'Before装飾を上書き', 'cni-blocks' ); ?></summary><p><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][tablet_before_css]"><?php echo esc_textarea( $design['tablet_before_css'] ?? '' ); ?></textarea></p></details><details><summary><?php esc_html_e( 'After装飾を上書き', 'cni-blocks' ); ?></summary><p><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][tablet_after_css]"><?php echo esc_textarea( $design['tablet_after_css'] ?? '' ); ?></textarea></p></details></div>
+					<div class="cni-heading-custom-device-field" data-device="mobile"><p><strong><?php esc_html_e( 'Mobile Override（幅767px以下）', 'cni-blocks' ); ?></strong><br /><span class="description"><?php esc_html_e( '空欄はDesktop / Base（Tablet設定がある場合はTablet）を継承します。変更したい宣言だけを入力してください。', 'cni-blocks' ); ?></span></p><p><label><?php esc_html_e( '装飾CSS', 'cni-blocks' ); ?><br /><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][mobile_base_css]"><?php echo esc_textarea( $design['mobile_base_css'] ?? '' ); ?></textarea></label></p><details><summary><?php esc_html_e( 'Before装飾を上書き', 'cni-blocks' ); ?></summary><p><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][mobile_before_css]"><?php echo esc_textarea( $design['mobile_before_css'] ?? '' ); ?></textarea></p></details><details><summary><?php esc_html_e( 'After装飾を上書き', 'cni-blocks' ); ?></summary><p><textarea class="large-text code" rows="5" name="<?php echo esc_attr( CNI_BLOCKS_HEADING_CUSTOM_DESIGNS_OPTION ); ?>[<?php echo esc_attr( $index ); ?>][mobile_after_css]"><?php echo esc_textarea( $design['mobile_after_css'] ?? '' ); ?></textarea></p></details></div>
 				</details>
 			<?php endforeach; ?>
 			<?php submit_button( __( 'オリジナルデザインを保存', 'cni-blocks' ) ); ?>
@@ -235,22 +288,36 @@ function cni_blocks_heading_custom_design_settings_page() {
 			function field(details, suffix) {
 				return details.querySelector('[name^="' + option + '"][name$="' + suffix + '"]');
 			}
-			function value(details, suffix) {
-				var input = field(details, suffix);
+			function value(details, device, part) {
+				var prefix = device === 'desktop' ? '' : device + '_';
+				var input = field(details, '[' + prefix + part + '_css]');
 				return input ? input.value.trim() : '';
+			}
+			function rules(scope, base, before, after) {
+				return (base ? scope + '{' + base + '}' : '') + (before ? scope + '::before{' + before + '}' : '') + (after ? scope + '::after{' + after + '}' : '');
 			}
 			function update(details) {
 				var preview = details.querySelector('.cni-heading-custom-preview');
 				if (!preview) return;
 				var index = preview.getAttribute('data-preview-index');
 				var scope = '.cni-heading-custom-preview-' + index + ' .cni-heading-plus__custom-layer';
-				var base = value(details, '[base_css]');
-				var before = value(details, '[before_css]');
-				var after = value(details, '[after_css]');
+				var device = details.getAttribute('data-cni-device') || 'desktop';
+				var base = value(details, 'desktop', 'base');
+				var before = value(details, 'desktop', 'before');
+				var after = value(details, 'desktop', 'after');
+				var tabletBase = value(details, 'tablet', 'base');
+				var tabletBefore = value(details, 'tablet', 'before');
+				var tabletAfter = value(details, 'tablet', 'after');
+				var mobileBase = value(details, 'mobile', 'base');
+				var mobileBefore = value(details, 'mobile', 'before');
+				var mobileAfter = value(details, 'mobile', 'after');
 				var declarations = '';
-				if ((before || after) && !/position\s*:/.test(base)) declarations = 'position:relative;display:inline-block;';
-				var advanced = value(details, '[css]').replace(/&/g, scope);
+				if ((before || after || tabletBefore || tabletAfter || mobileBefore || mobileAfter) && !/position\s*:/.test(base)) declarations = 'position:relative;display:inline-block;';
+				var advancedInput = field(details, '[css]');
+				var advanced = (advancedInput ? advancedInput.value.trim() : '').replace(/&/g, scope);
 				var css = scope + '{' + declarations + base + '}' + (before ? scope + '::before{' + before + '}' : '') + (after ? scope + '::after{' + after + '}' : '') + advanced;
+				if (device === 'tablet' || device === 'mobile') css += rules(scope, tabletBase, tabletBefore, tabletAfter);
+				if (device === 'mobile') css += rules(scope, mobileBase, mobileBefore, mobileAfter);
 				var style = document.getElementById('cni-heading-preview-style-' + index);
 				if (!style) { style = document.createElement('style'); style.id = 'cni-heading-preview-style-' + index; document.head.appendChild(style); }
 				style.textContent = css;
@@ -259,6 +326,15 @@ function cni_blocks_heading_custom_design_settings_page() {
 				var details = preview.closest('details');
 				update(details);
 				details.addEventListener('input', function() { update(details); });
+				details.querySelectorAll('.cni-heading-custom-device-tabs button').forEach(function(button) {
+					button.addEventListener('click', function() {
+						var device = button.getAttribute('data-device');
+						details.setAttribute('data-cni-device', device);
+						preview.setAttribute('data-preview-device', device);
+						details.querySelectorAll('.cni-heading-custom-device-tabs button').forEach(function(tab) { tab.classList.toggle('is-active', tab === button); });
+						update(details);
+					});
+				});
 			});
 		}());
 		</script>

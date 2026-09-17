@@ -156,11 +156,31 @@
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--top.is-outward {
-	transform: translateY(-100%);
+	/* Overlap by one pixel so fractional SVG layout cannot leave a seam. */
+	transform: translateY(calc(-100% + 1px));
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--bottom.is-outward {
-	transform: translateY(100%);
+	/* Overlap by one pixel so fractional SVG layout cannot leave a seam. */
+	transform: translateY(calc(100% - 1px));
+}
+
+/* Outward shapes are cut from an added strip of the actual Outer+ background.
+ * The divider colour covers the receiving side, leaving the live background
+ * visible through the triangle, curve, or zigzag opening. */
+.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+	margin-top: calc(0px - var(--cni-outer-top-outward-divider-height, 0px));
+	padding-top: calc(var(--cni-outer-padding-v-pc, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+}
+
+.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+	margin-bottom: calc(0px - var(--cni-outer-bottom-outward-divider-height, 0px));
+	padding-bottom: calc(var(--cni-outer-padding-v-pc, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
+}
+
+.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider > .cni-outer__divider--top.is-outward,
+.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider > .cni-outer__divider--bottom.is-outward {
+	transform: none;
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider svg {
@@ -181,6 +201,14 @@
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--top.is-flipped svg {
 	transform: rotate(180deg) scaleX(-1);
+}
+
+@media (max-width: 781px) {
+	/* Cloud paths are dense across a 1200-unit viewBox. A smaller mobile cap
+	 * preserves their horizontal, low-profile character instead of stretching them vertically. */
+	.wp-block-cni-blocks-outer > .cni-outer__divider--cloud {
+		height: var(--cni-outer-divider-mobile-height, min(var(--cni-outer-divider-height, 80px), 18vw));
+	}
 }
 
 .cni-outer-divider-control + .cni-outer-divider-control {
@@ -223,6 +251,14 @@
 		background-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
 	}
 
+	.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+		padding-top: calc(var(--cni-outer-padding-v-tablet, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+		padding-bottom: calc(var(--cni-outer-padding-v-tablet, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
+	}
+
 	.wp-block-cni-blocks-outer > .cni-outer__background-video {
 		object-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
 	}
@@ -240,6 +276,14 @@
 		background-image: var(--cni-outer-mobile-background-image, var(--cni-outer-background-image, none));
 		background-position: var(--cni-outer-background-position-mobile, var(--cni-outer-background-position, center center));
 		background-attachment: scroll;
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+		padding-top: calc(var(--cni-outer-padding-v-mobile, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+		padding-bottom: calc(var(--cni-outer-padding-v-mobile, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
 	}
 
 	.wp-block-cni-blocks-outer > .cni-outer__background-video {

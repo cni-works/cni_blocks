@@ -21,6 +21,8 @@
 		{ id: 'short-underline', category: 'heading', label: '左寄せ短線', sample: '見出しタイトル', description: '左端に短いアクセント線', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#2998cf' },
 		{ id: 'center-underline', category: 'heading', label: '中央短線', sample: '見出しタイトル', description: '中央見出しの基本形', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#2998cf' },
 		{ id: 'side-lines', category: 'heading', label: '左右ライン', sample: '見出しタイトル', description: '中央の見出しを穏やかに区切る', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#6b7787' },
+		{ id: 'left-line', category: 'heading', label: '左ライン', sample: '見出しタイトル', description: '左寄せの見出しに添える短いライン', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#6b7787' },
+		{ id: 'right-line', category: 'heading', label: '右ライン', sample: '見出しタイトル', description: '左寄せの見出しから右へ伸びるライン', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#6b7787' },
 		{ id: 'corner-frame', category: 'heading', label: '角フレーム', sample: '見出しタイトル', description: '囲みすぎない端部のフレーム', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#2998cf' },
 		{ id: 'speech-underline', category: 'heading', label: '吹き出し風下線', sample: '見出しタイトル', description: '下線に小さな吹き出しの切り込み', fontFamily: 'Noto Sans JP', fontWeight: '700', primaryColor: '#172033', accentColor: '#2998cf' },
 		{ id: 'eyebrow-title', category: 'heading', label: '英字サブタイトル', sample: 'OUR SERVICE\n事業紹介', description: '小さな英字と主見出しを組み合わせる', fontFamily: 'Montserrat', fontWeight: '700', primaryColor: '#172033', accentColor: '#2998cf' },

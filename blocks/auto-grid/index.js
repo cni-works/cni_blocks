@@ -3,11 +3,31 @@
 
 	const el = element.createElement;
 	const { __ } = i18n;
-	const { useBlockProps, InnerBlocks, InspectorControls } = blockEditor;
-	const { Button, ColorPalette, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
+	const { useEffect, useRef } = element;
+	const { useBlockProps, InnerBlocks, InspectorControls, MediaUpload, MediaUploadCheck } = blockEditor;
+	const { Button, ColorPalette, ColorPicker, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
 	const { useSelect } = data;
 	const CARD_BLOCK = 'cni-blocks/grid-card';
 	const GRID_TEMPLATE = [ [ CARD_BLOCK ] ];
+	const BADGE_ICON_OPTIONS = [
+		{ label: __( '星', 'cni-blocks' ), value: 'fa-solid fa-star' },
+		{ label: __( '王冠', 'cni-blocks' ), value: 'fa-solid fa-crown' },
+		{ label: __( 'チェック', 'cni-blocks' ), value: 'fa-solid fa-check' },
+		{ label: __( 'ハート', 'cni-blocks' ), value: 'fa-solid fa-heart' },
+		{ label: __( 'タグ', 'cni-blocks' ), value: 'fa-solid fa-tag' },
+		{ label: __( '矢印', 'cni-blocks' ), value: 'fa-solid fa-arrow-right' },
+	];
+	const BADGE_POSITIONS = [
+		[ 'top-left', __( '左上', 'cni-blocks' ) ],
+		[ 'top-center', __( '中央上', 'cni-blocks' ) ],
+		[ 'top-right', __( '右上', 'cni-blocks' ) ],
+		[ 'middle-left', __( '左中央', 'cni-blocks' ) ],
+		[ 'middle-center', __( '中央', 'cni-blocks' ) ],
+		[ 'middle-right', __( '右中央', 'cni-blocks' ) ],
+		[ 'bottom-left', __( '左下', 'cni-blocks' ) ],
+		[ 'bottom-center', __( '中央下', 'cni-blocks' ) ],
+		[ 'bottom-right', __( '右下', 'cni-blocks' ) ],
+	];
 
 	function numberOr( value, fallback ) {
 		return typeof value === 'number' ? value : fallback;
@@ -17,8 +37,176 @@
 		return numberOr( value, fallback ) + 'px';
 	}
 
+	function clampNumber( value, minimum, maximum, fallback ) {
+		return Math.max( minimum, Math.min( maximum, numberOr( value, fallback ) ) );
+	}
+
+	function sanitizeFontAwesomeClasses( value ) {
+		return String( value || '' )
+			.split( /\s+/ )
+			.filter( function( className ) { return /^fa[a-z0-9-]*$/i.test( className ); } )
+			.join( ' ' );
+	}
+
+	function badgeDefaults() {
+		return {
+			enabled: false,
+			type: 'text',
+			text: 'NEW',
+			icon: 'fa-solid fa-star',
+			iconPosition: 'left',
+			imageId: 0,
+			imageUrl: '',
+			preset: 'rounded',
+			position: 'top-left',
+			anchor: 'media',
+			offsetX: 0,
+			offsetY: 0,
+			textSize: 14,
+			iconSize: 16,
+			imageWidth: 80,
+			textColor: '#ffffff',
+			backgroundColor: '#1e73be',
+			mobileCustom: false,
+			mobileHidden: false,
+			mobileTextSize: 14,
+			mobileIconSize: 16,
+			mobileImageWidth: 80,
+			mobileOffsetX: 0,
+			mobileOffsetY: 0,
+		};
+	}
+
+	function badgeSettings( attributes ) {
+		const defaults = badgeDefaults();
+		const raw = attributes.badge && typeof attributes.badge === 'object' ? attributes.badge : {};
+		const type = [ 'text', 'icon', 'icon-text', 'image' ].indexOf( raw.type ) !== -1 ? raw.type : defaults.type;
+		const position = BADGE_POSITIONS.some( function( item ) { return item[ 0 ] === raw.position; } ) ? raw.position : defaults.position;
+		const icon = sanitizeFontAwesomeClasses( raw.icon );
+		const selectedIcon = BADGE_ICON_OPTIONS.some( function( item ) { return item.value === icon; } ) ? icon : defaults.icon;
+
+		return Object.assign( {}, defaults, raw, {
+			enabled: !! raw.enabled,
+			type: type,
+			position: position,
+			anchor: raw.anchor === 'card' ? 'card' : 'media',
+			icon: selectedIcon,
+			iconPosition: raw.iconPosition === 'right' ? 'right' : 'left',
+			preset: [ 'simple', 'rounded', 'pill', 'outline', 'circle' ].indexOf( raw.preset ) !== -1 ? raw.preset : defaults.preset,
+			textSize: clampNumber( raw.textSize, 10, 96, defaults.textSize ),
+			iconSize: clampNumber( raw.iconSize, 10, 96, defaults.iconSize ),
+			imageWidth: clampNumber( raw.imageWidth, 16, 640, defaults.imageWidth ),
+			offsetX: clampNumber( raw.offsetX, -160, 160, defaults.offsetX ),
+			offsetY: clampNumber( raw.offsetY, -160, 160, defaults.offsetY ),
+			mobileCustom: !! raw.mobileCustom,
+			mobileHidden: !! raw.mobileHidden,
+			mobileTextSize: clampNumber( raw.mobileTextSize, 10, 96, raw.textSize || defaults.mobileTextSize ),
+			mobileIconSize: clampNumber( raw.mobileIconSize, 10, 96, raw.iconSize || defaults.mobileIconSize ),
+			mobileImageWidth: clampNumber( raw.mobileImageWidth, 16, 640, raw.imageWidth || defaults.mobileImageWidth ),
+			mobileOffsetX: clampNumber( raw.mobileOffsetX, -160, 160, raw.offsetX || defaults.mobileOffsetX ),
+			mobileOffsetY: clampNumber( raw.mobileOffsetY, -160, 160, raw.offsetY || defaults.mobileOffsetY ),
+		} );
+	}
+
+	function badgeStyle( badge ) {
+		return {
+			'--cni-grid-badge-text-size': badge.textSize + 'px',
+			'--cni-grid-badge-icon-size': badge.iconSize + 'px',
+			'--cni-grid-badge-image-width': badge.imageWidth + 'px',
+			'--cni-grid-badge-offset-x': badge.offsetX + 'px',
+			'--cni-grid-badge-offset-y': badge.offsetY + 'px',
+			'--cni-grid-badge-text-color': badge.textColor || '#ffffff',
+			'--cni-grid-badge-background': badge.backgroundColor || '#1e73be',
+			'--cni-grid-badge-mobile-text-size': badge.mobileTextSize + 'px',
+			'--cni-grid-badge-mobile-icon-size': badge.mobileIconSize + 'px',
+			'--cni-grid-badge-mobile-image-width': badge.mobileImageWidth + 'px',
+			'--cni-grid-badge-mobile-offset-x': badge.mobileOffsetX + 'px',
+			'--cni-grid-badge-mobile-offset-y': badge.mobileOffsetY + 'px',
+		};
+	}
+
+	function badgeIcon( badge ) {
+		return el( 'i', { className: 'cni-grid-card__badge-icon ' + badge.icon, 'aria-hidden': 'true' } );
+	}
+
+	function badgeMarkup( badge ) {
+		if ( ! badge.enabled ) return null;
+		const classes = [
+			'cni-grid-card__badge',
+			'cni-grid-card__badge--' + badge.type,
+			'cni-grid-card__badge--' + badge.position,
+			'cni-grid-card__badge--preset-' + badge.preset,
+		];
+		if ( badge.mobileCustom ) classes.push( 'cni-grid-card__badge--mobile-custom' );
+		if ( badge.mobileCustom && badge.mobileHidden ) classes.push( 'cni-grid-card__badge--mobile-hidden' );
+
+		let content;
+		if ( badge.type === 'image' ) {
+			content = badge.imageUrl ? el( 'img', { src: badge.imageUrl, alt: '' } ) : el( 'span', { className: 'cni-grid-card__badge-placeholder' }, __( '画像', 'cni-blocks' ) );
+		} else if ( badge.type === 'icon' ) {
+			content = badgeIcon( badge );
+		} else if ( badge.type === 'icon-text' ) {
+			content = badge.iconPosition === 'right'
+				? [ el( 'span', { key: 'text', className: 'cni-grid-card__badge-text' }, badge.text || 'NEW' ), el( 'span', { key: 'icon', className: 'cni-grid-card__badge-icon-wrap' }, badgeIcon( badge ) ) ]
+				: [ el( 'span', { key: 'icon', className: 'cni-grid-card__badge-icon-wrap' }, badgeIcon( badge ) ), el( 'span', { key: 'text', className: 'cni-grid-card__badge-text' }, badge.text || 'NEW' ) ];
+		} else {
+			content = el( 'span', { className: 'cni-grid-card__badge-text' }, badge.text || 'NEW' );
+		}
+
+		return el( 'div', { className: classes.join( ' ' ), style: badgeStyle( badge ), 'aria-hidden': 'true' }, content );
+	}
+
+	function firstBadgeMedia( card ) {
+		const inner = card ? card.querySelector( ':scope > .cni-grid-card__inner' ) : null;
+		if ( ! inner ) return null;
+		const editorInner = inner.querySelector( ':scope > .block-editor-inner-blocks > .block-editor-block-list__layout' );
+		const content = editorInner || inner;
+		const first = content.firstElementChild;
+		return first && ( first.classList.contains( 'wp-block-image' ) || first.classList.contains( 'wp-block-cover' ) ) ? first : null;
+	}
+
+	function clearBadgeMediaPosition( card ) {
+		[ '--cni-grid-badge-anchor-left', '--cni-grid-badge-anchor-top', '--cni-grid-badge-anchor-width', '--cni-grid-badge-anchor-height' ].forEach( function( property ) {
+			card.style.removeProperty( property );
+		} );
+	}
+
+	function updateBadgeMediaPosition( card ) {
+		const media = firstBadgeMedia( card );
+		if ( ! media || ! media.getBoundingClientRect ) {
+			clearBadgeMediaPosition( card );
+			return null;
+		}
+		const cardRect = card.getBoundingClientRect();
+		const mediaRect = media.getBoundingClientRect();
+		if ( cardRect.width < 1 || cardRect.height < 1 || mediaRect.width < 1 || mediaRect.height < 1 ) return media;
+		card.style.setProperty( '--cni-grid-badge-anchor-left', ( mediaRect.left - cardRect.left - card.clientLeft ) + 'px' );
+		card.style.setProperty( '--cni-grid-badge-anchor-top', ( mediaRect.top - cardRect.top - card.clientTop ) + 'px' );
+		card.style.setProperty( '--cni-grid-badge-anchor-width', mediaRect.width + 'px' );
+		card.style.setProperty( '--cni-grid-badge-anchor-height', mediaRect.height + 'px' );
+		return media;
+	}
+
 	function isCellGrid( attributes ) {
 		return attributes.layoutMode === 'cell';
+	}
+
+	function flowArrowStyle( value ) {
+		return [ 'none', 'arrow', 'chevron', 'circle' ].indexOf( value ) !== -1 ? value : 'none';
+	}
+
+	function flowArrowMobileDirection( value ) {
+		return [ 'down', 'right', 'none' ].indexOf( value ) !== -1 ? value : 'down';
+	}
+
+	function flowArrowVerticalAlign( value ) {
+		return [ 'auto', 'card', 'image' ].indexOf( value ) !== -1 ? value : 'auto';
+	}
+
+	function colorValue( value, fallback ) {
+		if ( typeof value === 'string' && value ) return value;
+		if ( value && typeof value.hex === 'string' && value.hex ) return value.hex;
+		return fallback;
 	}
 
 	function cellBorderWidth( value ) {
@@ -45,6 +233,11 @@
 	function cellPadding( value ) {
 		const values = { none: 0, small: 12, standard: 24, large: 36, xlarge: 48 };
 		return Object.prototype.hasOwnProperty.call( values, value ) ? values[ value ] : 24;
+	}
+
+	function cellSidePadding( attributes, side ) {
+		const value = attributes[ 'cellPadding' + side ];
+		return typeof value === 'number' && value >= 0 ? value : null;
 	}
 
 	function cellRadius( value ) {
@@ -83,6 +276,7 @@
 		const minWidthPc = Math.max( 120, numberOr( attributes.minWidthPc, 280 ) );
 		const minWidthTablet = attributes.minWidthTablet > 0 ? attributes.minWidthTablet : minWidthPc;
 		const minWidthMobile = attributes.minWidthMobile > 0 ? attributes.minWidthMobile : minWidthTablet;
+		const maxCardWidth = numberOr( attributes.cardMaxWidth, 0 ) > 0 ? Math.max( numberOr( attributes.cardMaxWidth, 0 ), minWidthPc, minWidthTablet, minWidthMobile ) : 0;
 		const paddingVerticalPc = cardAxisPadding( attributes, 'Vertical', 'Pc', 24 );
 		const paddingHorizontalPc = cardAxisPadding( attributes, 'Horizontal', 'Pc', 24 );
 		const paddingVerticalTablet = cardAxisPadding( attributes, 'Vertical', 'Tablet', 20 );
@@ -105,6 +299,10 @@
 			'--cni-grid-card-border-width': attributes.cardBorder ? px( attributes.cardBorderWidth, 1 ) : '0px',
 			'--cni-grid-card-border-color': attributes.cardBorderColor || '#dddddd',
 		};
+		if ( maxCardWidth > 0 && ! isCellGrid( attributes ) ) {
+			style[ '--cni-grid-card-max-width' ] = maxCardWidth + 'px';
+			style[ '--cni-grid-card-track-alignment' ] = [ 'left', 'center', 'right' ].indexOf( attributes.cardMaxWidthAlignment ) !== -1 ? { left: 'start', center: 'center', right: 'end' }[ attributes.cardMaxWidthAlignment ] : 'start';
+		}
 
 		[
 			[ 'VerticalPc', paddingVerticalPc ],
@@ -130,6 +328,13 @@
 			style[ '--cni-grid-first-image-position' ] = [ 'top', 'bottom' ].indexOf( attributes.firstImagePosition ) !== -1 ? attributes.firstImagePosition : 'center';
 		}
 
+		if ( ! isCellGrid( attributes ) && flowArrowStyle( attributes.flowArrowStyle ) !== 'none' ) {
+			style[ '--cni-grid-flow-arrow-color' ] = attributes.flowArrowColor || '#1e73be';
+			style[ '--cni-grid-flow-arrow-size' ] = Math.max( 14, Math.min( 48, numberOr( attributes.flowArrowSize, 24 ) ) ) + 'px';
+			style[ '--cni-grid-flow-arrow-offset-y' ] = Math.max( -120, Math.min( 120, numberOr( attributes.flowArrowOffsetY, 0 ) ) ) + 'px';
+			style[ '--cni-grid-flow-arrow-offset-x' ] = Math.max( -80, Math.min( 80, numberOr( attributes.flowArrowOffsetX, 0 ) ) ) + 'px';
+		}
+
 		if ( isCellGrid( attributes ) ) {
 			const columnsPc = Math.max( 1, Math.min( 6, numberOr( attributes.cellColumnsPc, 3 ) ) );
 			const columnsTablet = Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnsTablet, 2 ) ) );
@@ -150,6 +355,17 @@
 			style[ '--cni-cell-horizontal-border-width' ] = cellBorderWidth( horizontalBorder ) + 'px';
 			style[ '--cni-cell-border-color' ] = borderColor;
 			style[ '--cni-cell-padding' ] = cellPadding( attributes.cellPadding ) + 'px';
+			[
+				[ 'Top', 'top' ],
+				[ 'Right', 'right' ],
+				[ 'Bottom', 'bottom' ],
+				[ 'Left', 'left' ],
+			].forEach( function( setting ) {
+				const value = cellSidePadding( attributes, setting[ 0 ] );
+				if ( value !== null ) {
+					style[ '--cni-cell-padding-' + setting[ 1 ] ] = value + 'px';
+				}
+			} );
 			style[ '--cni-cell-radius' ] = cellRadius( attributes.cellRadius ) + 'px';
 			style[ '--cni-cell-background' ] = attributes.cellTransparentBackground ? 'transparent' : ( attributes.cellBackgroundColor || '#ffffff' );
 			const verticalBorderWidth = cellBorderWidth( verticalBorder );
@@ -178,6 +394,16 @@
 			blockProps.className = 'cni-grid--flush-first-image';
 		}
 
+		if ( numberOr( attributes.cardMaxWidth, 0 ) > 0 && ! isCellGrid( attributes ) ) {
+			blockProps[ 'data-card-width-mode' ] = 'fixed';
+		}
+
+		if ( ! isCellGrid( attributes ) && flowArrowStyle( attributes.flowArrowStyle ) !== 'none' ) {
+			blockProps[ 'data-cni-flow-arrows' ] = flowArrowStyle( attributes.flowArrowStyle );
+			blockProps[ 'data-cni-flow-mobile-direction' ] = flowArrowMobileDirection( attributes.flowArrowMobileDirection );
+			blockProps[ 'data-cni-flow-vertical-align' ] = flowArrowVerticalAlign( attributes.flowArrowVerticalAlign );
+		}
+
 		if ( isCellGrid( attributes ) ) {
 			blockProps.className = ( blockProps.className ? blockProps.className + ' ' : '' ) + 'cni-grid--cell';
 			blockProps[ 'data-cell-transparent-background' ] = attributes.cellTransparentBackground ? '1' : '0';
@@ -188,6 +414,44 @@
 		}
 
 		return blockProps;
+	}
+
+	/* Kept for Grid+ blocks saved while flow arrows existed but did not yet
+	 * have their vertical-position controls. The new controls stay optional,
+	 * so old saved content remains valid until it is intentionally re-saved. */
+	function getLegacyFlowGridBlockProps( attributes ) {
+		const blockProps = getGridBlockProps( attributes );
+		if ( ! isCellGrid( attributes ) ) {
+			delete blockProps[ 'data-cni-flow-vertical-align' ];
+			if ( blockProps.style ) {
+				delete blockProps.style[ '--cni-grid-flow-arrow-offset-y' ];
+			}
+		}
+		return blockProps;
+	}
+
+	function legacyFlowGridSave( props ) {
+		const attributes = props.attributes;
+		const blockProps = blockEditor.useBlockProps.save( getLegacyFlowGridBlockProps( attributes ) );
+		if ( isCellGrid( attributes ) ) {
+			return el( 'div', blockProps,
+				el( 'div', { className: 'cni-cell-grid-scroll', tabIndex: 0, role: 'region', 'aria-label': __( 'セルグリッド', 'cni-blocks' ) },
+					el( 'div', { className: 'cni-cell-grid-content' }, el( InnerBlocks.Content ) )
+				),
+				attributes.cellMobileLayout === 'scroll' ? el( 'p', { className: 'cni-cell-grid-scroll-hint' }, __( '横にスワイプして表示できます', 'cni-blocks' ) ) : null
+			);
+		}
+
+		return el( 'div', blockProps, el( InnerBlocks.Content ) );
+	}
+
+	function legacyFlowPositionGridSave( props ) {
+		const attributes = props.attributes;
+		const legacyProps = getGridBlockProps( attributes );
+		if ( ! isCellGrid( attributes ) && legacyProps.style ) {
+			delete legacyProps.style[ '--cni-grid-flow-arrow-offset-x' ];
+		}
+		return el( 'div', blockEditor.useBlockProps.save( legacyProps ), el( InnerBlocks.Content ) );
 	}
 
 	/* Gutenberg adds its own inline grid columns to InnerBlocks in the editor.
@@ -251,6 +515,43 @@
 		} );
 	}
 
+	function flowArrowVerticalPosition( card, alignment ) {
+		const image = alignment !== 'card' ? card.querySelector( 'img' ) : null;
+		if ( ! image || ! image.getBoundingClientRect ) return 50;
+
+		const cardRect = card.getBoundingClientRect();
+		const imageRect = image.getBoundingClientRect();
+		if ( cardRect.height < 1 || imageRect.height < 1 ) return 50;
+
+		return Math.max( 0, Math.min( 100, ( ( imageRect.top - cardRect.top + imageRect.height / 2 ) / cardRect.height ) * 100 ) );
+	}
+
+	function updateEditorFlowArrows( container, enabled, isMobile, mobileDirection, verticalAlign ) {
+		const cards = Array.prototype.filter.call( container.children, function( child ) {
+			return child.classList.contains( 'wp-block-cni-blocks-grid-card' );
+		} );
+
+		cards.forEach( function( card ) {
+			card.removeAttribute( 'data-cni-flow-arrow' );
+			card.style.removeProperty( '--cni-grid-flow-arrow-y' );
+		} );
+
+		if ( ! enabled || cards.length < 2 || ( isMobile && mobileDirection === 'none' ) ) {
+			return;
+		}
+
+		cards.slice( 0, -1 ).forEach( function( card, index ) {
+			const next = cards[ index + 1 ];
+			const sameRow = Math.abs( card.offsetTop - next.offsetTop ) < 4;
+			if ( sameRow ) {
+				card.setAttribute( 'data-cni-flow-arrow', 'right' );
+				card.style.setProperty( '--cni-grid-flow-arrow-y', flowArrowVerticalPosition( card, verticalAlign ) + '%' );
+			} else if ( isMobile && mobileDirection === 'down' ) {
+				card.setAttribute( 'data-cni-flow-arrow', 'down' );
+			}
+		} );
+	}
+
 	blocks.registerBlockType( CARD_BLOCK, {
 		apiVersion: 3,
 		title: __( 'Grid+ Card', 'cni-blocks' ),
@@ -269,6 +570,7 @@
 			cellVerticalAlign: { type: 'string', default: 'top' },
 			cellColumnSpan: { type: 'number', default: 1 },
 			cellRowSpan: { type: 'number', default: 1 },
+			badge: { type: 'object', default: { enabled: false } },
 		},
 		supports: {
 			inserter: false,
@@ -280,7 +582,46 @@
 			const linkUrl = attributes.linkUrl || '';
 			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
 			const cellSettings = cellCardSettings( attributes );
-			const blockProps = useBlockProps( { style: cellSettings.style } );
+			const badge = badgeSettings( attributes );
+			const cardRef = useRef( null );
+			const blockProps = useBlockProps( { style: cellSettings.style, ref: cardRef } );
+			const setBadge = function( changes ) {
+				setAttributes( { badge: Object.assign( {}, badge, changes ) } );
+			};
+
+			useEffect( function() {
+				const card = cardRef.current;
+				if ( ! card || ! badge.enabled || badge.anchor !== 'media' ) {
+					if ( card ) clearBadgeMediaPosition( card );
+					return undefined;
+				}
+				const update = function() { updateBadgeMediaPosition( card ); };
+				const frame = window.requestAnimationFrame( update );
+				let observedMedia = firstBadgeMedia( card );
+				const observer = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver( update ) : null;
+				if ( observer ) {
+					observer.observe( card );
+					if ( observedMedia ) observer.observe( observedMedia );
+				}
+				const imageLoad = function() { update(); };
+				card.querySelectorAll( '.cni-grid-card__inner img' ).forEach( function( image ) { image.addEventListener( 'load', imageLoad ); } );
+				const mutations = typeof window.MutationObserver === 'function' ? new window.MutationObserver( function() {
+					const nextMedia = firstBadgeMedia( card );
+					if ( observer && nextMedia && nextMedia !== observedMedia ) observer.observe( nextMedia );
+					observedMedia = nextMedia;
+					update();
+				} ) : null;
+				const inner = card.querySelector( ':scope > .cni-grid-card__inner' );
+				if ( mutations && inner ) mutations.observe( inner, { childList: true, subtree: true } );
+				window.addEventListener( 'resize', update );
+				return function() {
+					window.cancelAnimationFrame( frame );
+					window.removeEventListener( 'resize', update );
+					if ( observer ) observer.disconnect();
+					if ( mutations ) mutations.disconnect();
+					card.querySelectorAll( '.cni-grid-card__inner img' ).forEach( function( image ) { image.removeEventListener( 'load', imageLoad ); } );
+				};
+			}, [ badge.enabled, badge.anchor ] );
 
 			return el(
 				element.Fragment,
@@ -343,7 +684,55 @@
 						el( SelectControl, { label: __( '縦位置', 'cni-blocks' ), value: cellSettings.vertical, options: [ { label: __( '上', 'cni-blocks' ), value: 'top' }, { label: __( '中央', 'cni-blocks' ), value: 'center' }, { label: __( '下', 'cni-blocks' ), value: 'bottom' } ], onChange: function( value ) { setAttributes( { cellVerticalAlign: value || 'top' } ); } } ),
 						el( RangeControl, { label: __( '横サイズ（セル数）', 'cni-blocks' ), value: cellSettings.columnSpan, min: 1, max: 4, onChange: function( value ) { setAttributes( { cellColumnSpan: Math.max( 1, Math.min( 4, numberOr( value, 1 ) ) ) } ); } } ),
 						el( RangeControl, { label: __( '縦サイズ（セル数）', 'cni-blocks' ), value: cellSettings.rowSpan, min: 1, max: 4, onChange: function( value ) { setAttributes( { cellRowSpan: Math.max( 1, Math.min( 4, numberOr( value, 1 ) ) ) } ); } } )
-					)
+					),
+					el(
+						PanelBody,
+						{ title: __( 'バッジ', 'cni-blocks' ), initialOpen: false },
+						el( ToggleControl, { label: __( 'バッジを表示', 'cni-blocks' ), checked: badge.enabled, onChange: function( value ) { setBadge( { enabled: !! value } ); } } ),
+						badge.enabled ? el( element.Fragment, null,
+							el( SelectControl, { label: __( 'バッジタイプ', 'cni-blocks' ), value: badge.type, options: [ { label: __( 'テキスト', 'cni-blocks' ), value: 'text' }, { label: __( 'Font Awesomeアイコン', 'cni-blocks' ), value: 'icon' }, { label: __( 'Font Awesome＋テキスト', 'cni-blocks' ), value: 'icon-text' }, { label: __( '画像', 'cni-blocks' ), value: 'image' } ], onChange: function( value ) { setBadge( { type: value } ); } } ),
+							( badge.type === 'text' || badge.type === 'icon-text' ) ? el( TextControl, { label: __( '表示する文字', 'cni-blocks' ), value: badge.text, onChange: function( value ) { setBadge( { text: value } ); } } ) : null,
+							( badge.type === 'icon' || badge.type === 'icon-text' ) ? el( element.Fragment, null,
+								el( SelectControl, { label: __( 'アイコン', 'cni-blocks' ), value: badge.icon, options: BADGE_ICON_OPTIONS, onChange: function( value ) { setBadge( { icon: sanitizeFontAwesomeClasses( value ) } ); } } ),
+								badge.type === 'icon-text' ? el( SelectControl, { label: __( 'アイコンの位置', 'cni-blocks' ), value: badge.iconPosition, options: [ { label: __( '左', 'cni-blocks' ), value: 'left' }, { label: __( '右', 'cni-blocks' ), value: 'right' } ], onChange: function( value ) { setBadge( { iconPosition: value === 'right' ? 'right' : 'left' } ); } } ) : null,
+								el( 'p', { className: 'components-base-control__help' }, __( 'サイト側でFont Awesomeが読み込まれていない場合、アイコンは表示されません。', 'cni-blocks' ) )
+							) : null,
+							badge.type === 'image' ? el( element.Fragment, null,
+								badge.imageUrl ? el( 'img', { className: 'cni-grid-card__badge-image-preview', src: badge.imageUrl, alt: '' } ) : null,
+								el( MediaUploadCheck, null, el( MediaUpload, { allowedTypes: [ 'image' ], value: badge.imageId || 0, onSelect: function( media ) { setBadge( { imageId: media.id || 0, imageUrl: media.url || '' } ); }, render: function( mediaProps ) { return el( Button, { variant: 'secondary', onClick: mediaProps.open }, badge.imageUrl ? __( '画像を変更', 'cni-blocks' ) : __( '画像を選択', 'cni-blocks' ) ); } } ) ),
+								badge.imageUrl ? el( Button, { variant: 'tertiary', isDestructive: true, onClick: function() { setBadge( { imageId: 0, imageUrl: '' } ); } }, __( '画像を削除', 'cni-blocks' ) ) : null
+							) : null,
+							el( 'p', { className: 'cni-grid-card__badge-control-label' }, __( '配置', 'cni-blocks' ) ),
+							el( 'div', { className: 'cni-grid-card__badge-position-grid', role: 'group', 'aria-label': __( 'バッジの配置', 'cni-blocks' ) }, BADGE_POSITIONS.map( function( item ) { return el( Button, { key: item[ 0 ], variant: badge.position === item[ 0 ] ? 'primary' : 'secondary', isPressed: badge.position === item[ 0 ], 'aria-pressed': badge.position === item[ 0 ], onClick: function() { setBadge( { position: item[ 0 ] } ); } }, item[ 1 ] ); } ) ),
+							( badge.type === 'text' || badge.type === 'icon-text' ) ? el( RangeControl, { label: __( '文字サイズ', 'cni-blocks' ), value: badge.textSize, min: 10, max: 96, onChange: function( value ) { setBadge( { textSize: clampNumber( value, 10, 96, 14 ) } ); } } ) : null,
+							( badge.type === 'icon' || badge.type === 'icon-text' ) ? el( RangeControl, { label: __( 'アイコンサイズ', 'cni-blocks' ), value: badge.iconSize, min: 10, max: 96, onChange: function( value ) { setBadge( { iconSize: clampNumber( value, 10, 96, 16 ) } ); } } ) : null,
+							badge.type === 'image' ? el( RangeControl, { label: __( '画像幅', 'cni-blocks' ), value: badge.imageWidth, min: 16, max: 640, onChange: function( value ) { setBadge( { imageWidth: clampNumber( value, 16, 640, 80 ) } ); } } ) : null,
+							el( RangeControl, { label: __( '横オフセット', 'cni-blocks' ), value: badge.offsetX, min: -160, max: 160, onChange: function( value ) { setBadge( { offsetX: clampNumber( value, -160, 160, 0 ) } ); } } ),
+							el( RangeControl, { label: __( '縦オフセット', 'cni-blocks' ), value: badge.offsetY, min: -160, max: 160, onChange: function( value ) { setBadge( { offsetY: clampNumber( value, -160, 160, 0 ) } ); } } )
+						) : null
+					),
+					badge.enabled ? el(
+						PanelBody,
+						{ title: __( 'バッジの詳細設定', 'cni-blocks' ), initialOpen: false },
+						el( SelectControl, { label: __( '配置基準', 'cni-blocks' ), value: badge.anchor, options: [ { label: __( '先頭のImage / Cover', 'cni-blocks' ), value: 'media' }, { label: __( 'カード全体', 'cni-blocks' ), value: 'card' } ], onChange: function( value ) { setBadge( { anchor: value === 'card' ? 'card' : 'media' } ); } } ),
+						badge.anchor === 'media' ? el( 'p', { className: 'components-base-control__help' }, __( '先頭がImageまたはCoverでない場合は、カード全体を基準に表示します。', 'cni-blocks' ) ) : null,
+						badge.type !== 'image' ? el( element.Fragment, null,
+							el( SelectControl, { label: __( 'テキストバッジの形', 'cni-blocks' ), value: badge.preset, options: [ { label: __( 'シンプル', 'cni-blocks' ), value: 'simple' }, { label: __( '角丸', 'cni-blocks' ), value: 'rounded' }, { label: __( 'カプセル', 'cni-blocks' ), value: 'pill' }, { label: __( 'アウトライン', 'cni-blocks' ), value: 'outline' }, { label: __( '丸型', 'cni-blocks' ), value: 'circle' } ], onChange: function( value ) { setBadge( { preset: value } ); } } ),
+							el( 'p', null, __( '文字・アイコンの色', 'cni-blocks' ) ),
+							el( ColorPalette, { value: badge.textColor, clearable: false, onChange: function( value ) { setBadge( { textColor: colorValue( value, '#ffffff' ) } ); } } ),
+							el( 'p', null, __( '背景色', 'cni-blocks' ) ),
+							el( ColorPalette, { value: badge.backgroundColor, clearable: false, onChange: function( value ) { setBadge( { backgroundColor: colorValue( value, '#1e73be' ) } ); } } )
+						) : null,
+						el( ToggleControl, { label: __( 'スマホ設定を個別指定', 'cni-blocks' ), checked: badge.mobileCustom, onChange: function( value ) { setBadge( { mobileCustom: !! value } ); } } ),
+						badge.mobileCustom ? el( element.Fragment, null,
+							el( ToggleControl, { label: __( 'スマホでは非表示', 'cni-blocks' ), checked: badge.mobileHidden, onChange: function( value ) { setBadge( { mobileHidden: !! value } ); } } ),
+							( badge.type === 'text' || badge.type === 'icon-text' ) ? el( RangeControl, { label: __( 'スマホの文字サイズ', 'cni-blocks' ), value: badge.mobileTextSize, min: 10, max: 96, onChange: function( value ) { setBadge( { mobileTextSize: clampNumber( value, 10, 96, badge.textSize ) } ); } } ) : null,
+							( badge.type === 'icon' || badge.type === 'icon-text' ) ? el( RangeControl, { label: __( 'スマホのアイコンサイズ', 'cni-blocks' ), value: badge.mobileIconSize, min: 10, max: 96, onChange: function( value ) { setBadge( { mobileIconSize: clampNumber( value, 10, 96, badge.iconSize ) } ); } } ) : null,
+							badge.type === 'image' ? el( RangeControl, { label: __( 'スマホの画像幅', 'cni-blocks' ), value: badge.mobileImageWidth, min: 16, max: 640, onChange: function( value ) { setBadge( { mobileImageWidth: clampNumber( value, 16, 640, badge.imageWidth ) } ); } } ) : null,
+							el( RangeControl, { label: __( 'スマホの横オフセット', 'cni-blocks' ), value: badge.mobileOffsetX, min: -160, max: 160, onChange: function( value ) { setBadge( { mobileOffsetX: clampNumber( value, -160, 160, badge.offsetX ) } ); } } ),
+							el( RangeControl, { label: __( 'スマホの縦オフセット', 'cni-blocks' ), value: badge.mobileOffsetY, min: -160, max: 160, onChange: function( value ) { setBadge( { mobileOffsetY: clampNumber( value, -160, 160, badge.offsetY ) } ); } } )
+						) : null
+					) : null
 				),
 				el(
 					'div',
@@ -355,7 +744,8 @@
 							templateLock: false,
 							renderAppender: InnerBlocks.ButtonBlockAppender,
 						} )
-					)
+					),
+					badgeMarkup( badge )
 				)
 			);
 		},
@@ -365,6 +755,7 @@
 			const hoverEffect = [ 'lift', 'darken', 'lift-darken', 'none' ].indexOf( attributes.hoverEffect ) !== -1 ? attributes.hoverEffect : 'lift';
 			const classes = [ 'has-cni-grid-card-link' ];
 			const cellSettings = cellCardSettings( attributes );
+			const badge = badgeSettings( attributes );
 
 			if ( hoverEffect !== 'lift' ) {
 				classes.push( 'cni-grid-card--hover-' + hoverEffect );
@@ -376,6 +767,10 @@
 				saveProps.className = ( saveProps.className ? saveProps.className + ' ' : '' ) + 'cni-grid-card--cell-configured';
 				saveProps.style = cellSettings.style;
 			}
+			if ( badge.enabled ) {
+				saveProps.className = ( saveProps.className ? saveProps.className + ' ' : '' ) + 'cni-grid-card--has-badge';
+				saveProps[ 'data-cni-grid-badge-anchor' ] = badge.anchor;
+			}
 
 			return el(
 				'div',
@@ -385,6 +780,7 @@
 					{ className: 'cni-grid-card__inner' },
 					el( InnerBlocks.Content )
 				),
+				badgeMarkup( badge ),
 				linkUrl && el( 'a', {
 					className: 'cni-grid-card__link',
 					href: linkUrl,
@@ -411,6 +807,8 @@
 			minWidthPc: { type: 'number', default: 280 },
 			minWidthTablet: { type: 'number', default: 0 },
 			minWidthMobile: { type: 'number', default: 0 },
+			cardMaxWidth: { type: 'number', default: 0 },
+			cardMaxWidthAlignment: { type: 'string', default: 'left' },
 			cardPaddingPc: { type: 'number', default: 24 },
 			cardPaddingTablet: { type: 'number', default: 20 },
 			cardPaddingMobile: { type: 'number', default: 16 },
@@ -427,6 +825,7 @@
 			gapHorizontal: { type: 'number', default: 24 },
 			gapVertical: { type: 'number', default: 24 },
 			cardBackgroundColor: { type: 'string', default: '#ffffff' },
+			cardTransparentBackground: { type: 'boolean', default: false },
 			cardRadius: { type: 'number', default: 8 },
 			cardShadow: { type: 'boolean', default: false },
 			cardBorder: { type: 'boolean', default: false },
@@ -435,6 +834,13 @@
 			equalHeight: { type: 'boolean', default: true },
 			alignButtonsBottom: { type: 'boolean', default: false },
 			centerLastRow: { type: 'boolean', default: false },
+			flowArrowStyle: { type: 'string', default: 'none' },
+			flowArrowColor: { type: 'string', default: '#1e73be' },
+			flowArrowSize: { type: 'number', default: 24 },
+			flowArrowMobileDirection: { type: 'string', default: 'down' },
+			flowArrowVerticalAlign: { type: 'string', default: 'auto' },
+			flowArrowOffsetY: { type: 'number', default: 0 },
+			flowArrowOffsetX: { type: 'number', default: 0 },
 			layoutMode: { type: 'string', default: 'grid' },
 			cellColumnsPc: { type: 'number', default: 3 },
 			cellColumnsTablet: { type: 'number', default: 2 },
@@ -447,10 +853,18 @@
 			cellHorizontalBorder: { type: 'string', default: '' },
 			cellBorderColor: { type: 'string', default: '#dddddd' },
 			cellPadding: { type: 'string', default: 'standard' },
+			cellPaddingTop: { type: 'number', default: -1 },
+			cellPaddingRight: { type: 'number', default: -1 },
+			cellPaddingBottom: { type: 'number', default: -1 },
+			cellPaddingLeft: { type: 'number', default: -1 },
 			cellRadius: { type: 'string', default: 'none' },
 			cellBackgroundColor: { type: 'string', default: '#ffffff' },
 			cellTransparentBackground: { type: 'boolean', default: false },
 		},
+		deprecated: [
+			{ save: legacyFlowPositionGridSave },
+			{ save: legacyFlowGridSave }
+		],
 		supports: {
 			align: [ 'wide', 'full' ],
 			anchor: true,
@@ -484,6 +898,7 @@
 
 				const update = function() {
 					centerIncompleteLastRow( layout, ! cellMode && !! attributes.centerLastRow );
+					updateEditorFlowArrows( layout, ! cellMode && flowArrowStyle( attributes.flowArrowStyle ) !== 'none', editorDevice === 'Mobile', flowArrowMobileDirection( attributes.flowArrowMobileDirection ), flowArrowVerticalAlign( attributes.flowArrowVerticalAlign ) );
 				};
 				const resizeObserver = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver( update ) : null;
 				const mutationObserver = typeof window.MutationObserver === 'function' ? new window.MutationObserver( update ) : null;
@@ -504,7 +919,7 @@
 						mutationObserver.disconnect();
 					}
 				};
-			}, [ attributes.centerLastRow, cellMode, props.clientId ] );
+			}, [ attributes.centerLastRow, attributes.flowArrowStyle, attributes.flowArrowMobileDirection, attributes.flowArrowVerticalAlign, cellMode, editorDevice, props.clientId ] );
 
 			element.useEffect( function() {
 				const grid = gridRef.current;
@@ -539,6 +954,11 @@
 						el( SelectControl, { label: __( '横の区切り線', 'cni-blocks' ), value: cellBorderValue( attributes.cellHorizontalBorder, cellBorderValue( attributes.cellInnerBorder, 'thin' ) ), options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '細い（1px）', 'cni-blocks' ), value: 'thin' }, { label: __( '標準（2px）', 'cni-blocks' ), value: 'standard' }, { label: __( '太い（4px）', 'cni-blocks' ), value: 'thick' } ], onChange: function( value ) { setAttributes( { cellHorizontalBorder: value || 'none' } ); } } ),
 						el( 'p', null, __( '罫線色', 'cni-blocks' ) ), el( ColorPalette, { value: attributes.cellBorderColor || '#dddddd', clearable: false, onChange: function( value ) { setAttributes( { cellBorderColor: value || '#dddddd' } ); } } ),
 						el( SelectControl, { label: __( 'セル内余白', 'cni-blocks' ), value: attributes.cellPadding || 'standard', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '小', 'cni-blocks' ), value: 'small' }, { label: __( '標準', 'cni-blocks' ), value: 'standard' }, { label: __( '大', 'cni-blocks' ), value: 'large' }, { label: __( '特大', 'cni-blocks' ), value: 'xlarge' } ], onChange: function( value ) { setAttributes( { cellPadding: value || 'standard' } ); } } ),
+						el( 'p', { className: 'components-base-control__help' }, __( '上下左右を個別指定できます。指定していない辺は、上の一律余白を使用します。', 'cni-blocks' ) ),
+						el( RangeControl, { label: __( '上の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Top' ) !== null ? cellSidePadding( attributes, 'Top' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingTop: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
+						el( RangeControl, { label: __( '右の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Right' ) !== null ? cellSidePadding( attributes, 'Right' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingRight: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
+						el( RangeControl, { label: __( '下の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Bottom' ) !== null ? cellSidePadding( attributes, 'Bottom' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingBottom: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
+						el( RangeControl, { label: __( '左の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Left' ) !== null ? cellSidePadding( attributes, 'Left' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingLeft: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
 						el( SelectControl, { label: __( '外側の角丸', 'cni-blocks' ), value: attributes.cellRadius || 'none', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '小', 'cni-blocks' ), value: 'small' }, { label: __( '中', 'cni-blocks' ), value: 'medium' }, { label: __( '大', 'cni-blocks' ), value: 'large' } ], onChange: function( value ) { setAttributes( { cellRadius: value || 'none' } ); } } ),
 						el( ToggleControl, { label: __( 'セル背景を透明にする', 'cni-blocks' ), checked: !! attributes.cellTransparentBackground, help: __( '透明時は縦の区切り線だけを表示します。', 'cni-blocks' ), onChange: function( value ) { setAttributes( value ? { cellTransparentBackground: true, cellHorizontalBorder: 'none' } : { cellTransparentBackground: false } ); } } ),
 						! attributes.cellTransparentBackground ? el( element.Fragment, null, el( 'p', null, __( 'セルの標準背景色', 'cni-blocks' ) ), el( ColorPalette, { value: attributes.cellBackgroundColor || '#ffffff', clearable: false, onChange: function( value ) { setAttributes( { cellBackgroundColor: value || '#ffffff' } ); } } ) ) : null
@@ -569,7 +989,22 @@
 							max: 600,
 							step: 10,
 							onChange: function( value ) { setAttributes( { minWidthMobile: numberOr( value, 0 ) } ); },
-						} )
+						} ),
+						! cellMode ? el( RangeControl, {
+							label: __( 'カードの最大幅（px・0で制限なし）', 'cni-blocks' ),
+							help: __( '1件・2件でもカードを横幅いっぱいへ伸ばさず、設定幅で表示します。', 'cni-blocks' ),
+							value: numberOr( attributes.cardMaxWidth, 0 ),
+							min: 0,
+							max: 960,
+							step: 10,
+							onChange: function( value ) { setAttributes( { cardMaxWidth: numberOr( value, 0 ) } ); },
+						} ) : null,
+						! cellMode && numberOr( attributes.cardMaxWidth, 0 ) > 0 ? el( SelectControl, {
+							label: __( 'カードの配置', 'cni-blocks' ),
+							value: attributes.cardMaxWidthAlignment || 'left',
+							options: [ { label: __( '左寄せ', 'cni-blocks' ), value: 'left' }, { label: __( '中央寄せ', 'cni-blocks' ), value: 'center' }, { label: __( '右寄せ', 'cni-blocks' ), value: 'right' } ],
+							onChange: function( value ) { setAttributes( { cardMaxWidthAlignment: value || 'left' } ); },
+						} ) : null
 					),
 					el(
 					PanelBody,
@@ -627,17 +1062,43 @@
 						el( RangeControl, { label: __( '横gap（px）', 'cni-blocks' ), value: numberOr( attributes.gapHorizontal, 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { gapHorizontal: numberOr( value, 24 ) } ); } } ),
 						el( RangeControl, { label: __( '縦gap（px）', 'cni-blocks' ), value: numberOr( attributes.gapVertical, 24 ), min: 0, max: 100, onChange: function( value ) { setAttributes( { gapVertical: numberOr( value, 24 ) } ); } } )
 					),
+					! cellMode ? el(
+						PanelBody,
+						{ title: __( 'フロー矢印', 'cni-blocks' ), initialOpen: false },
+						el( SelectControl, {
+							label: __( '矢印のデザイン', 'cni-blocks' ),
+							value: flowArrowStyle( attributes.flowArrowStyle ),
+							options: [
+								{ label: __( '表示しない', 'cni-blocks' ), value: 'none' },
+								{ label: __( '矢印', 'cni-blocks' ), value: 'arrow' },
+								{ label: __( '山形', 'cni-blocks' ), value: 'chevron' },
+								{ label: __( '丸付き矢印', 'cni-blocks' ), value: 'circle' },
+							],
+							onChange: function( value ) { setAttributes( { flowArrowStyle: flowArrowStyle( value ) } ); },
+						} ),
+						flowArrowStyle( attributes.flowArrowStyle ) !== 'none' ? el( element.Fragment, null,
+							el( 'p', null, __( '矢印の色', 'cni-blocks' ) ),
+							el( ColorPalette, { value: attributes.flowArrowColor || '#1e73be', clearable: false, onChange: function( value ) { setAttributes( { flowArrowColor: value || '#1e73be' } ); } } ),
+							el( RangeControl, { label: __( '矢印のサイズ（px）', 'cni-blocks' ), value: Math.max( 14, Math.min( 48, numberOr( attributes.flowArrowSize, 24 ) ) ), min: 14, max: 48, onChange: function( value ) { setAttributes( { flowArrowSize: Math.max( 14, Math.min( 48, numberOr( value, 24 ) ) ) } ); } } ),
+							el( SelectControl, { label: __( '縦位置', 'cni-blocks' ), value: flowArrowVerticalAlign( attributes.flowArrowVerticalAlign ), options: [ { label: __( '自動（先頭画像の中央・なければカード中央）', 'cni-blocks' ), value: 'auto' }, { label: __( 'カード中央', 'cni-blocks' ), value: 'card' }, { label: __( '先頭画像の中央', 'cni-blocks' ), value: 'image' } ], onChange: function( value ) { setAttributes( { flowArrowVerticalAlign: flowArrowVerticalAlign( value ) } ); } } ),
+							el( RangeControl, { label: __( '縦位置の微調整（px）', 'cni-blocks' ), value: Math.max( -120, Math.min( 120, numberOr( attributes.flowArrowOffsetY, 0 ) ) ), min: -120, max: 120, onChange: function( value ) { setAttributes( { flowArrowOffsetY: Math.max( -120, Math.min( 120, numberOr( value, 0 ) ) ) } ); } } ),
+							el( RangeControl, { label: __( '横位置の微調整（px）', 'cni-blocks' ), value: Math.max( -80, Math.min( 80, numberOr( attributes.flowArrowOffsetX, 0 ) ) ), min: -80, max: 80, onChange: function( value ) { setAttributes( { flowArrowOffsetX: Math.max( -80, Math.min( 80, numberOr( value, 0 ) ) ) } ); } } ),
+							el( SelectControl, { label: __( 'モバイル時の向き', 'cni-blocks' ), value: flowArrowMobileDirection( attributes.flowArrowMobileDirection ), options: [ { label: __( '下向き（標準）', 'cni-blocks' ), value: 'down' }, { label: __( '右向き', 'cni-blocks' ), value: 'right' }, { label: __( '表示しない', 'cni-blocks' ), value: 'none' } ], onChange: function( value ) { setAttributes( { flowArrowMobileDirection: flowArrowMobileDirection( value ) } ); } } ),
+							el( 'p', { className: 'components-base-control__help' }, __( 'カードの実際の並びに合わせて、同じ行は右、次の行は下へつなぎます。モバイルの右向きは同じ行のカード間だけに表示します。', 'cni-blocks' ) )
+						) : null
+					) : null,
 					el(
 						PanelBody,
 						{ title: __( 'カードデザイン', 'cni-blocks' ), initialOpen: false },
 						el( ToggleControl, { label: __( 'カード背景を透明にする', 'cni-blocks' ), checked: !! attributes.cardTransparentBackground, help: __( '枠線・角丸・影の設定は維持されます。', 'cni-blocks' ), onChange: function( value ) { setAttributes( { cardTransparentBackground: !! value } ); } } ),
 						! attributes.cardTransparentBackground ? el( element.Fragment, null,
 							el( 'p', null, __( 'カード背景色', 'cni-blocks' ) ),
-							el( ColorPalette, {
-								value: attributes.cardBackgroundColor || '#ffffff',
-								onChange: function( value ) { setAttributes( { cardBackgroundColor: value || '#ffffff' } ); },
-								clearable: false,
-							} )
+							el( ColorPicker, {
+								color: attributes.cardBackgroundColor || '#ffffff',
+								enableAlpha: false,
+								onChange: function( value ) { setAttributes( { cardBackgroundColor: colorValue( value, '#ffffff' ) } ); },
+							} ),
+							el( 'p', { className: 'components-base-control__help' }, __( '色をドラッグしても、カラーピッカーの位置は動きません。', 'cni-blocks' ) )
 						) : null,
 						el( RangeControl, { label: __( '角丸（px）', 'cni-blocks' ), value: numberOr( attributes.cardRadius, 8 ), min: 0, max: 80, onChange: function( value ) { setAttributes( { cardRadius: numberOr( value, 8 ) } ); } } ),
 						el( ToggleControl, { label: __( '影を表示', 'cni-blocks' ), checked: !!attributes.cardShadow, onChange: function( value ) { setAttributes( { cardShadow: !!value } ); } } ),

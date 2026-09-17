@@ -75,6 +75,10 @@
       "type": "boolean",
       "default": false
     },
+    "heroLayout": {
+      "type": "string",
+      "default": "content"
+    },
     "tabletBackgroundImageId": {
       "type": "number",
       "default": 0
@@ -259,6 +263,10 @@
       "type": "number",
       "default": 2
     },
+    "topDividerCloudHeightMobile": {
+      "type": "number",
+      "default": 0
+    },
     "topDividerDirection": {
       "type": "string",
       "default": "inward"
@@ -290,6 +298,10 @@
     "bottomDividerCloudDensity": {
       "type": "number",
       "default": 2
+    },
+    "bottomDividerCloudHeightMobile": {
+      "type": "number",
+      "default": 0
     },
     "bottomDividerDirection": {
       "type": "string",

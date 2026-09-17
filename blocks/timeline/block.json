@@ -7,6 +7,7 @@
   "description": "時刻や日付、工程などのラベルと自由な内容を時系列で表示します。",
   "textdomain": "cni-blocks",
   "attributes": {
+    "layoutMode": { "type": "string", "default": "timeline" },
     "markerStyle": { "type": "string", "default": "outline" },
     "markerSize": { "type": "number", "default": 16 },
     "markerColor": { "type": "string", "default": "#2385b8" },
@@ -17,7 +18,13 @@
     "showLine": { "type": "boolean", "default": true },
     "lineStyle": { "type": "string", "default": "solid" },
     "lineWidth": { "type": "number", "default": 3 },
-    "lineColor": { "type": "string", "default": "#dddddd" }
+    "lineColor": { "type": "string", "default": "#dddddd" },
+    "historyDateColor": { "type": "string", "default": "#456c48" },
+    "historyDateFontSize": { "type": "number", "default": 20 },
+    "historyDateFontSizeMobile": { "type": "number", "default": 16 },
+    "historyDateFontWeight": { "type": "string", "default": "600" },
+    "historyDateColumnWidth": { "type": "number", "default": 180 },
+    "historyColumnGap": { "type": "number", "default": 28 }
   },
   "allowedBlocks": [ "cni-blocks/timeline-item" ],
   "supports": {

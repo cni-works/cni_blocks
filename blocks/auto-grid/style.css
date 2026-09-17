@@ -14,6 +14,12 @@
 	align-items: start;
 }
 
+.wp-block-cni-blocks-auto-grid[data-card-width-mode="fixed"],
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-card-width-mode="fixed"] > .block-editor-inner-blocks > .block-editor-block-list__layout {
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cni-grid-min-width-current, 280px)), var(--cni-grid-card-max-width, 280px)));
+	justify-content: var(--cni-grid-card-track-alignment, start);
+}
+
 /* Cell grid mode: the container background becomes the shared grid line.
  * A spanning cell covers the gap between its tracks, so lines never double. */
 .wp-block-cni-blocks-auto-grid.cni-grid--cell {
@@ -69,7 +75,7 @@
 .wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card {
 	min-width: 0;
 	height: auto;
-	padding: var(--cni-cell-padding, 24px);
+	padding: var(--cni-cell-padding-top, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-right, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-bottom, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-left, var(--cni-cell-padding, 24px));
 	border: 0;
 	border-radius: 0;
 	background: var(--cni-cell-background, #fff);
@@ -111,6 +117,90 @@
 	border-radius: var(--cni-grid-card-radius, 8px);
 	background: var(--cni-grid-card-background, #fff);
 	box-shadow: var(--cni-grid-card-shadow, none);
+}
+
+/* Flow arrows are attached to the actual card sequence by view.js/editor JS.
+ * This keeps arrows out of a wrapped row's empty edge in auto-fit grids. */
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before {
+	position: absolute;
+	z-index: 6;
+	display: grid;
+	width: var(--cni-grid-flow-arrow-size, 24px);
+	height: var(--cni-grid-flow-arrow-size, 24px);
+	color: var(--cni-grid-flow-arrow-color, #1e73be);
+	font-family: sans-serif;
+	font-size: var(--cni-grid-flow-arrow-size, 24px);
+	font-weight: 700;
+	line-height: 1;
+	place-items: center;
+	pointer-events: none;
+	content: '→';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before {
+	box-sizing: border-box;
+	width: calc(var(--cni-grid-flow-arrow-size, 24px) * .62);
+	height: calc(var(--cni-grid-flow-arrow-size, 24px) * .62);
+	border: solid currentColor;
+	border-width: 0 calc(var(--cni-grid-flow-arrow-size, 24px) * .14) calc(var(--cni-grid-flow-arrow-size, 24px) * .14) 0;
+	background: transparent;
+	content: '';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="arrow"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="arrow"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before {
+	width: var(--cni-grid-flow-arrow-size, 24px);
+	height: calc(var(--cni-grid-flow-arrow-size, 24px) * .56);
+	background: currentColor;
+	clip-path: polygon(0 38%, 58% 38%, 58% 0, 100% 50%, 58% 100%, 58% 62%, 0 62%);
+	content: '';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="circle"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="circle"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow]::before {
+	border: 1px solid currentColor;
+	border-radius: 50%;
+	font-size: calc(var(--cni-grid-flow-arrow-size, 24px) * .72);
+	content: '→';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="right"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="right"]::before {
+	top: var(--cni-grid-flow-arrow-y, 50%);
+	left: calc(100% + (var(--cni-grid-gap-x, 24px) / 2));
+	transform: translate(calc(-50% + var(--cni-grid-flow-arrow-offset-x, 0px)), calc(-50% + var(--cni-grid-flow-arrow-offset-y, 0px)));
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="right"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="right"]::before {
+	transform: translate(calc(-50% + var(--cni-grid-flow-arrow-offset-x, 0px)), calc(-50% + var(--cni-grid-flow-arrow-offset-y, 0px))) rotate(-45deg);
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before {
+	bottom: calc((var(--cni-grid-gap-y, 24px) + var(--cni-grid-flow-arrow-size, 24px)) / -2);
+	left: 50%;
+	transform: translateX(calc(-50% + var(--cni-grid-flow-arrow-offset-x, 0px)));
+	content: '↓';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="arrow"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="arrow"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before {
+	transform: translateX(calc(-50% + var(--cni-grid-flow-arrow-offset-x, 0px))) rotate(90deg);
+	content: '';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="chevron"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before {
+	transform: translateX(calc(-50% + var(--cni-grid-flow-arrow-offset-x, 0px))) rotate(45deg);
+	content: '';
+}
+
+.wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="circle"] > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows="circle"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card[data-cni-flow-arrow="down"]::before {
+	content: '↓';
 }
 
 .wp-block-cni-blocks-grid-card.has-cni-grid-card-link {
@@ -213,6 +303,161 @@
 	flex-direction: column;
 	min-width: 0;
 	height: 100%;
+}
+
+/* A card badge stays outside InnerBlocks, so it remains a decorative layer
+ * and never changes the user's block order. The media-anchor variables are
+ * only filled by the targeted editor/front-end observer when needed. */
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge {
+	position: absolute;
+	z-index: 5;
+	display: inline-flex;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: center;
+	gap: .4em;
+	min-height: 1.8em;
+	padding: .35em .7em;
+	background: var(--cni-grid-badge-background, #1e73be);
+	color: var(--cni-grid-badge-text-color, #fff);
+	font-size: var(--cni-grid-badge-text-size, 14px);
+	font-weight: 700;
+	line-height: 1.15;
+	text-align: center;
+	pointer-events: none;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--preset-rounded {
+	border-radius: .45em;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--preset-pill {
+	border-radius: 999px;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--preset-outline {
+	border: 1px solid currentColor;
+	background: transparent;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--preset-circle {
+	min-width: 2.4em;
+	min-height: 2.4em;
+	padding: .35em;
+	border-radius: 50%;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--icon {
+	font-size: var(--cni-grid-badge-icon-size, 16px);
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge-icon {
+	/* Lightning applies a generic right margin to every <i>. Badge spacing is
+	 * controlled by the wrapper's gap, so reset only this decorative icon. */
+	margin: 0 !important;
+	font-size: var(--cni-grid-badge-icon-size, 16px);
+	line-height: 1;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--image {
+	min-height: 0;
+	padding: 0;
+	background: transparent;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--image > img {
+	display: block;
+	width: var(--cni-grid-badge-image-width, 80px);
+	height: auto;
+	max-width: none;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge-placeholder {
+	display: grid;
+	width: var(--cni-grid-badge-image-width, 80px);
+	min-height: 2.4em;
+	border: 1px dashed currentColor;
+	place-items: center;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--top-left {
+	left: var(--cni-grid-badge-anchor-left, 0px);
+	top: var(--cni-grid-badge-anchor-top, 0px);
+	transform: translate(var(--cni-grid-badge-offset-x), var(--cni-grid-badge-offset-y));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--top-center {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + (var(--cni-grid-badge-anchor-width, 100%) / 2));
+	top: var(--cni-grid-badge-anchor-top, 0px);
+	transform: translate(calc(-50% + var(--cni-grid-badge-offset-x)), var(--cni-grid-badge-offset-y));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--top-right {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + var(--cni-grid-badge-anchor-width, 100%));
+	top: var(--cni-grid-badge-anchor-top, 0px);
+	transform: translate(calc(-100% + var(--cni-grid-badge-offset-x)), var(--cni-grid-badge-offset-y));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--middle-left {
+	left: var(--cni-grid-badge-anchor-left, 0px);
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + (var(--cni-grid-badge-anchor-height, 100%) / 2));
+	transform: translate(var(--cni-grid-badge-offset-x), calc(-50% + var(--cni-grid-badge-offset-y)));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--middle-center {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + (var(--cni-grid-badge-anchor-width, 100%) / 2));
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + (var(--cni-grid-badge-anchor-height, 100%) / 2));
+	transform: translate(calc(-50% + var(--cni-grid-badge-offset-x)), calc(-50% + var(--cni-grid-badge-offset-y)));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--middle-right {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + var(--cni-grid-badge-anchor-width, 100%));
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + (var(--cni-grid-badge-anchor-height, 100%) / 2));
+	transform: translate(calc(-100% + var(--cni-grid-badge-offset-x)), calc(-50% + var(--cni-grid-badge-offset-y)));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--bottom-left {
+	left: var(--cni-grid-badge-anchor-left, 0px);
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + var(--cni-grid-badge-anchor-height, 100%));
+	transform: translate(var(--cni-grid-badge-offset-x), calc(-100% + var(--cni-grid-badge-offset-y)));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--bottom-center {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + (var(--cni-grid-badge-anchor-width, 100%) / 2));
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + var(--cni-grid-badge-anchor-height, 100%));
+	transform: translate(calc(-50% + var(--cni-grid-badge-offset-x)), calc(-100% + var(--cni-grid-badge-offset-y)));
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--bottom-right {
+	left: calc(var(--cni-grid-badge-anchor-left, 0px) + var(--cni-grid-badge-anchor-width, 100%));
+	top: calc(var(--cni-grid-badge-anchor-top, 0px) + var(--cni-grid-badge-anchor-height, 100%));
+	transform: translate(calc(-100% + var(--cni-grid-badge-offset-x)), calc(-100% + var(--cni-grid-badge-offset-y)));
+}
+
+.editor-styles-wrapper .cni-grid-card__badge-position-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 4px;
+	margin: 0 0 16px;
+}
+
+.editor-styles-wrapper .cni-grid-card__badge-position-grid .components-button {
+	justify-content: center;
+	min-height: 32px;
+	padding: 4px;
+	font-size: 11px;
+}
+
+.editor-styles-wrapper .cni-grid-card__badge-control-label {
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.editor-styles-wrapper .cni-grid-card__badge-image-preview {
+	display: block;
+	width: 96px;
+	height: auto;
+	margin: 0 0 10px;
 }
 
 .wp-block-cni-blocks-auto-grid.cni-grid--flush-first-image > .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image:first-child,
@@ -381,7 +626,7 @@
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
 	min-width: 0;
 	height: auto;
-	padding: var(--cni-cell-padding, 24px);
+	padding: var(--cni-cell-padding-top, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-right, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-bottom, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-left, var(--cni-cell-padding, 24px));
 	border: 0;
 	border-radius: 0;
 	background: var(--cni-cell-background, #fff);
@@ -425,7 +670,7 @@
 
 	.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card,
 	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
-		padding: var(--cni-cell-padding, 24px);
+		padding: var(--cni-cell-padding-top, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-right, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-bottom, var(--cni-cell-padding, 24px)) var(--cni-cell-padding-left, var(--cni-cell-padding, 24px));
 	}
 
 	.wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-transparent-background="1"] .cni-cell-grid-content::before {
@@ -434,6 +679,18 @@
 }
 
 @media (max-width: 781px) {
+	.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--mobile-hidden {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--mobile-custom:not(.cni-grid-card__badge--mobile-hidden) {
+		--cni-grid-badge-text-size: var(--cni-grid-badge-mobile-text-size, 14px);
+		--cni-grid-badge-icon-size: var(--cni-grid-badge-mobile-icon-size, 16px);
+		--cni-grid-badge-image-width: var(--cni-grid-badge-mobile-image-width, 80px);
+		--cni-grid-badge-offset-x: var(--cni-grid-badge-mobile-offset-x, 0px);
+		--cni-grid-badge-offset-y: var(--cni-grid-badge-mobile-offset-y, 0px);
+	}
+
 	.wp-block-cni-blocks-auto-grid {
 		--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-mobile, var(--cni-grid-card-padding-mobile, 16px));
 		--cni-grid-card-current-padding-y: var(--cni-grid-card-padding-v-mobile, var(--cni-grid-card-padding-mobile, 16px));
@@ -494,7 +751,7 @@
 
 	.wp-block-cni-blocks-auto-grid.cni-grid--cell .wp-block-cni-blocks-grid-card,
 	.editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
-		padding: min(var(--cni-cell-padding, 24px), 16px);
+		padding: var(--cni-cell-padding-top, min(var(--cni-cell-padding, 24px), 16px)) var(--cni-cell-padding-right, min(var(--cni-cell-padding, 24px), 16px)) var(--cni-cell-padding-bottom, min(var(--cni-cell-padding, 24px), 16px)) var(--cni-cell-padding-left, min(var(--cni-cell-padding, 24px), 16px));
 		grid-column: auto;
 		grid-row: auto;
 	}
@@ -522,6 +779,21 @@
 
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-editor-device="Mobile"][data-cell-transparent-background="1"][data-cell-mobile-layout="scroll"] > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout::before {
 	background-image: var(--cni-cell-vertical-line-gradient-pc, none);
+}
+
+/* Gutenberg's device preview can keep the editor canvas wider than the
+ * selected device. Mirror the badge's mobile values from Grid+'s existing
+ * device marker so its preview stays aligned with the front-end CSS. */
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-editor-device="Mobile"] .wp-block-cni-blocks-grid-card > .cni-grid-card__badge--mobile-hidden {
+	display: none;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-editor-device="Mobile"] .wp-block-cni-blocks-grid-card > .cni-grid-card__badge--mobile-custom:not(.cni-grid-card__badge--mobile-hidden) {
+	--cni-grid-badge-text-size: var(--cni-grid-badge-mobile-text-size, 14px);
+	--cni-grid-badge-icon-size: var(--cni-grid-badge-mobile-icon-size, 16px);
+	--cni-grid-badge-image-width: var(--cni-grid-badge-mobile-image-width, 80px);
+	--cni-grid-badge-offset-x: var(--cni-grid-badge-mobile-offset-x, 0px);
+	--cni-grid-badge-offset-y: var(--cni-grid-badge-mobile-offset-y, 0px);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -29,6 +29,11 @@
 		'arch',
 		'curve-flex',
 	];
+	const HERO_LAYOUTS = [ 'content', 'extend-main', 'full-width' ];
+
+	function normalizeHeroLayout( value ) {
+		return HERO_LAYOUTS.indexOf( value ) !== -1 ? value : 'content';
+	}
 
 	function normalizeDividerType( value ) {
 		return DIVIDER_TYPES.indexOf( value ) !== -1 ? value : 'none';
@@ -95,6 +100,42 @@
 		}
 	}
 
+	function outwardCutoutPath( type, cloudDensity, shapeWidth, zigzagCount ) {
+		const center = 600;
+		let halfWidth;
+		let left;
+		let right;
+		let hole;
+
+		switch ( normalizeDividerType( type ) ) {
+			case 'triangle-flex':
+				halfWidth = 600 * shapeWidthInRange( shapeWidth, 5, 18 ) / 100;
+				left = center - halfWidth;
+				right = center + halfWidth;
+				hole = 'M' + left + ' -1 L600 120 L' + right + ' -1 Z';
+				break;
+			case 'curve-flex':
+				halfWidth = 600 * shapeWidthInRange( shapeWidth, 30, 100 ) / 100;
+				left = center - halfWidth;
+				right = center + halfWidth;
+				hole = 'M' + left + ' -1 Q600 120 ' + right + ' -1 Z';
+				break;
+			case 'zigzag':
+				zigzagCount = Math.round( numberInRange( zigzagCount, 3, 30, 6 ) );
+				hole = 'M0 -1';
+				for ( let index = 0; index < zigzagCount; index++ ) {
+					const step = 1200 / zigzagCount;
+					hole += ' L' + ( ( index + 0.5 ) * step ) + ' 120 L' + ( ( index + 1 ) * step ) + ' -1';
+				}
+				hole += ' Z';
+				break;
+			default:
+				return '';
+		}
+
+		return 'M0 0 H1200 V120 H0 Z ' + hole;
+	}
+
 	function legacyDividerPath( type, cloudDensity, direction, shapeWidth, zigzagCount ) {
 		if ( normalizeDividerType( type ) !== 'curve-flex' ) {
 			return dividerPath( type, cloudDensity, direction, shapeWidth, zigzagCount );
@@ -138,7 +179,9 @@
 			[ 1114, 84, 40, 38 ], [ 1159, 57, 53, 57 ], [ 1216, 91, 45, 31 ],
 		];
 
-		return [ el( 'rect', { key: 'base', x: 0, y: 96, width: 1200, height: 24 } ) ].concat(
+		/* Overlap the cloud ellipses with the base so mobile SVG rasterization
+		 * cannot reveal a hairline seam between the two filled shapes. */
+		return [ el( 'rect', { key: 'base', x: 0, y: 80, width: 1200, height: 40 } ) ].concat(
 			clouds.map( function( cloud, index ) {
 				return el( 'ellipse', {
 					key: 'cloud-' + index,
@@ -151,35 +194,49 @@
 		);
 	}
 
-	function dividerElement( position, attributes, pathGenerator ) {
+	function dividerElement( position, attributes, pathGenerator, options ) {
+		options = options || {};
 		const prefix = position === 'top' ? 'top' : 'bottom';
 		const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
 		if ( type === 'none' ) return null;
 
 		const height = numberInRange( attributes[ prefix + 'DividerHeight' ], 20, 240, 80 );
 		const density = numberInRange( attributes[ prefix + 'DividerCloudDensity' ], 1, 3, 2 );
+		const mobileCloudHeight = type === 'cloud'
+			? numberInRange( attributes[ prefix + 'DividerCloudHeightMobile' ], 0, 160, 0 )
+			: 0;
 		const direction = attributes[ prefix + 'DividerDirection' ] === 'outward' ? 'outward' : 'inward';
 		const shapeWidth = attributes[ prefix + 'DividerShapeWidth' ];
 		const zigzagCount = attributes[ prefix + 'DividerZigzagCount' ];
 		const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
+		const isOutward = supportsDirection && direction === 'outward';
+		const configuredColor = attributes[ prefix + 'DividerColor' ] || '#ffffff';
+		const backgroundColor = outwardDividerColor( attributes, configuredColor );
+		const usesCutout = isOutward && ! options.legacyOutward;
 		const className = 'cni-outer__divider cni-outer__divider--' + position +
+			( options.omitTypeClass ? '' : ' cni-outer__divider--' + type ) +
 			( attributes[ prefix + 'DividerFlip' ] ? ' is-flipped' : '' ) +
-			( supportsDirection && direction === 'outward' ? ' is-outward' : '' );
+			( isOutward ? ' is-outward' : '' );
 
 		return el(
 			'div',
 			{
 				className: className,
-				style: {
+				style: Object.assign( {
 					'--cni-outer-divider-height': height + 'px',
-					'--cni-outer-divider-color': attributes[ prefix + 'DividerColor' ] || '#ffffff',
-				},
+					'--cni-outer-divider-color': options.legacyOutward && isOutward ? backgroundColor : configuredColor,
+				}, mobileCloudHeight > 0 ? { '--cni-outer-divider-mobile-height': mobileCloudHeight + 'px' } : {} ),
 				'aria-hidden': 'true',
 			},
 			el(
 				'svg',
 				{ viewBox: type === 'cloud' ? '0 -20 1200 140' : '0 0 1200 120', preserveAspectRatio: 'none', focusable: 'false' },
-				type === 'cloud' ? cloudElements( density ) : el( 'path', { d: ( pathGenerator || dividerPath )( type, density, direction, shapeWidth, zigzagCount ) } )
+				type === 'cloud'
+					? cloudElements( density )
+					: el( 'path', usesCutout
+						? { d: outwardCutoutPath( type, density, shapeWidth, zigzagCount ), fillRule: 'evenodd' }
+						: { d: ( pathGenerator || dividerPath )( type, density, direction, shapeWidth, zigzagCount ) }
+					)
 			)
 		);
 	}
@@ -211,6 +268,7 @@
 		const heightKey = prefix + 'DividerHeight';
 		const flipKey = prefix + 'DividerFlip';
 		const densityKey = prefix + 'DividerCloudDensity';
+		const mobileCloudHeightKey = prefix + 'DividerCloudHeightMobile';
 		const directionKey = prefix + 'DividerDirection';
 		const shapeWidthKey = prefix + 'DividerShapeWidth';
 		const zigzagCountKey = prefix + 'DividerZigzagCount';
@@ -261,7 +319,7 @@
 				],
 				onChange: function( value ) { update( directionKey, value === 'outward' ? 'outward' : 'inward' ); },
 			} ) : null,
-			type !== 'none' ? el( 'p', null, supportsDirection && direction === 'outward' ? __( '突き出す部分の色', 'cni-blocks' ) : __( '区切られ側の色', 'cni-blocks' ) ) : null,
+			type !== 'none' ? el( 'p', null, supportsDirection && direction === 'outward' ? __( '切り抜く側の色（次セクションの背景色）', 'cni-blocks' ) : __( '区切られ側の色', 'cni-blocks' ) ) : null,
 			type !== 'none' ? el( ColorPalette, {
 				colors: colorPalette,
 				value: attributes[ colorKey ] || '#ffffff',
@@ -300,6 +358,15 @@
 				step: 1,
 				onChange: function( value ) { update( densityKey, numberInRange( value, 1, 3, 2 ) ); },
 			} ) : null,
+			type === 'cloud' ? el( RangeControl, {
+				label: __( 'スマホ時の雲の高さ（px・0で自動）', 'cni-blocks' ),
+				value: numberInRange( attributes[ mobileCloudHeightKey ], 0, 160, 0 ),
+				min: 0,
+				max: 160,
+				step: 2,
+				help: __( '0では画面幅に合わせて低めの高さを自動使用します。', 'cni-blocks' ),
+				onChange: function( value ) { update( mobileCloudHeightKey, numberInRange( value, 0, 160, 0 ) ); },
+			} ) : null,
 			supportsFlip ? el( ToggleControl, {
 				label: __( '左右反転', 'cni-blocks' ),
 				checked: !! attributes[ flipKey ],
@@ -325,6 +392,19 @@
 
 	function hasDiagonalBackground( attributes ) {
 		return attributes.backgroundType === 'diagonal';
+	}
+
+	function usesMediaOverlayColor( attributes ) {
+		return ! hasDiagonalBackground( attributes ) &&
+			!! ( attributes.backgroundImageUrl || attributes.backgroundVideoUrl ) &&
+			numberInRange( attributes.overlayOpacity, 0, 100, 0 ) > 0 &&
+			!! attributes.overlayColor;
+	}
+
+	function outwardDividerColor( attributes, fallback ) {
+		if ( hasDiagonalBackground( attributes ) ) return attributes.diagonalAccentColor || fallback;
+		if ( usesMediaOverlayColor( attributes ) ) return attributes.overlayColor;
+		return attributes.backgroundColor || fallback;
 	}
 
 	function diagonalAngle( attributes ) {
@@ -396,7 +476,8 @@
 		return presets[ preset ] || null;
 	}
 
-	function getOuterStyle( attributes ) {
+	function getOuterStyle( attributes, options ) {
+		options = options || {};
 		const desktopImage = cssUrl( attributes.backgroundImageUrl );
 		const tabletImage = attributes.tabletBackgroundImageUrl
 			? cssUrl( attributes.tabletBackgroundImageUrl )
@@ -490,16 +571,26 @@
 		if ( attributes.creativeFrameEffect === 'draw' ) {
 			style['--cni-outer-creative-frame-color'] = attributes.creativeFrameColor || '#ffffff';
 		}
+		if ( ! options.legacyOutward ) {
+			const topOutwardHeight = outwardDividerHeight( attributes, 'top' );
+			const bottomOutwardHeight = outwardDividerHeight( attributes, 'bottom' );
+			if ( topOutwardHeight > 0 ) style['--cni-outer-top-outward-divider-height'] = topOutwardHeight + 'px';
+			if ( bottomOutwardHeight > 0 ) style['--cni-outer-bottom-outward-divider-height'] = bottomOutwardHeight + 'px';
+		}
 
 		return style;
 	}
 
+	function outwardDividerHeight( attributes, prefix ) {
+		const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
+		const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
+		return supportsDirection && attributes[ prefix + 'DividerDirection' ] === 'outward'
+			? numberInRange( attributes[ prefix + 'DividerHeight' ], 20, 240, 80 )
+			: 0;
+	}
+
 	function hasOutwardDivider( attributes ) {
-		return [ 'top', 'bottom' ].some( function( prefix ) {
-			const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
-			const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
-			return supportsDirection && attributes[ prefix + 'DividerDirection' ] === 'outward';
-		} );
+		return outwardDividerHeight( attributes, 'top' ) > 0 || outwardDividerHeight( attributes, 'bottom' ) > 0;
 	}
 
 	function imageControl( label, imageId, imageUrl, onSelect, onRemove ) {
@@ -593,13 +684,32 @@
 		return attributes.creativeBackgroundEffect === 'zoom' && ! hasDiagonalBackground( attributes ) && !! attributes.backgroundImageUrl;
 	}
 
-	function outerClassName( attributes ) {
+	function outerClassNameBase( attributes, includeHero ) {
 		const classes = [];
 		if ( hasOutwardDivider( attributes ) ) classes.push( 'cni-outer--has-outward-divider' );
 		if ( hasCreativeImageZoom( attributes ) ) classes.push( 'cni-outer--creative-background-zoom' );
 		if ( attributes.creativeFrameEffect === 'draw' ) classes.push( 'cni-outer--creative-frame-draw' );
 		if ( attributes.creativeContentEffect === 'lift' ) classes.push( 'cni-outer--creative-content-lift' );
+		if ( includeHero && attributes.isHero === true ) {
+			classes.push( 'cni-outer--hero' );
+			classes.push( 'cni-outer--hero-layout-' + normalizeHeroLayout( attributes.heroLayout ) );
+		}
+		return classes;
+	}
+
+	function outerClassName( attributes ) {
+		const classes = outerClassNameBase( attributes, true );
+		if ( outwardDividerHeight( attributes, 'top' ) > 0 ) classes.push( 'cni-outer--has-top-outward-divider' );
+		if ( outwardDividerHeight( attributes, 'bottom' ) > 0 ) classes.push( 'cni-outer--has-bottom-outward-divider' );
 		return classes.join( ' ' );
+	}
+
+	function preCutoutOuterClassName( attributes ) {
+		return outerClassNameBase( attributes, true ).join( ' ' );
+	}
+
+	function legacyCurrentOuterClassName( attributes ) {
+		return outerClassNameBase( attributes, false ).join( ' ' );
 	}
 
 	function creativeBackgroundElement( attributes ) {
@@ -680,6 +790,7 @@
 			backgroundVideoId: { type: 'number', default: 0 },
 			backgroundVideoUrl: { type: 'string', default: '' },
 			isHero: { type: 'boolean', default: false },
+			heroLayout: { type: 'string', default: 'content' },
 			tabletBackgroundImageId: { type: 'number', default: 0 },
 			tabletBackgroundImageUrl: { type: 'string', default: '' },
 			mobileBackgroundImageId: { type: 'number', default: 0 },
@@ -726,6 +837,7 @@
 			topDividerHeight: { type: 'number', default: 80 },
 			topDividerFlip: { type: 'boolean', default: false },
 			topDividerCloudDensity: { type: 'number', default: 2 },
+			topDividerCloudHeightMobile: { type: 'number', default: 0 },
 			topDividerDirection: { type: 'string', default: 'inward' },
 			topDividerShapeWidth: { type: 'number', default: 100 },
 			topDividerZigzagCount: { type: 'number', default: 6 },
@@ -734,6 +846,7 @@
 			bottomDividerHeight: { type: 'number', default: 80 },
 			bottomDividerFlip: { type: 'boolean', default: false },
 			bottomDividerCloudDensity: { type: 'number', default: 2 },
+			bottomDividerCloudHeightMobile: { type: 'number', default: 0 },
 			bottomDividerDirection: { type: 'string', default: 'inward' },
 			bottomDividerShapeWidth: { type: 'number', default: 100 },
 			bottomDividerZigzagCount: { type: 'number', default: 6 },
@@ -852,9 +965,22 @@
 						el( ToggleControl, {
 							label: __( 'ヒーローエリアとして使用する', 'cni-blocks' ),
 							checked: attributes.isHero === true,
-							help: __( 'ファーストビューで使用する背景画像を優先的に読み込みます。トップページのヒーローエリアなどで使用してください。背景画像に近い背景色を設定すると、画像読み込み前の表示が自然になります。', 'cni-blocks' ),
+							help: __( 'テーマ側でヒーローとして識別・レイアウト調整できるようにします。トップページのヒーローエリアなどで使用してください。', 'cni-blocks' ),
 							onChange: function( value ) { setAttributes( { isHero: !! value } ); },
 						} ),
+						attributes.isHero === true
+							? el( SelectControl, {
+								label: __( 'ヒーローレイアウトの意図', 'cni-blocks' ),
+								value: normalizeHeroLayout( attributes.heroLayout ),
+								options: [
+									{ label: __( '本文幅', 'cni-blocks' ), value: 'content' },
+									{ label: __( '本文カラムを拡張', 'cni-blocks' ), value: 'extend-main' },
+									{ label: __( 'ページ全幅', 'cni-blocks' ), value: 'full-width' },
+								],
+								help: __( '表示結果はテーマによって異なります。対応テーマのCSSがこの意図を利用してレイアウトを調整します。', 'cni-blocks' ),
+								onChange: function( value ) { setAttributes( { heroLayout: normalizeHeroLayout( value ) } ); },
+							} )
+							: null,
 						imageControl(
 							__( 'タブレット背景画像（未設定時はPC画像）', 'cni-blocks' ),
 							attributes.tabletBackgroundImageId,
@@ -1251,21 +1377,93 @@
 				const attributes = props.attributes;
 				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
 				const blockProps = blockEditor.useBlockProps.save( {
-					style: getOuterStyle( attributes ),
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: preCutoutOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyOutward: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyOutward: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: preCutoutOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyColor: true, omitTypeClass: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyColor: true, omitTypeClass: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: legacyCurrentOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyColor: true, omitTypeClass: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyColor: true, omitTypeClass: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
 					className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
 				} );
 
 				return el(
 					TagName,
 					blockProps,
-					dividerElement( 'top', attributes, legacyDividerPath ),
+					dividerElement( 'top', attributes, legacyDividerPath, { legacyColor: true, omitTypeClass: true } ),
 					backgroundVideoElement( attributes, false ),
 					el(
 						'div',
 						{ className: 'cni-outer__inner' },
 						el( InnerBlocks.Content )
 					),
-					dividerElement( 'bottom', attributes, legacyDividerPath )
+					dividerElement( 'bottom', attributes, legacyDividerPath, { legacyColor: true, omitTypeClass: true } )
 				);
 			},
 		} ],

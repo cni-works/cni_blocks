@@ -152,6 +152,11 @@ function cni_blocks_render_post_list( $attributes ) {
 	$card_shadow      = ! empty( $attributes['cardShadow'] );
 	$image_ratio      = isset( $attributes['imageRatio'] ) && in_array( $attributes['imageRatio'], array( '16-9', '4-3', '1-1', '3-4', '2-3' ), true ) ? $attributes['imageRatio'] : '16-9';
 	$hover_effect     = isset( $attributes['hoverEffect'] ) && in_array( $attributes['hoverEffect'], array( 'none', 'darken', 'zoom', 'lift' ), true ) ? $attributes['hoverEffect'] : 'lift';
+	// Text lists are an informational one-column format. Keep their rows still,
+	// even when the block retains a hover preference from a previous card view.
+	if ( 'list' === $display_type ) {
+		$hover_effect = 'none';
+	}
 	$overlay_color    = isset( $attributes['overlayColor'] ) ? sanitize_hex_color( $attributes['overlayColor'] ) : '#000000';
 	$overlay_color    = $overlay_color ? $overlay_color : '#000000';
 	$overlay_hex      = ltrim( $overlay_color, '#' );

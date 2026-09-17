@@ -10,7 +10,7 @@ function cni_blocks_image_text_layer_number( $value, $min, $max, $fallback ) {
 }
 
 function cni_blocks_image_text_layer_text_design( $value ) {
-	$designs = array( 'simple-shadow', 'frame-label', 'white-label', 'elegant-gradient', 'pop-outline-shadow', 'sale-price', 'outline', 'gold-metal', 'marker-underline', 'neon', 'accent-underline', 'center-slash', 'left-bar', 'left-bar-band', 'short-underline', 'double-underline', 'center-underline', 'side-lines', 'corner-frame', 'speech-underline' );
+	$designs = array( 'simple-shadow', 'frame-label', 'white-label', 'elegant-gradient', 'pop-outline-shadow', 'sale-price', 'outline', 'gold-metal', 'marker-underline', 'neon', 'accent-underline', 'center-slash', 'left-bar', 'left-bar-band', 'short-underline', 'double-underline', 'center-underline', 'side-lines', 'left-line', 'right-line', 'corner-frame', 'speech-underline' );
 	return in_array( $value, $designs, true ) ? $value : '';
 }
 
