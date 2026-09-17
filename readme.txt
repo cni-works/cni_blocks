@@ -1,7 +1,7 @@
 === cni_blocks ===
 Requires at least: 6.3
 Requires PHP: 7.4
-Stable tag: 1.34.1
+Stable tag: 1.41.0
 
 Includes:
 - Slide Gallery block (cni-blocks/slide-gallery)
@@ -20,6 +20,7 @@ Includes:
 - Counter+ block (cni-blocks/counter-plus)
 
 Updates:
+- 1.41.0: Added Grid+ card badges (text, Font Awesome, text-plus-icon, and image), media/card anchoring, responsive badge controls, flow arrows, transparent card backgrounds, and cell padding controls. Added Outer+ hero layout intent classes, improved divider behavior, and cloud mobile-height control. Added Timeline+ history mode. Heading+ now supports responsive original-design CSS, V3 layout refinements, one-sided lines, and stronger ProUnit compatibility for heading decoration and typography. Text-list Post List+ items no longer animate on hover.
 - Heading+ supports selected-text colors, responsive relative size presets, and editable ruby annotations without changing unused existing heading markup. Equal-length base text and readings are aligned character by character, and ruby text inherits the base text color.
 - Post List+ now offers standard, image-overlay, enlarged date-corner, image-free text-card, horizontal-card, media-list, and text-list layouts. Category badge colors use automatic black/white contrast; date-corner cards place the compact badge at the image's lower right. Overlay/date/title-area colors, trimmed excerpts, metadata, arrows, and image ratios can be adjusted while existing blocks keep the standard card design.
 - Added Heading+, with a broad curated Japanese and Latin Google Fonts selector, heading levels, available font weights and style, one-click text transforms, responsive sizes, line height, letter spacing, alignment, spacing, and colors.

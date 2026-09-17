@@ -3,7 +3,7 @@
 
 	const el = element.createElement;
 	const { __ } = i18n;
-	const { useBlockProps, InnerBlocks, InspectorControls, MediaUpload, MediaUploadCheck } = blockEditor;
+	const { useBlockProps, InnerBlocks, InspectorControls, MediaUpload, MediaUploadCheck, useSettings } = blockEditor;
 	const { Button, ColorPalette, FocalPointPicker, PanelBody, RangeControl, SelectControl, ToggleControl } = components;
 
 	function cssUrl( url ) {
@@ -29,6 +29,11 @@
 		'arch',
 		'curve-flex',
 	];
+	const HERO_LAYOUTS = [ 'content', 'extend-main', 'full-width' ];
+
+	function normalizeHeroLayout( value ) {
+		return HERO_LAYOUTS.indexOf( value ) !== -1 ? value : 'content';
+	}
 
 	function normalizeDividerType( value ) {
 		return DIVIDER_TYPES.indexOf( value ) !== -1 ? value : 'none';
@@ -81,9 +86,9 @@
 				left = center - halfWidth;
 				right = center + halfWidth;
 				if ( normalizedDirection === 'outward' ) {
-					return 'M' + left + ' 0 C' + ( left + halfWidth * 0.35 ) + ' 0 ' + ( center - halfWidth * 0.45 ) + ' 120 600 120 C' + ( center + halfWidth * 0.45 ) + ' 120 ' + ( right - halfWidth * 0.35 ) + ' 0 ' + right + ' 0 Z';
+					return 'M' + left + ' 0 Q600 120 ' + right + ' 0 Z';
 				}
-				return 'M0 116 L' + left + ' 116 C' + ( left + halfWidth * 0.35 ) + ' 116 ' + ( center - halfWidth * 0.45 ) + ' 0 600 0 C' + ( center + halfWidth * 0.45 ) + ' 0 ' + ( right - halfWidth * 0.35 ) + ' 116 ' + right + ' 116 L1200 116 L1200 120 L0 120 Z';
+				return 'M0 120 L' + left + ' 120 Q600 0 ' + right + ' 120 L1200 120 Z';
 			case 'torn':
 				return 'M0 88 L54 72 L106 84 L158 56 L212 78 L266 62 L322 86 L378 54 L432 76 L486 60 L542 84 L600 52 L656 78 L710 58 L766 86 L822 56 L878 76 L934 60 L990 84 L1046 54 L1102 78 L1154 64 L1200 82 L1200 120 L0 120 Z';
 			case 'scallop':
@@ -93,6 +98,60 @@
 			default:
 				return '';
 		}
+	}
+
+	function outwardCutoutPath( type, cloudDensity, shapeWidth, zigzagCount ) {
+		const center = 600;
+		let halfWidth;
+		let left;
+		let right;
+		let hole;
+
+		switch ( normalizeDividerType( type ) ) {
+			case 'triangle-flex':
+				halfWidth = 600 * shapeWidthInRange( shapeWidth, 5, 18 ) / 100;
+				left = center - halfWidth;
+				right = center + halfWidth;
+				hole = 'M' + left + ' -1 L600 120 L' + right + ' -1 Z';
+				break;
+			case 'curve-flex':
+				halfWidth = 600 * shapeWidthInRange( shapeWidth, 30, 100 ) / 100;
+				left = center - halfWidth;
+				right = center + halfWidth;
+				hole = 'M' + left + ' -1 Q600 120 ' + right + ' -1 Z';
+				break;
+			case 'zigzag':
+				zigzagCount = Math.round( numberInRange( zigzagCount, 3, 30, 6 ) );
+				hole = 'M0 -1';
+				for ( let index = 0; index < zigzagCount; index++ ) {
+					const step = 1200 / zigzagCount;
+					hole += ' L' + ( ( index + 0.5 ) * step ) + ' 120 L' + ( ( index + 1 ) * step ) + ' -1';
+				}
+				hole += ' Z';
+				break;
+			default:
+				return '';
+		}
+
+		return 'M0 0 H1200 V120 H0 Z ' + hole;
+	}
+
+	function legacyDividerPath( type, cloudDensity, direction, shapeWidth, zigzagCount ) {
+		if ( normalizeDividerType( type ) !== 'curve-flex' ) {
+			return dividerPath( type, cloudDensity, direction, shapeWidth, zigzagCount );
+		}
+
+		const normalizedDirection = direction === 'outward' ? 'outward' : 'inward';
+		const center = 600;
+		const halfWidth = 600 * shapeWidthInRange( shapeWidth, 30, 100 ) / 100;
+		const left = center - halfWidth;
+		const right = center + halfWidth;
+
+		if ( normalizedDirection === 'outward' ) {
+			return 'M' + left + ' 0 C' + ( left + halfWidth * 0.35 ) + ' 0 ' + ( center - halfWidth * 0.45 ) + ' 120 600 120 C' + ( center + halfWidth * 0.45 ) + ' 120 ' + ( right - halfWidth * 0.35 ) + ' 0 ' + right + ' 0 Z';
+		}
+
+		return 'M0 116 L' + left + ' 116 C' + ( left + halfWidth * 0.35 ) + ' 116 ' + ( center - halfWidth * 0.45 ) + ' 0 600 0 C' + ( center + halfWidth * 0.45 ) + ' 0 ' + ( right - halfWidth * 0.35 ) + ' 116 ' + right + ' 116 L1200 116 L1200 120 L0 120 Z';
 	}
 
 	function cloudElements( cloudDensity ) {
@@ -120,7 +179,9 @@
 			[ 1114, 84, 40, 38 ], [ 1159, 57, 53, 57 ], [ 1216, 91, 45, 31 ],
 		];
 
-		return [ el( 'rect', { key: 'base', x: 0, y: 96, width: 1200, height: 24 } ) ].concat(
+		/* Overlap the cloud ellipses with the base so mobile SVG rasterization
+		 * cannot reveal a hairline seam between the two filled shapes. */
+		return [ el( 'rect', { key: 'base', x: 0, y: 80, width: 1200, height: 40 } ) ].concat(
 			clouds.map( function( cloud, index ) {
 				return el( 'ellipse', {
 					key: 'cloud-' + index,
@@ -133,35 +194,49 @@
 		);
 	}
 
-	function dividerElement( position, attributes ) {
+	function dividerElement( position, attributes, pathGenerator, options ) {
+		options = options || {};
 		const prefix = position === 'top' ? 'top' : 'bottom';
 		const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
 		if ( type === 'none' ) return null;
 
 		const height = numberInRange( attributes[ prefix + 'DividerHeight' ], 20, 240, 80 );
 		const density = numberInRange( attributes[ prefix + 'DividerCloudDensity' ], 1, 3, 2 );
+		const mobileCloudHeight = type === 'cloud'
+			? numberInRange( attributes[ prefix + 'DividerCloudHeightMobile' ], 0, 160, 0 )
+			: 0;
 		const direction = attributes[ prefix + 'DividerDirection' ] === 'outward' ? 'outward' : 'inward';
 		const shapeWidth = attributes[ prefix + 'DividerShapeWidth' ];
 		const zigzagCount = attributes[ prefix + 'DividerZigzagCount' ];
 		const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
+		const isOutward = supportsDirection && direction === 'outward';
+		const configuredColor = attributes[ prefix + 'DividerColor' ] || '#ffffff';
+		const backgroundColor = outwardDividerColor( attributes, configuredColor );
+		const usesCutout = isOutward && ! options.legacyOutward;
 		const className = 'cni-outer__divider cni-outer__divider--' + position +
+			( options.omitTypeClass ? '' : ' cni-outer__divider--' + type ) +
 			( attributes[ prefix + 'DividerFlip' ] ? ' is-flipped' : '' ) +
-			( supportsDirection && direction === 'outward' ? ' is-outward' : '' );
+			( isOutward ? ' is-outward' : '' );
 
 		return el(
 			'div',
 			{
 				className: className,
-				style: {
+				style: Object.assign( {
 					'--cni-outer-divider-height': height + 'px',
-					'--cni-outer-divider-color': attributes[ prefix + 'DividerColor' ] || '#ffffff',
-				},
+					'--cni-outer-divider-color': options.legacyOutward && isOutward ? backgroundColor : configuredColor,
+				}, mobileCloudHeight > 0 ? { '--cni-outer-divider-mobile-height': mobileCloudHeight + 'px' } : {} ),
 				'aria-hidden': 'true',
 			},
 			el(
 				'svg',
 				{ viewBox: type === 'cloud' ? '0 -20 1200 140' : '0 0 1200 120', preserveAspectRatio: 'none', focusable: 'false' },
-				type === 'cloud' ? cloudElements( density ) : el( 'path', { d: dividerPath( type, density, direction, shapeWidth, zigzagCount ) } )
+				type === 'cloud'
+					? cloudElements( density )
+					: el( 'path', usesCutout
+						? { d: outwardCutoutPath( type, density, shapeWidth, zigzagCount ), fillRule: 'evenodd' }
+						: { d: ( pathGenerator || dividerPath )( type, density, direction, shapeWidth, zigzagCount ) }
+					)
 			)
 		);
 	}
@@ -186,13 +261,14 @@
 		return options;
 	}
 
-	function dividerSettingsControl( position, attributes, setAttributes ) {
+	function dividerSettingsControl( position, attributes, setAttributes, colorPalette ) {
 		const prefix = position === 'top' ? 'top' : 'bottom';
 		const typeKey = prefix + 'DividerType';
 		const colorKey = prefix + 'DividerColor';
 		const heightKey = prefix + 'DividerHeight';
 		const flipKey = prefix + 'DividerFlip';
 		const densityKey = prefix + 'DividerCloudDensity';
+		const mobileCloudHeightKey = prefix + 'DividerCloudHeightMobile';
 		const directionKey = prefix + 'DividerDirection';
 		const shapeWidthKey = prefix + 'DividerShapeWidth';
 		const zigzagCountKey = prefix + 'DividerZigzagCount';
@@ -243,8 +319,9 @@
 				],
 				onChange: function( value ) { update( directionKey, value === 'outward' ? 'outward' : 'inward' ); },
 			} ) : null,
-			type !== 'none' ? el( 'p', null, supportsDirection && direction === 'outward' ? __( '突き出す部分の色', 'cni-blocks' ) : __( '区切られ側の色', 'cni-blocks' ) ) : null,
+			type !== 'none' ? el( 'p', null, supportsDirection && direction === 'outward' ? __( '切り抜く側の色（次セクションの背景色）', 'cni-blocks' ) : __( '区切られ側の色', 'cni-blocks' ) ) : null,
 			type !== 'none' ? el( ColorPalette, {
+				colors: colorPalette,
 				value: attributes[ colorKey ] || '#ffffff',
 				clearable: false,
 				onChange: function( value ) { update( colorKey, value || '#ffffff' ); },
@@ -281,6 +358,15 @@
 				step: 1,
 				onChange: function( value ) { update( densityKey, numberInRange( value, 1, 3, 2 ) ); },
 			} ) : null,
+			type === 'cloud' ? el( RangeControl, {
+				label: __( 'スマホ時の雲の高さ（px・0で自動）', 'cni-blocks' ),
+				value: numberInRange( attributes[ mobileCloudHeightKey ], 0, 160, 0 ),
+				min: 0,
+				max: 160,
+				step: 2,
+				help: __( '0では画面幅に合わせて低めの高さを自動使用します。', 'cni-blocks' ),
+				onChange: function( value ) { update( mobileCloudHeightKey, numberInRange( value, 0, 160, 0 ) ); },
+			} ) : null,
 			supportsFlip ? el( ToggleControl, {
 				label: __( '左右反転', 'cni-blocks' ),
 				checked: !! attributes[ flipKey ],
@@ -304,7 +390,94 @@
 		return Math.round( x * 10000 ) / 100 + '% ' + Math.round( y * 10000 ) / 100 + '%';
 	}
 
-	function getOuterStyle( attributes ) {
+	function hasDiagonalBackground( attributes ) {
+		return attributes.backgroundType === 'diagonal';
+	}
+
+	function usesMediaOverlayColor( attributes ) {
+		return ! hasDiagonalBackground( attributes ) &&
+			!! ( attributes.backgroundImageUrl || attributes.backgroundVideoUrl ) &&
+			numberInRange( attributes.overlayOpacity, 0, 100, 0 ) > 0 &&
+			!! attributes.overlayColor;
+	}
+
+	function outwardDividerColor( attributes, fallback ) {
+		if ( hasDiagonalBackground( attributes ) ) return attributes.diagonalAccentColor || fallback;
+		if ( usesMediaOverlayColor( attributes ) ) return attributes.overlayColor;
+		return attributes.backgroundColor || fallback;
+	}
+
+	function diagonalAngle( attributes ) {
+		const legacyAngles = {
+			'down-right': 135,
+			'down-left': 225,
+			'up-right': 45,
+			'up-left': 315,
+		};
+		const value = attributes.diagonalAngle;
+		return typeof value === 'number' && value >= 0 && value <= 360
+			? value
+			: ( legacyAngles[ attributes.diagonalDirection ] || 135 );
+	}
+
+	function diagonalBackgroundImage( attributes ) {
+		const accentColor = attributes.diagonalAccentColor || '#1e73be';
+		const splitPosition = numberInRange( attributes.diagonalSplitPosition, 10, 90, 50 );
+
+		return 'linear-gradient(' + diagonalAngle( attributes ) + 'deg, ' + accentColor + ' 0 ' + splitPosition + '%, #ffffff ' + splitPosition + '% 100%)';
+	}
+
+	function backgroundPositionWithOffset( position, offsetX, offsetY ) {
+		const parts = String( position || 'center center' ).trim().split( /\s+/ );
+		const xMap = { left: '0%', center: '50%', right: '100%' };
+		const yMap = { top: '0%', center: '50%', bottom: '100%' };
+		const x = xMap[ parts[0] ] || parts[0] || '50%';
+		const y = yMap[ parts[1] ] || parts[1] || '50%';
+
+		return 'calc(' + x + ' + ' + offsetX + 'px) calc(' + y + ' + ' + offsetY + 'px)';
+	}
+
+	function hexToRgba( color, opacity ) {
+		const value = String( color || '' ).trim();
+		const shortMatch = /^#([0-9a-f]{3})$/i.exec( value );
+		const longMatch = /^#([0-9a-f]{6})$/i.exec( value );
+		let hex = '';
+
+		if ( shortMatch ) {
+			hex = shortMatch[ 1 ].split( '' ).map( function( character ) { return character + character; } ).join( '' );
+		} else if ( longMatch ) {
+			hex = longMatch[ 1 ];
+		} else {
+			return 'rgba(0, 0, 0, 0)';
+		}
+
+		return 'rgba(' + parseInt( hex.slice( 0, 2 ), 16 ) + ', ' + parseInt( hex.slice( 2, 4 ), 16 ) + ', ' + parseInt( hex.slice( 4, 6 ), 16 ) + ', ' + ( numberInRange( opacity, 0, 100, 0 ) / 100 ) + ')';
+	}
+
+	function gradientOverlayBackground( attributes ) {
+		const angle = numberInRange( attributes.overlayGradientAngle, 0, 360, 90 );
+		const startPosition = numberInRange( attributes.overlayGradientStartPosition, 0, 100, 0 );
+		const endPosition = Math.max( startPosition, numberInRange( attributes.overlayGradientEndPosition, 0, 100, 70 ) );
+		const startColor = hexToRgba( attributes.overlayGradientStartColor || '#ffffff', attributes.overlayGradientStartOpacity );
+		const endColor = hexToRgba( attributes.overlayGradientEndColor || '#ffffff', attributes.overlayGradientEndOpacity );
+
+		return 'linear-gradient(' + angle + 'deg, ' + startColor + ' ' + startPosition + '%, ' + endColor + ' ' + endPosition + '%)';
+	}
+
+	function gradientPresetAttributes( preset ) {
+		const presets = {
+			'left-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 92, overlayGradientStartPosition: 0, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 90 },
+			'right-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 0, overlayGradientStartPosition: 28, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 92, overlayGradientEndPosition: 100, overlayGradientAngle: 90 },
+			'top-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 92, overlayGradientStartPosition: 0, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 180 },
+			'bottom-light': { overlayGradientStartColor: '#ffffff', overlayGradientStartOpacity: 0, overlayGradientStartPosition: 28, overlayGradientEndColor: '#ffffff', overlayGradientEndOpacity: 92, overlayGradientEndPosition: 100, overlayGradientAngle: 180 },
+			'left-dark': { overlayGradientStartColor: '#000000', overlayGradientStartOpacity: 72, overlayGradientStartPosition: 0, overlayGradientEndColor: '#000000', overlayGradientEndOpacity: 0, overlayGradientEndPosition: 72, overlayGradientAngle: 90 },
+		};
+
+		return presets[ preset ] || null;
+	}
+
+	function getOuterStyle( attributes, options ) {
+		options = options || {};
 		const desktopImage = cssUrl( attributes.backgroundImageUrl );
 		const tabletImage = attributes.tabletBackgroundImageUrl
 			? cssUrl( attributes.tabletBackgroundImageUrl )
@@ -313,10 +486,12 @@
 			? cssUrl( attributes.mobileBackgroundImageUrl )
 			: tabletImage;
 
+		const diagonalBackground = hasDiagonalBackground( attributes );
+		const isGradientOverlay = attributes.overlayType === 'gradient';
 		const style = {
 			'--cni-outer-background-color': attributes.backgroundColor || 'transparent',
-			'--cni-outer-background-image': desktopImage,
-			'--cni-outer-mobile-background-image': mobileImage,
+			'--cni-outer-background-image': diagonalBackground ? diagonalBackgroundImage( attributes ) : desktopImage,
+			'--cni-outer-mobile-background-image': diagonalBackground ? diagonalBackgroundImage( attributes ) : mobileImage,
 			'--cni-outer-background-position': attributes.backgroundPosition || 'center center',
 			'--cni-outer-overlay-color': attributes.overlayColor || '#000000',
 			'--cni-outer-overlay-opacity': typeof attributes.overlayOpacity === 'number' ? attributes.overlayOpacity / 100 : 0,
@@ -331,11 +506,19 @@
 			'--cni-outer-border-color': attributes.borderColor || '#dddddd',
 			'--cni-outer-border-radius': px( attributes.borderRadius ),
 		};
+		if ( isGradientOverlay ) {
+			style['--cni-outer-overlay-background'] = gradientOverlayBackground( attributes );
+			style['--cni-outer-overlay-opacity'] = 1;
+		} else if ( attributes.overlayType === 'none' ) {
+			style['--cni-outer-overlay-opacity'] = 0;
+		}
 
-		if ( attributes.backgroundDisplay === 'cover-fixed' ) {
+		if ( attributes.backgroundDisplay === 'cover-fixed' && ! diagonalBackground ) {
 			style['--cni-outer-background-attachment'] = 'fixed';
 		}
-		if ( attributes.tabletBackgroundImageUrl ) {
+		if ( diagonalBackground ) {
+			style['--cni-outer-tablet-background-image'] = diagonalBackgroundImage( attributes );
+		} else if ( attributes.tabletBackgroundImageUrl ) {
 			style['--cni-outer-tablet-background-image'] = tabletImage;
 		}
 		if ( attributes.backgroundFocalPointPc ) {
@@ -346,6 +529,27 @@
 		}
 		if ( attributes.backgroundFocalPointMobile ) {
 			style['--cni-outer-background-position-mobile'] = attributes.backgroundFocalPointMobile;
+		}
+		const offsetX = numberInRange( attributes.backgroundOffsetX, -500, 500, 0 );
+		const offsetY = numberInRange( attributes.backgroundOffsetY, -500, 500, 0 );
+		if ( ! diagonalBackground && ( offsetX !== 0 || offsetY !== 0 ) ) {
+			style['--cni-outer-background-position-pc'] = backgroundPositionWithOffset(
+				attributes.backgroundFocalPointPc || attributes.backgroundPosition,
+				offsetX,
+				offsetY
+			);
+			style['--cni-outer-background-position-tablet'] = backgroundPositionWithOffset(
+				attributes.backgroundFocalPointTablet || attributes.backgroundPosition,
+				offsetX,
+				offsetY
+			);
+			if ( ! attributes.disableBackgroundOffsetOnMobile ) {
+				style['--cni-outer-background-position-mobile'] = backgroundPositionWithOffset(
+					attributes.backgroundFocalPointMobile || attributes.backgroundPosition,
+					offsetX,
+					offsetY
+				);
+			}
 		}
 		if ( attributes.minHeightPc > 0 ) {
 			style['--cni-outer-min-height-pc'] = px( attributes.minHeightPc );
@@ -359,16 +563,34 @@
 		if ( attributes.borderStyle === 'dotted' || attributes.borderStyle === 'dashed' ) {
 			style['--cni-outer-border-style'] = attributes.borderStyle;
 		}
+		if ( attributes.creativeBackgroundEffect === 'zoom' && ! diagonalBackground && attributes.backgroundImageUrl ) {
+			style['--cni-outer-creative-background-image'] = desktopImage;
+			style['--cni-outer-creative-tablet-background-image'] = tabletImage;
+			style['--cni-outer-creative-mobile-background-image'] = mobileImage;
+		}
+		if ( attributes.creativeFrameEffect === 'draw' ) {
+			style['--cni-outer-creative-frame-color'] = attributes.creativeFrameColor || '#ffffff';
+		}
+		if ( ! options.legacyOutward ) {
+			const topOutwardHeight = outwardDividerHeight( attributes, 'top' );
+			const bottomOutwardHeight = outwardDividerHeight( attributes, 'bottom' );
+			if ( topOutwardHeight > 0 ) style['--cni-outer-top-outward-divider-height'] = topOutwardHeight + 'px';
+			if ( bottomOutwardHeight > 0 ) style['--cni-outer-bottom-outward-divider-height'] = bottomOutwardHeight + 'px';
+		}
 
 		return style;
 	}
 
+	function outwardDividerHeight( attributes, prefix ) {
+		const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
+		const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
+		return supportsDirection && attributes[ prefix + 'DividerDirection' ] === 'outward'
+			? numberInRange( attributes[ prefix + 'DividerHeight' ], 20, 240, 80 )
+			: 0;
+	}
+
 	function hasOutwardDivider( attributes ) {
-		return [ 'top', 'bottom' ].some( function( prefix ) {
-			const type = normalizeDividerType( attributes[ prefix + 'DividerType' ] );
-			const supportsDirection = type === 'triangle-flex' || type === 'curve-flex' || type === 'zigzag';
-			return supportsDirection && attributes[ prefix + 'DividerDirection' ] === 'outward';
-		} );
+		return outwardDividerHeight( attributes, 'top' ) > 0 || outwardDividerHeight( attributes, 'bottom' ) > 0;
 	}
 
 	function imageControl( label, imageId, imageUrl, onSelect, onRemove ) {
@@ -403,6 +625,111 @@
 					? el( Button, { variant: 'tertiary', isDestructive: true, onClick: onRemove }, __( '削除', 'cni-blocks' ) )
 					: null
 			)
+		);
+	}
+
+	function videoControl( videoId, videoUrl, onSelect, onRemove ) {
+		return el(
+			'div',
+			{ className: 'cni-outer-image-control' },
+			el( 'p', { className: 'cni-outer-image-control__label' }, __( '背景動画', 'cni-blocks' ) ),
+			videoUrl
+				? el( 'video', { className: 'cni-outer-image-control__preview', src: videoUrl, muted: true, controls: true, playsInline: true } )
+				: null,
+			el( 'p', { className: 'cni-outer-control-help' }, __( '動画未再生時と低モーション設定時には、PC背景画像を静止画として表示します。音声は再生されません。', 'cni-blocks' ) ),
+			el(
+				'div',
+				{ className: 'cni-outer-image-control__actions' },
+				el(
+					MediaUploadCheck,
+					null,
+					el( MediaUpload, {
+						onSelect: onSelect,
+						allowedTypes: [ 'video' ],
+						multiple: false,
+						value: videoId || 0,
+						render: function( obj ) {
+							return el(
+								Button,
+								{ variant: 'secondary', onClick: obj.open },
+								videoUrl ? __( '動画を変更', 'cni-blocks' ) : __( '動画を選択', 'cni-blocks' )
+							);
+						},
+					} )
+				),
+				videoUrl
+					? el( Button, { variant: 'tertiary', isDestructive: true, onClick: onRemove }, __( '削除', 'cni-blocks' ) )
+					: null
+			)
+		);
+	}
+
+	function backgroundVideoElement( attributes, isEditor ) {
+		if ( hasDiagonalBackground( attributes ) || ! attributes.backgroundVideoUrl ) return null;
+
+		return el( 'video', {
+			className: 'cni-outer__background-video',
+			src: attributes.backgroundVideoUrl,
+			poster: attributes.backgroundImageUrl || undefined,
+			muted: true,
+			loop: true,
+			playsInline: true,
+			preload: 'metadata',
+			'aria-hidden': 'true',
+			autoPlay: !! isEditor,
+		} );
+	}
+
+	function hasCreativeImageZoom( attributes ) {
+		return attributes.creativeBackgroundEffect === 'zoom' && ! hasDiagonalBackground( attributes ) && !! attributes.backgroundImageUrl;
+	}
+
+	function outerClassNameBase( attributes, includeHero ) {
+		const classes = [];
+		if ( hasOutwardDivider( attributes ) ) classes.push( 'cni-outer--has-outward-divider' );
+		if ( hasCreativeImageZoom( attributes ) ) classes.push( 'cni-outer--creative-background-zoom' );
+		if ( attributes.creativeFrameEffect === 'draw' ) classes.push( 'cni-outer--creative-frame-draw' );
+		if ( attributes.creativeContentEffect === 'lift' ) classes.push( 'cni-outer--creative-content-lift' );
+		if ( includeHero && attributes.isHero === true ) {
+			classes.push( 'cni-outer--hero' );
+			classes.push( 'cni-outer--hero-layout-' + normalizeHeroLayout( attributes.heroLayout ) );
+		}
+		return classes;
+	}
+
+	function outerClassName( attributes ) {
+		const classes = outerClassNameBase( attributes, true );
+		if ( outwardDividerHeight( attributes, 'top' ) > 0 ) classes.push( 'cni-outer--has-top-outward-divider' );
+		if ( outwardDividerHeight( attributes, 'bottom' ) > 0 ) classes.push( 'cni-outer--has-bottom-outward-divider' );
+		return classes.join( ' ' );
+	}
+
+	function preCutoutOuterClassName( attributes ) {
+		return outerClassNameBase( attributes, true ).join( ' ' );
+	}
+
+	function legacyCurrentOuterClassName( attributes ) {
+		return outerClassNameBase( attributes, false ).join( ' ' );
+	}
+
+	function creativeBackgroundElement( attributes ) {
+		if ( ! hasCreativeImageZoom( attributes ) ) return null;
+		return el(
+			'div',
+			{ className: 'cni-outer__creative-background-clip', 'aria-hidden': 'true' },
+			el( 'div', { className: 'cni-outer__creative-background' } )
+		);
+	}
+
+	function creativeFrameElement( attributes ) {
+		if ( attributes.creativeFrameEffect !== 'draw' ) return null;
+		return el(
+			'div',
+			{ className: 'cni-outer__creative-frame', 'aria-hidden': 'true' },
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--top' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--right' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--bottom' } ),
+			el( 'span', { className: 'cni-outer__creative-frame-line cni-outer__creative-frame-line--left' } )
 		);
 	}
 
@@ -453,8 +780,17 @@
 		attributes: {
 			tagName: { type: 'string', default: 'div' },
 			backgroundColor: { type: 'string', default: '' },
+			backgroundType: { type: 'string', default: 'solid' },
+			diagonalAccentColor: { type: 'string', default: '#1e73be' },
+			diagonalDirection: { type: 'string', default: 'down-right' },
+			diagonalAngle: { type: 'number', default: -1 },
+			diagonalSplitPosition: { type: 'number', default: 50 },
 			backgroundImageId: { type: 'number', default: 0 },
 			backgroundImageUrl: { type: 'string', default: '' },
+			backgroundVideoId: { type: 'number', default: 0 },
+			backgroundVideoUrl: { type: 'string', default: '' },
+			isHero: { type: 'boolean', default: false },
+			heroLayout: { type: 'string', default: 'content' },
 			tabletBackgroundImageId: { type: 'number', default: 0 },
 			tabletBackgroundImageUrl: { type: 'string', default: '' },
 			mobileBackgroundImageId: { type: 'number', default: 0 },
@@ -464,8 +800,20 @@
 			backgroundFocalPointTablet: { type: 'string', default: '' },
 			backgroundFocalPointMobile: { type: 'string', default: '' },
 			backgroundDisplay: { type: 'string', default: 'cover' },
+			backgroundOffsetX: { type: 'number', default: 0 },
+			backgroundOffsetY: { type: 'number', default: 0 },
+			disableBackgroundOffsetOnMobile: { type: 'boolean', default: true },
 			overlayColor: { type: 'string', default: '#000000' },
 			overlayOpacity: { type: 'number', default: 0 },
+			overlayType: { type: 'string', default: 'solid' },
+			overlayGradientPreset: { type: 'string', default: 'custom' },
+			overlayGradientStartColor: { type: 'string', default: '#ffffff' },
+			overlayGradientEndColor: { type: 'string', default: '#ffffff' },
+			overlayGradientStartOpacity: { type: 'number', default: 90 },
+			overlayGradientEndOpacity: { type: 'number', default: 0 },
+			overlayGradientStartPosition: { type: 'number', default: 0 },
+			overlayGradientEndPosition: { type: 'number', default: 70 },
+			overlayGradientAngle: { type: 'number', default: 90 },
 			contentWidth: { type: 'number', default: 0 },
 			minHeightPc: { type: 'number', default: 0 },
 			minHeightTablet: { type: 'number', default: 0 },
@@ -480,11 +828,16 @@
 			borderWidth: { type: 'number', default: 0 },
 			borderColor: { type: 'string', default: '#dddddd' },
 			borderRadius: { type: 'number', default: 0 },
+			creativeBackgroundEffect: { type: 'string', default: 'none' },
+			creativeFrameEffect: { type: 'string', default: 'none' },
+			creativeFrameColor: { type: 'string', default: '#ffffff' },
+			creativeContentEffect: { type: 'string', default: 'none' },
 			topDividerType: { type: 'string', default: 'none' },
 			topDividerColor: { type: 'string', default: '#ffffff' },
 			topDividerHeight: { type: 'number', default: 80 },
 			topDividerFlip: { type: 'boolean', default: false },
 			topDividerCloudDensity: { type: 'number', default: 2 },
+			topDividerCloudHeightMobile: { type: 'number', default: 0 },
 			topDividerDirection: { type: 'string', default: 'inward' },
 			topDividerShapeWidth: { type: 'number', default: 100 },
 			topDividerZigzagCount: { type: 'number', default: 6 },
@@ -493,6 +846,7 @@
 			bottomDividerHeight: { type: 'number', default: 80 },
 			bottomDividerFlip: { type: 'boolean', default: false },
 			bottomDividerCloudDensity: { type: 'number', default: 2 },
+			bottomDividerCloudHeightMobile: { type: 'number', default: 0 },
 			bottomDividerDirection: { type: 'string', default: 'inward' },
 			bottomDividerShapeWidth: { type: 'number', default: 100 },
 			bottomDividerZigzagCount: { type: 'number', default: 6 },
@@ -509,17 +863,21 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes } = props;
+			const diagonalBackground = hasDiagonalBackground( attributes );
+			const settingsPalette = useSettings( 'color.palette' )[ 0 ];
+			const colorPalette = Array.isArray( settingsPalette ) && settingsPalette.length ? settingsPalette : undefined;
 			const TagName = attributes.tagName === 'section' ? 'section' : 'div';
 			const pcBackgroundImageUrl = attributes.backgroundImageUrl || '';
 			const tabletBackgroundImageUrl = attributes.tabletBackgroundImageUrl || pcBackgroundImageUrl;
 			const mobileBackgroundImageUrl = attributes.mobileBackgroundImageUrl || tabletBackgroundImageUrl;
+			const hasBackgroundMedia = !! ( pcBackgroundImageUrl || tabletBackgroundImageUrl || mobileBackgroundImageUrl || attributes.backgroundVideoUrl );
 			const selectedBorderStyle = attributes.borderStyle === 'dotted' || attributes.borderStyle === 'dashed'
 				? attributes.borderStyle
 				: 'solid';
 			const borderType = attributes.borderWidth > 0 ? selectedBorderStyle : 'none';
 			const blockProps = useBlockProps( {
 				style: getOuterStyle( attributes ),
-				className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
+				className: outerClassName( attributes ),
 			} );
 
 			return el(
@@ -529,14 +887,58 @@
 					InspectorControls,
 					null,
 					el(
-						PanelBody,
-						{ title: __( '背景', 'cni-blocks' ), initialOpen: true },
-						el( 'p', null, __( '背景色', 'cni-blocks' ) ),
-						el( ColorPalette, {
-							value: attributes.backgroundColor || '',
-							onChange: function( value ) { setAttributes( { backgroundColor: value || '' } ); },
-							clearable: true,
-						} ),
+					PanelBody,
+					{ title: __( '背景', 'cni-blocks' ), initialOpen: true },
+					el( SelectControl, {
+						label: __( '背景タイプ', 'cni-blocks' ),
+						value: diagonalBackground ? 'diagonal' : 'solid',
+						options: [
+							{ label: __( '通常背景', 'cni-blocks' ), value: 'solid' },
+							{ label: __( '白＋カラーの斜め背景', 'cni-blocks' ), value: 'diagonal' },
+						],
+						onChange: function( value ) { setAttributes( { backgroundType: value === 'diagonal' ? 'diagonal' : 'solid' } ); },
+					} ),
+					diagonalBackground
+						? el(
+							element.Fragment,
+							null,
+							el( 'p', null, __( '斜め背景のカラー', 'cni-blocks' ) ),
+							el( ColorPalette, {
+								colors: colorPalette,
+								value: attributes.diagonalAccentColor || '#1e73be',
+								onChange: function( value ) { setAttributes( { diagonalAccentColor: value || '#1e73be' } ); },
+								clearable: false,
+							} ),
+							el( RangeControl, {
+								label: __( '斜めの角度（°）', 'cni-blocks' ),
+								value: diagonalAngle( attributes ),
+								min: 0,
+								max: 360,
+								step: 5,
+								help: __( '135°で左上から右下へ分かれます。', 'cni-blocks' ),
+								onChange: function( value ) { setAttributes( { diagonalAngle: typeof value === 'number' ? value : 135 } ); },
+							} ),
+							el( RangeControl, {
+								label: __( '色の分割位置（%）', 'cni-blocks' ),
+								value: numberInRange( attributes.diagonalSplitPosition, 10, 90, 50 ),
+								min: 10,
+								max: 90,
+								help: __( '小さいほど選択カラーの領域が狭くなります。', 'cni-blocks' ),
+								onChange: function( value ) { setAttributes( { diagonalSplitPosition: numberInRange( value, 10, 90, 50 ) } ); },
+							} ),
+							el( 'p', { className: 'cni-outer-control-help' }, __( '斜め背景では画像・動画は表示されません。通常背景へ戻すと、設定済みの画像・動画を再び使用できます。オーバーレイは斜め背景にも適用されます。', 'cni-blocks' ) )
+						)
+						: el(
+							element.Fragment,
+							null,
+							el( 'p', null, __( '背景色', 'cni-blocks' ) ),
+							el( ColorPalette, {
+								colors: colorPalette,
+								value: attributes.backgroundColor || '',
+								onChange: function( value ) { setAttributes( { backgroundColor: value || '' } ); },
+								clearable: true,
+							} )
+						),
 						imageControl(
 							__( 'PC背景画像', 'cni-blocks' ),
 							attributes.backgroundImageId,
@@ -549,6 +951,36 @@
 							},
 							function() { setAttributes( { backgroundImageId: 0, backgroundImageUrl: '' } ); }
 						),
+						videoControl(
+							attributes.backgroundVideoId,
+							attributes.backgroundVideoUrl,
+							function( media ) {
+								setAttributes( {
+									backgroundVideoId: media && media.id ? media.id : 0,
+									backgroundVideoUrl: media && media.url ? media.url : '',
+								} );
+							},
+							function() { setAttributes( { backgroundVideoId: 0, backgroundVideoUrl: '' } ); }
+						),
+						el( ToggleControl, {
+							label: __( 'ヒーローエリアとして使用する', 'cni-blocks' ),
+							checked: attributes.isHero === true,
+							help: __( 'テーマ側でヒーローとして識別・レイアウト調整できるようにします。トップページのヒーローエリアなどで使用してください。', 'cni-blocks' ),
+							onChange: function( value ) { setAttributes( { isHero: !! value } ); },
+						} ),
+						attributes.isHero === true
+							? el( SelectControl, {
+								label: __( 'ヒーローレイアウトの意図', 'cni-blocks' ),
+								value: normalizeHeroLayout( attributes.heroLayout ),
+								options: [
+									{ label: __( '本文幅', 'cni-blocks' ), value: 'content' },
+									{ label: __( '本文カラムを拡張', 'cni-blocks' ), value: 'extend-main' },
+									{ label: __( 'ページ全幅', 'cni-blocks' ), value: 'full-width' },
+								],
+								help: __( '表示結果はテーマによって異なります。対応テーマのCSSがこの意図を利用してレイアウトを調整します。', 'cni-blocks' ),
+								onChange: function( value ) { setAttributes( { heroLayout: normalizeHeroLayout( value ) } ); },
+							} )
+							: null,
 						imageControl(
 							__( 'タブレット背景画像（未設定時はPC画像）', 'cni-blocks' ),
 							attributes.tabletBackgroundImageId,
@@ -617,21 +1049,162 @@
 								{ label: __( 'カバー', 'cni-blocks' ), value: 'cover' },
 								{ label: __( 'カバー固定（PC・タブレット）', 'cni-blocks' ), value: 'cover-fixed' },
 							],
-							help: __( 'カバー固定は背景を画面に固定します。モバイルでは表示の安定性を優先して通常のカバーになります。', 'cni-blocks' ),
-							onChange: function( value ) { setAttributes( { backgroundDisplay: value === 'cover-fixed' ? 'cover-fixed' : 'cover' } ); },
+								help: __( 'カバー固定は背景を画面に固定します。モバイルでは表示の安定性を優先して通常のカバーになります。', 'cni-blocks' ),
+								onChange: function( value ) { setAttributes( { backgroundDisplay: value === 'cover-fixed' ? 'cover-fixed' : 'cover' } ); },
+							} ),
+						! diagonalBackground && hasBackgroundMedia ? el(
+							element.Fragment,
+							null,
+							el( 'h3', null, __( '背景オフセット', 'cni-blocks' ) ),
+							el( 'p', { className: 'cni-outer-control-help' }, __( '背景画像・動画の見せる位置を、現在の背景位置またはフォーカルポイントから相対的に調整します。', 'cni-blocks' ) ),
+							el( RangeControl, {
+								label: __( '水平方向（px：左マイナス／右プラス）', 'cni-blocks' ),
+								value: numberInRange( attributes.backgroundOffsetX, -500, 500, 0 ),
+								min: -500,
+								max: 500,
+								onChange: function( value ) { setAttributes( { backgroundOffsetX: typeof value === 'number' ? value : 0 } ); },
+							} ),
+							el( RangeControl, {
+								label: __( '垂直方向（px：上マイナス／下プラス）', 'cni-blocks' ),
+								value: numberInRange( attributes.backgroundOffsetY, -500, 500, 0 ),
+								min: -500,
+								max: 500,
+								onChange: function( value ) { setAttributes( { backgroundOffsetY: typeof value === 'number' ? value : 0 } ); },
+							} ),
+							el( ToggleControl, {
+								label: __( 'モバイルではオフセットを無効にする', 'cni-blocks' ),
+								checked: attributes.disableBackgroundOffsetOnMobile !== false,
+								onChange: function( value ) { setAttributes( { disableBackgroundOffsetOnMobile: !! value } ); },
+							} )
+						) : null,
+						el( SelectControl, {
+							label: __( 'オーバーレイ', 'cni-blocks' ),
+							value: attributes.overlayType === 'none' || attributes.overlayType === 'gradient' ? attributes.overlayType : 'solid',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( '単色', 'cni-blocks' ), value: 'solid' },
+								{ label: __( 'グラデーション', 'cni-blocks' ), value: 'gradient' },
+							],
+							onChange: function( value ) { setAttributes( { overlayType: value === 'gradient' || value === 'none' ? value : 'solid' } ); },
 						} ),
-						el( 'p', null, __( 'オーバーレイ色', 'cni-blocks' ) ),
-						el( ColorPalette, {
-							value: attributes.overlayColor || '#000000',
-							onChange: function( value ) { setAttributes( { overlayColor: value || '#000000' } ); },
+						attributes.overlayType !== 'none' && attributes.overlayType !== 'gradient'
+							? el(
+								element.Fragment,
+								null,
+								el( 'p', null, __( 'オーバーレイ色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayColor || '#000000',
+									onChange: function( value ) { setAttributes( { overlayColor: value || '#000000' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( 'オーバーレイ透明度（%）', 'cni-blocks' ),
+									value: attributes.overlayOpacity || 0,
+									min: 0,
+									max: 100,
+									onChange: function( value ) { setAttributes( { overlayOpacity: typeof value === 'number' ? value : 0 } ); },
+								} )
+							) : null,
+						attributes.overlayType === 'gradient'
+							? el(
+								element.Fragment,
+								null,
+								el( SelectControl, {
+									label: __( 'グラデーションプリセット', 'cni-blocks' ),
+									value: attributes.overlayGradientPreset || 'custom',
+									options: [
+										{ label: __( 'カスタム', 'cni-blocks' ), value: 'custom' },
+										{ label: __( '左を明るく（文字を載せやすい）', 'cni-blocks' ), value: 'left-light' },
+										{ label: __( '右を明るく（文字を載せやすい）', 'cni-blocks' ), value: 'right-light' },
+										{ label: __( '上を明るく', 'cni-blocks' ), value: 'top-light' },
+										{ label: __( '下を明るく', 'cni-blocks' ), value: 'bottom-light' },
+										{ label: __( '左を暗く（白文字向け）', 'cni-blocks' ), value: 'left-dark' },
+									],
+									onChange: function( value ) {
+										const preset = gradientPresetAttributes( value );
+										setAttributes( Object.assign( { overlayGradientPreset: value || 'custom' }, preset || {} ) );
+									},
+								} ),
+								el( 'p', null, __( '開始色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayGradientStartColor || '#ffffff',
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartColor: value || '#ffffff' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( '開始色の不透明度（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientStartOpacity, 0, 100, 90 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartOpacity: numberInRange( value, 0, 100, 90 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '開始位置（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientStartPosition, 0, 100, 0 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientStartPosition: numberInRange( value, 0, 100, 0 ) } ); },
+								} ),
+								el( 'p', null, __( '終了色', 'cni-blocks' ) ),
+								el( ColorPalette, {
+									colors: colorPalette,
+									value: attributes.overlayGradientEndColor || '#ffffff',
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndColor: value || '#ffffff' } ); },
+									clearable: false,
+								} ),
+								el( RangeControl, {
+									label: __( '終了色の不透明度（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientEndOpacity, 0, 100, 0 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndOpacity: numberInRange( value, 0, 100, 0 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '終了位置（%）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientEndPosition, 0, 100, 70 ), min: 0, max: 100,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientEndPosition: numberInRange( value, 0, 100, 70 ) } ); },
+								} ),
+								el( RangeControl, {
+									label: __( '角度（°：90で左から右）', 'cni-blocks' ),
+									value: numberInRange( attributes.overlayGradientAngle, 0, 360, 90 ), min: 0, max: 360,
+									onChange: function( value ) { setAttributes( { overlayGradientPreset: 'custom', overlayGradientAngle: numberInRange( value, 0, 360, 90 ) } ); },
+								} )
+							) : null
+					),
+					el(
+						PanelBody,
+						{ title: __( 'マウスオーバー演出', 'cni-blocks' ), initialOpen: false },
+						el( 'p', { className: 'cni-outer-control-help' }, __( 'PCではホバー、キーボード操作ではフォーカス時に表示します。モバイルと「動きを減らす」設定では通常表示のままです。', 'cni-blocks' ) ),
+						el( SelectControl, {
+							label: __( '背景演出', 'cni-blocks' ),
+							value: attributes.creativeBackgroundEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( '背景をゆっくり拡大', 'cni-blocks' ), value: 'zoom' },
+							],
+							help: pcBackgroundImageUrl ? __( 'PC背景画像に適用されます。動画背景と斜め背景は通常表示のままです。', 'cni-blocks' ) : __( 'PC背景画像を設定すると適用されます。動画背景と斜め背景は通常表示のままです。', 'cni-blocks' ),
+							onChange: function( value ) { setAttributes( { creativeBackgroundEffect: value === 'zoom' ? 'zoom' : 'none' } ); },
+						} ),
+						el( SelectControl, {
+							label: __( 'フレーム演出', 'cni-blocks' ),
+							value: attributes.creativeFrameEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( 'フレームを順に描画', 'cni-blocks' ), value: 'draw' },
+							],
+							onChange: function( value ) { setAttributes( { creativeFrameEffect: value === 'draw' ? 'draw' : 'none' } ); },
+						} ),
+						attributes.creativeFrameEffect === 'draw' ? el( 'p', null, __( 'フレーム色', 'cni-blocks' ) ) : null,
+						attributes.creativeFrameEffect === 'draw' ? el( ColorPalette, {
+							colors: colorPalette,
+							value: attributes.creativeFrameColor || '#ffffff',
 							clearable: false,
-						} ),
-						el( RangeControl, {
-							label: __( 'オーバーレイ透明度（%）', 'cni-blocks' ),
-							value: attributes.overlayOpacity || 0,
-							min: 0,
-							max: 100,
-							onChange: function( value ) { setAttributes( { overlayOpacity: typeof value === 'number' ? value : 0 } ); },
+							onChange: function( value ) { setAttributes( { creativeFrameColor: value || '#ffffff' } ); },
+						} ) : null,
+						el( SelectControl, {
+							label: __( 'コンテンツ演出', 'cni-blocks' ),
+							value: attributes.creativeContentEffect || 'none',
+							options: [
+								{ label: __( 'なし', 'cni-blocks' ), value: 'none' },
+								{ label: __( 'コンテンツを少し浮かせる', 'cni-blocks' ), value: 'lift' },
+							],
+							onChange: function( value ) { setAttributes( { creativeContentEffect: value === 'lift' ? 'lift' : 'none' } ); },
 						} )
 					),
 					el(
@@ -670,8 +1243,8 @@
 						PanelBody,
 						{ title: __( '区切り', 'cni-blocks' ), initialOpen: false },
 						el( 'p', { className: 'cni-outer-control-help' }, __( '隣接するセクションの背景色を指定すると、自然につながって見えます。', 'cni-blocks' ) ),
-						dividerSettingsControl( 'top', attributes, setAttributes ),
-						dividerSettingsControl( 'bottom', attributes, setAttributes )
+						dividerSettingsControl( 'top', attributes, setAttributes, colorPalette ),
+						dividerSettingsControl( 'bottom', attributes, setAttributes, colorPalette )
 					),
 					el(
 						PanelBody,
@@ -743,6 +1316,7 @@
 						} ) : null,
 						borderType !== 'none' ? el( 'p', null, __( '枠線の色', 'cni-blocks' ) ) : null,
 						borderType !== 'none' ? el( ColorPalette, {
+							colors: colorPalette,
 							value: attributes.borderColor || '#dddddd',
 							onChange: function( value ) { setAttributes( { borderColor: value || '#dddddd' } ); },
 							clearable: false,
@@ -760,6 +1334,9 @@
 					TagName,
 					blockProps,
 					dividerElement( 'top', attributes ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, true ),
+					creativeFrameElement( attributes ),
 					el(
 						'div',
 						{ className: 'cni-outer__inner' },
@@ -777,13 +1354,16 @@
 			const TagName = attributes.tagName === 'section' ? 'section' : 'div';
 			const blockProps = blockEditor.useBlockProps.save( {
 				style: getOuterStyle( attributes ),
-				className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
+				className: outerClassName( attributes ),
 			} );
 
 			return el(
 				TagName,
 				blockProps,
 				dividerElement( 'top', attributes ),
+				creativeBackgroundElement( attributes ),
+				backgroundVideoElement( attributes, false ),
+				creativeFrameElement( attributes ),
 				el(
 					'div',
 					{ className: 'cni-outer__inner' },
@@ -792,5 +1372,100 @@
 				dividerElement( 'bottom', attributes )
 			);
 		},
+		deprecated: [ {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: preCutoutOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyOutward: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyOutward: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: preCutoutOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyColor: true, omitTypeClass: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyColor: true, omitTypeClass: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: legacyCurrentOuterClassName( attributes ),
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, null, { legacyColor: true, omitTypeClass: true } ),
+					creativeBackgroundElement( attributes ),
+					backgroundVideoElement( attributes, false ),
+					creativeFrameElement( attributes ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, null, { legacyColor: true, omitTypeClass: true } )
+				);
+			},
+		}, {
+			save: function( props ) {
+				const attributes = props.attributes;
+				const TagName = attributes.tagName === 'section' ? 'section' : 'div';
+				const blockProps = blockEditor.useBlockProps.save( {
+					style: getOuterStyle( attributes, { legacyOutward: true } ),
+					className: hasOutwardDivider( attributes ) ? 'cni-outer--has-outward-divider' : '',
+				} );
+
+				return el(
+					TagName,
+					blockProps,
+					dividerElement( 'top', attributes, legacyDividerPath, { legacyColor: true, omitTypeClass: true } ),
+					backgroundVideoElement( attributes, false ),
+					el(
+						'div',
+						{ className: 'cni-outer__inner' },
+						el( InnerBlocks.Content )
+					),
+					dividerElement( 'bottom', attributes, legacyDividerPath, { legacyColor: true, omitTypeClass: true } )
+				);
+			},
+		} ],
 	} );
 } )( window.wp.blocks, window.wp.element, window.wp.blockEditor, window.wp.components, window.wp.i18n );
