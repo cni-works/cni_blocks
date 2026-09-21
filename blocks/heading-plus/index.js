@@ -7,17 +7,31 @@
 	const { useSelect } = data;
 	const { AlignmentToolbar, BlockControls, ColorPalette, InspectorControls, MediaUpload, MediaUploadCheck, RichText, RichTextToolbarButton, useBlockProps } = blockEditor;
 	const { Button, ColorPicker, Modal, PanelBody, RangeControl, SelectControl, TextControl, ToolbarDropdownMenu, ToolbarGroup, ToolbarButton } = components;
-	const { applyFormat, create, insert, registerFormatType, removeFormat } = richText;
+	const { applyFormat, create, getFormatType, insert, registerFormatType, removeFormat } = richText;
 	const inlineColorFormat = 'cni-blocks/heading-inline-color';
 	const inlineSizeFormat = 'cni-blocks/heading-inline-size';
 	const rubyFormat = 'cni-blocks/heading-ruby';
 	const responsiveBreakFormat = 'cni-blocks/heading-responsive-break';
+	const motionTextAccentFormat = 'cni-motion/text-accent';
 	const isLightning = !! ( window.cniBlocksHeadingPlusConfig && window.cniBlocksHeadingPlusConfig.isLightning );
 	/* Kept separately so posts saved before Heading+ gained units, margins,
 	 * writing modes, and inline images continue to validate byte-for-byte. */
 	const legacyHeadingAttributes = {
 		content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '見出しを入力' }, level: { type: 'number', default: 2 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 40 }, fontSizeTablet: { type: 'number', default: 34 }, fontSizeMobile: { type: 'number', default: 28 }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 },
 	};
+
+	/* Heading+ limits its RichText toolbar deliberately. Keep that list in one
+	 * place and include CNI Motion's optional accent format unconditionally.
+	 * Gutenberg silently ignores an unavailable format name; doing this avoids
+	 * a script-load race where CNI Motion registers after Heading+ renders. */
+	function headingAllowedFormats() {
+		return Array.from( new Set( [ 'core/bold', 'core/italic', 'core/link', inlineColorFormat, inlineSizeFormat, rubyFormat, responsiveBreakFormat, motionTextAccentFormat ] ) );
+	}
+
+	function registerHeadingFormatType( name, settings ) {
+		if ( typeof getFormatType === 'function' && getFormatType( name ) ) return;
+		registerFormatType( name, settings );
+	}
 	const googleFonts = [ '', 'Noto Sans JP', 'Noto Serif JP', 'M PLUS 1p', 'M PLUS Rounded 1c', 'Zen Kaku Gothic New', 'Zen Maru Gothic', 'Zen Old Mincho', 'Zen Kurenaido', 'Shippori Mincho', 'Kosugi Maru', 'Yuji Boku', 'Kiwi Maru', 'Kaisei Decol', 'Kaisei Opti', 'Mochiy Pop One', 'Klee One', 'Yomogi', 'Yusei Magic', 'Roboto', 'Lato', 'Montserrat', 'Poppins', 'Josefin Sans', 'Quicksand', 'Damion', 'Caveat', 'Cinzel', 'Dancing Script', 'Tangerine' ];
 	const fontWeights = {
 		'Zen Old Mincho': [ '400', '500', '600', '700', '800' ], 'Shippori Mincho': [ '400', '500', '600', '700', '800' ],
@@ -39,6 +53,7 @@
 	function legacyDesignForCategory( attributes, category ) { const design = textDesignFor( attributes.textDesign ); return design && design.category === category ? design : null; }
 	function headingDesignFor( attributes ) { return textDesignFor( attributes.headingDesign ) || legacyDesignForCategory( attributes, 'heading' ); }
 	function textDecorationFor( attributes ) { return textDesignFor( attributes.textDecoration ) || legacyDesignForCategory( attributes, 'text' ); }
+	function textEffectFor( attributes ) { return [ 'soft-outline', 'drop-shadow' ].indexOf( attributes.textEffect ) !== -1 ? attributes.textEffect : ''; }
 	function customDesignFor( attributes ) { return initialCustomDesigns.find( function( design ) { return design.id === attributes.customDesignId; } ) || null; }
 	function customDesignEditorCss( design ) {
 		if ( ! design || ! design.id ) return '';
@@ -59,7 +74,8 @@
 		const tablet = deviceRules( scope, tabletBase, tabletBefore, tabletAfter );
 		const mobile = deviceRules( scope, mobileBase, mobileBefore, mobileAfter );
 		const editorScope = '.editor-styles-wrapper .cni-heading-custom--' + design.id;
-		return ( positionedBase ? scope + '{' + positionedBase + '}' : '' ) + ( before ? scope + '::before{' + before + '}' : '' ) + ( after ? scope + '::after{' + after + '}' : '' ) + advanced + ( tablet ? '@media (max-width:1024px){' + tablet + '}' + deviceRules( editorScope + '[data-editor-device="Tablet"] .cni-heading-plus__custom-layer', tabletBase, tabletBefore, tabletAfter ) : '' ) + ( mobile ? '@media (max-width:767px){' + mobile + '}' + deviceRules( editorScope + '[data-editor-device="Mobile"] .cni-heading-plus__custom-layer', mobileBase, mobileBefore, mobileAfter ) : '' );
+		const desktop = deviceRules( editorScope + '[data-editor-device="Desktop"] .cni-heading-plus__custom-layer', positionedBase, before, after );
+		return ( positionedBase ? scope + '{' + positionedBase + '}' : '' ) + ( before ? scope + '::before{' + before + '}' : '' ) + ( after ? scope + '::after{' + after + '}' : '' ) + advanced + ( tablet ? '@media (max-width:1024px){' + tablet + '}' + deviceRules( editorScope + '[data-editor-device="Tablet"] .cni-heading-plus__custom-layer', tabletBase, tabletBefore, tabletAfter ) : '' ) + ( mobile ? '@media (max-width:767px){' + mobile + '}' + deviceRules( editorScope + '[data-editor-device="Mobile"] .cni-heading-plus__custom-layer', mobileBase, mobileBefore, mobileAfter ) : '' ) + desktop;
 	}
 	function headingTextClass( attributes ) { const decoration = textDecorationFor( attributes ); const structure = headingDesignFor( attributes ); return 'cni-heading-plus__text' + ( attributes.customDesignId ? ' cni-heading-plus__custom-layer' : '' ) + ( decoration || structure ? ' cni-heading-plus__effect-target' : '' ) + ( decoration ? ' cni-heading-plus__decoration-' + decoration.id : '' ); }
 	function headingChrome( attributes ) {
@@ -211,6 +227,21 @@
 			style[ '--cni-heading-design-accent' ] = decorationAccent;
 			style[ '--cni-heading-decoration-outline' ] = a.textDecorationOutlineColor || '#ffffff';
 		}
+		const textEffect = textEffectFor( a );
+		if ( textEffect && ! decoration && ! a.customDesignId ) {
+			const opacity = Math.max( 0, Math.min( 100, numberOr( a.textEffectOpacity, 100 ) ) );
+			const color = a.textEffectColor || ( textEffect === 'soft-outline' ? '#ffffff' : '#000000' );
+			style[ '--cni-heading-effect-color' ] = 'color-mix(in srgb, ' + color + ' ' + opacity + '%, transparent)';
+			style[ '--cni-heading-effect-blur' ] = Math.max( 0, Math.min( 30, numberOr( a.textEffectBlur, 4 ) ) ) + 'px';
+			if ( textEffect === 'soft-outline' ) {
+				const spread = Math.max( 0, Math.min( 16, numberOr( a.textEffectSpread, 4 ) ) );
+				style[ '--cni-heading-effect-spread-positive' ] = spread + 'px';
+				style[ '--cni-heading-effect-spread-negative' ] = -spread + 'px';
+			} else {
+				style[ '--cni-heading-effect-offset-x' ] = Math.max( -30, Math.min( 30, numberOr( a.textEffectOffsetX, 2 ) ) ) + 'px';
+				style[ '--cni-heading-effect-offset-y' ] = Math.max( -30, Math.min( 30, numberOr( a.textEffectOffsetY, 3 ) ) ) + 'px';
+			}
+		}
 		if ( isV3Layout( a ) ) {
 			style[ '--cni-secondary-font' ] = a.secondaryFontFamily ? '"' + a.secondaryFontFamily + '", sans-serif' : 'inherit';
 			style[ '--cni-secondary-weight' ] = a.secondaryFontWeight || a.fontWeight || '700';
@@ -224,6 +255,8 @@
 			style[ '--cni-bg-text-opacity' ] = Math.max( 0, Math.min( 100, numberOr( a.backgroundTextOpacity, 14 ) ) ) / 100;
 			style[ '--cni-bg-text-x' ] = numberOr( a.backgroundTextX, 0 ) + 'px';
 			style[ '--cni-bg-text-y' ] = numberOr( a.backgroundTextY, 0 ) + 'px';
+			if ( typeof a.backgroundTextXTablet === 'number' ) style[ '--cni-bg-text-x-tablet' ] = a.backgroundTextXTablet + 'px';
+			if ( typeof a.backgroundTextYTablet === 'number' ) style[ '--cni-bg-text-y-tablet' ] = a.backgroundTextYTablet + 'px';
 			style[ '--cni-bg-text-x-mobile' ] = numberOr( a.backgroundTextXMobile, 0 ) + 'px';
 			style[ '--cni-bg-text-y-mobile' ] = numberOr( a.backgroundTextYMobile, 0 ) + 'px';
 		}
@@ -312,12 +345,14 @@
 		const legacyDesign = textDesignFor( a.textDesign );
 		const headingDesign = headingDesignFor( a );
 		const textDecoration = textDecorationFor( a );
+		const textEffect = textEffectFor( a );
 		if ( a.fontFamily ) props[ 'data-google-font' ] = a.fontFamily;
 		if ( a.customDesignId && /^[-a-z0-9_]+$/i.test( a.customDesignId ) ) props.className = 'cni-heading-custom--' + a.customDesignId;
 		if ( legacyDesign && ! a.headingDesign && ! a.textDecoration ) props[ 'data-cni-text-design' ] = legacyDesign.id;
 		else if ( headingDesign && ! textDecoration ) props[ 'data-cni-text-design' ] = headingDesign.id;
 		else if ( textDecoration && ! headingDesign ) props[ 'data-cni-text-design' ] = textDecoration.id;
 		if ( headingDesign ) props[ 'data-cni-heading-design' ] = headingDesign.id;
+		if ( textEffect && ! textDecoration && ! a.customDesignId ) props[ 'data-cni-text-effect' ] = textEffect;
 		if ( isV3Layout( a ) ) {
 			props[ 'data-cni-secondary-layout' ] = 'v3';
 			if ( a.secondaryFontFamily ) props[ 'data-secondary-google-font' ] = a.secondaryFontFamily;
@@ -351,7 +386,7 @@
 		);
 	}
 
-	registerFormatType( inlineColorFormat, {
+	registerHeadingFormatType( inlineColorFormat, {
 		title: __( '部分文字色', 'cni-blocks' ),
 		tagName: 'span',
 		className: 'cni-heading-plus__inline-color',
@@ -380,7 +415,7 @@
 		},
 	} );
 
-	registerFormatType( inlineSizeFormat, {
+	registerHeadingFormatType( inlineSizeFormat, {
 		title: __( '部分文字サイズ', 'cni-blocks' ),
 		tagName: 'span',
 		className: 'cni-heading-plus__inline-size',
@@ -403,7 +438,7 @@
 		},
 	} );
 
-	registerFormatType( rubyFormat, {
+	registerHeadingFormatType( rubyFormat, {
 		title: __( 'ルビ', 'cni-blocks' ),
 		tagName: 'ruby',
 		className: 'cni-heading-plus__ruby',
@@ -426,10 +461,12 @@
 
 	/* This format only contributes the toolbar control. The inserted content is
 	 * plain Lightning shortcode text, so saved posts remain theme-compatible. */
-	registerFormatType( responsiveBreakFormat, {
+	registerHeadingFormatType( responsiveBreakFormat, {
 		title: __( '画面幅で改行', 'cni-blocks' ),
 		tagName: 'span',
-		className: null,
+		/* This toolbar-only format does not wrap saved text. A unique class keeps
+		 * its span registration from claiming Gutenberg's bare <span> handler. */
+		className: 'cni-heading-plus__responsive-break-control',
 		edit: ResponsiveBreakFormatControl,
 	} );
 
@@ -438,7 +475,7 @@
 		title: __( '見出し+', 'cni-blocks' ), icon: 'heading', category: 'cni-blocks',
 		description: __( '端末別の文字サイズ、Google Fonts、テキストデザインを設定できる見出しです。', 'cni-blocks' ),
 		attributes: {
-			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, legacyLayout: { type: 'boolean', default: false }, layoutVersion: { type: 'number', default: 2 }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 }, textDesign: { type: 'string', default: '' }, textDesignPrimaryColor: { type: 'string', default: '' }, textDesignHighlightColor: { type: 'string', default: '' }, textDesignAccentColor: { type: 'string', default: '' }, headingDesign: { type: 'string', default: '' }, textDecoration: { type: 'string', default: '' }, headingDesignPrimaryColor: { type: 'string', default: '' }, headingDesignAccentColor: { type: 'string', default: '' }, headingDesignLineColor: { type: 'string', default: '' }, headingDesignLineLength: { type: 'number', default: 2.8 }, headingDesignLineGap: { type: 'number', default: .45 }, textDecorationPrimaryColor: { type: 'string', default: '' }, textDecorationHighlightColor: { type: 'string', default: '' }, textDecorationAccentColor: { type: 'string', default: '' }, textDecorationOutlineColor: { type: 'string', default: '' }, headingEyebrow: { type: 'string', default: '' }, headingNumber: { type: 'string', default: '' }, headingBackdropText: { type: 'string', default: '' }, secondaryFontFamily: { type: 'string', default: '' }, secondaryFontWeight: { type: 'string', default: '' }, secondaryColor: { type: 'string', default: '' }, secondarySizePc: { type: 'number', default: 14 }, secondarySizeMobile: { type: 'number', default: 12 }, secondaryLetterSpacing: { type: 'number', default: 1.5 }, secondaryLineHeight: { type: 'number', default: 1.2 }, secondaryGapPc: { type: 'number', default: 8 }, secondaryGapMobile: { type: 'number', default: 6 }, secondaryAlignment: { type: 'string', default: 'inherit' }, numberVerticalAlignment: { type: 'string', default: 'baseline' }, backgroundTextOpacity: { type: 'number', default: 14 }, backgroundTextX: { type: 'number', default: 0 }, backgroundTextY: { type: 'number', default: 0 }, backgroundTextXMobile: { type: 'number', default: 0 }, backgroundTextYMobile: { type: 'number', default: 0 }, headingDesignLineThickness: { type: 'number', default: 2 }, headingDesignSlashScale: { type: 'number', default: 1 }, customDesignId: { type: 'string', default: '' }, originalDesignId: { type: 'string', default: '' },
+			content: { type: 'string', source: 'html', selector: '.cni-heading-plus__text', default: '' }, level: { type: 'number', default: 2 }, tagName: { type: 'string', default: '' }, marginTop: { type: 'number' }, marginBottom: { type: 'number' }, legacyLayout: { type: 'boolean', default: false }, layoutVersion: { type: 'number', default: 2 }, inlineImageId: { type: 'number', default: 0 }, inlineImageUrl: { type: 'string', default: '' }, inlineImageAlt: { type: 'string', default: '' }, inlineImagePosition: { type: 'string', default: 'before' }, inlineImageSize: { type: 'number', default: 1.05 }, writingMode: { type: 'string', default: 'horizontal-tb' }, mobileWritingMode: { type: 'string', default: 'horizontal-tb' }, verticalOrientation: { type: 'string', default: 'mixed' }, verticalPosition: { type: 'string', default: 'right' }, verticalHeight: { type: 'number', default: 320 }, fontFamily: { type: 'string', default: '' }, fontWeight: { type: 'string', default: '700' }, fontStyle: { type: 'string', default: 'normal' }, textTransform: { type: 'string', default: 'none' }, fontSizePc: { type: 'number', default: 32 }, fontSizeTablet: { type: 'number', default: 28 }, fontSizeMobile: { type: 'number', default: 21 }, fontSizeUnitPc: { type: 'string', default: 'px' }, fontSizeUnitTablet: { type: 'string', default: 'px' }, fontSizeUnitMobile: { type: 'string', default: 'px' }, lineHeight: { type: 'number', default: 1.3 }, letterSpacing: { type: 'number', default: 0 }, textColor: { type: 'string', default: '' }, backgroundColor: { type: 'string', default: '' }, alignment: { type: 'string', default: 'left' }, paddingVertical: { type: 'number', default: 0 }, paddingHorizontal: { type: 'number', default: 0 }, textDesign: { type: 'string', default: '' }, textDesignPrimaryColor: { type: 'string', default: '' }, textDesignHighlightColor: { type: 'string', default: '' }, textDesignAccentColor: { type: 'string', default: '' }, headingDesign: { type: 'string', default: '' }, textDecoration: { type: 'string', default: '' }, headingDesignPrimaryColor: { type: 'string', default: '' }, headingDesignAccentColor: { type: 'string', default: '' }, headingDesignLineColor: { type: 'string', default: '' }, headingDesignLineLength: { type: 'number', default: 2.8 }, headingDesignLineGap: { type: 'number', default: .45 }, textDecorationPrimaryColor: { type: 'string', default: '' }, textDecorationHighlightColor: { type: 'string', default: '' }, textDecorationAccentColor: { type: 'string', default: '' }, textDecorationOutlineColor: { type: 'string', default: '' }, textEffect: { type: 'string', default: '' }, textEffectColor: { type: 'string', default: '' }, textEffectOpacity: { type: 'number', default: 100 }, textEffectSpread: { type: 'number', default: 4 }, textEffectBlur: { type: 'number', default: 4 }, textEffectOffsetX: { type: 'number', default: 2 }, textEffectOffsetY: { type: 'number', default: 3 }, headingEyebrow: { type: 'string', default: '' }, headingNumber: { type: 'string', default: '' }, headingBackdropText: { type: 'string', default: '' }, secondaryFontFamily: { type: 'string', default: '' }, secondaryFontWeight: { type: 'string', default: '' }, secondaryColor: { type: 'string', default: '' }, secondarySizePc: { type: 'number', default: 14 }, secondarySizeMobile: { type: 'number', default: 12 }, secondaryLetterSpacing: { type: 'number', default: 1.5 }, secondaryLineHeight: { type: 'number', default: 1.2 }, secondaryGapPc: { type: 'number', default: 8 }, secondaryGapMobile: { type: 'number', default: 6 }, secondaryAlignment: { type: 'string', default: 'inherit' }, numberVerticalAlignment: { type: 'string', default: 'baseline' }, backgroundTextOpacity: { type: 'number', default: 14 }, backgroundTextX: { type: 'number', default: 0 }, backgroundTextY: { type: 'number', default: 0 }, backgroundTextXTablet: { type: 'number' }, backgroundTextYTablet: { type: 'number' }, backgroundTextXMobile: { type: 'number', default: 0 }, backgroundTextYMobile: { type: 'number', default: 0 }, headingDesignLineThickness: { type: 'number', default: 2 }, headingDesignSlashScale: { type: 'number', default: 1 }, customDesignId: { type: 'string', default: '' }, originalDesignId: { type: 'string', default: '' },
 		},
 		transforms: {
 			from: [ {
@@ -467,7 +504,7 @@
 			const activeDesignTab = designTabState[ 0 ];
 			const setActiveDesignTab = designTabState[ 1 ];
 			const applyCustomCssDesign = function( design ) {
-				props.setAttributes( { customDesignId: design.id, originalDesignId: '', textDesign: '', headingDesign: '', textDecoration: '' } );
+				props.setAttributes( { customDesignId: design.id, originalDesignId: '', textDesign: '', headingDesign: '', textDecoration: '', textEffect: '' } );
 				setIsDesignModalOpen( false );
 			};
 			const designApplyModeState = useState( 'keep' );
@@ -570,11 +607,27 @@
 								el( RangeControl, { label: __( '背面英字の不透明度（%）', 'cni-blocks' ), value: numberOr( a.backgroundTextOpacity, 14 ), min: 0, max: 100, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextOpacity: value } ); } } ),
 								el( RangeControl, { label: __( 'X位置：PC（px）', 'cni-blocks' ), value: numberOr( a.backgroundTextX, 0 ), min: -200, max: 200, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextX: value } ); } } ),
 								el( RangeControl, { label: __( 'Y位置：PC（px）', 'cni-blocks' ), value: numberOr( a.backgroundTextY, 0 ), min: -200, max: 200, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextY: value } ); } } ),
+								el( RangeControl, { label: __( 'X位置：タブレット（px）', 'cni-blocks' ), help: typeof a.backgroundTextXTablet === 'number' ? '' : __( '未設定時はPCの位置を使用します。', 'cni-blocks' ), value: numberOr( a.backgroundTextXTablet, numberOr( a.backgroundTextX, 0 ) ), min: -200, max: 200, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextXTablet: value } ); } } ),
+								el( RangeControl, { label: __( 'Y位置：タブレット（px）', 'cni-blocks' ), help: typeof a.backgroundTextYTablet === 'number' ? '' : __( '未設定時はPCの位置を使用します。', 'cni-blocks' ), value: numberOr( a.backgroundTextYTablet, numberOr( a.backgroundTextY, 0 ) ), min: -200, max: 200, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextYTablet: value } ); } } ),
 								el( RangeControl, { label: __( 'X位置：スマホ（px）', 'cni-blocks' ), value: numberOr( a.backgroundTextXMobile, 0 ), min: -160, max: 160, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextXMobile: value } ); } } ),
 								el( RangeControl, { label: __( 'Y位置：スマホ（px）', 'cni-blocks' ), value: numberOr( a.backgroundTextYMobile, 0 ), min: -160, max: 160, step: 1, onChange: function( value ) { props.setAttributes( { backgroundTextYMobile: value } ); } } )
 							) : null
 						) : null,
 						el( 'small', { className: 'cni-heading-plus__design-size-help' }, __( 'デザインを選んでも現在のフォント・文字サイズは保持されます。', 'cni-blocks' ) )
+					),
+					el( PanelBody, { title: __( '文字効果', 'cni-blocks' ), initialOpen: false },
+						activeCustomDesign ? el( 'p', null, __( 'オリジナルデザイン適用中は、そのCSSで文字効果を設定してください。', 'cni-blocks' ) ) : el( element.Fragment, null,
+							el( SelectControl, { label: __( '効果', 'cni-blocks' ), value: textEffectFor( a ), options: [ { label: __( 'なし', 'cni-blocks' ), value: '' }, { label: __( 'ソフト縁取り', 'cni-blocks' ), value: 'soft-outline' }, { label: __( 'ドロップシャドウ', 'cni-blocks' ), value: 'drop-shadow' } ], onChange: function( value ) { const effect = [ 'soft-outline', 'drop-shadow' ].indexOf( value ) !== -1 ? value : ''; const legacyTextDesign = legacyDesignForCategory( a, 'text' ); props.setAttributes( { textEffect: effect, textEffectColor: effect && ! a.textEffectColor ? ( effect === 'soft-outline' ? '#ffffff' : '#000000' ) : a.textEffectColor, textDecoration: effect ? '' : a.textDecoration, textDesign: effect && legacyTextDesign ? '' : a.textDesign } ); } } ),
+							textEffectFor( a ) ? el( element.Fragment, null,
+								palette( __( '効果の色', 'cni-blocks' ), a.textEffectColor || ( textEffectFor( a ) === 'soft-outline' ? '#ffffff' : '#000000' ), function( value ) { props.setAttributes( { textEffectColor: value || ( textEffectFor( a ) === 'soft-outline' ? '#ffffff' : '#000000' ) } ); } ),
+								el( RangeControl, { label: __( '濃さ（%）', 'cni-blocks' ), value: numberOr( a.textEffectOpacity, 100 ), min: 0, max: 100, step: 1, onChange: function( value ) { props.setAttributes( { textEffectOpacity: value } ); } } ),
+								textEffectFor( a ) === 'soft-outline' ? el( RangeControl, { label: __( '広がり（px）', 'cni-blocks' ), value: numberOr( a.textEffectSpread, 4 ), min: 0, max: 16, step: .5, onChange: function( value ) { props.setAttributes( { textEffectSpread: value } ); } } ) : el( element.Fragment, null,
+									el( RangeControl, { label: __( '横方向（px）', 'cni-blocks' ), value: numberOr( a.textEffectOffsetX, 2 ), min: -30, max: 30, step: .5, onChange: function( value ) { props.setAttributes( { textEffectOffsetX: value } ); } } ),
+									el( RangeControl, { label: __( '縦方向（px）', 'cni-blocks' ), value: numberOr( a.textEffectOffsetY, 3 ), min: -30, max: 30, step: .5, onChange: function( value ) { props.setAttributes( { textEffectOffsetY: value } ); } } )
+								),
+								el( RangeControl, { label: __( 'ぼかし（px）', 'cni-blocks' ), value: numberOr( a.textEffectBlur, 4 ), min: 0, max: 30, step: .5, onChange: function( value ) { props.setAttributes( { textEffectBlur: value } ); } } )
+							) : null
+						)
 					),
 					el( PanelBody, { title: __( '見出し設定', 'cni-blocks' ), initialOpen: true },
 						el( SelectControl, { label: __( 'HTML要素', 'cni-blocks' ), value: textTag( a ), options: [ { label: 'H1', value: 'h1' }, { label: 'H2', value: 'h2' }, { label: 'H3', value: 'h3' }, { label: 'H4', value: 'h4' }, { label: 'H5', value: 'h5' }, { label: 'H6', value: 'h6' }, { label: __( '段落（p）', 'cni-blocks' ), value: 'p' }, { label: __( 'インライン（span）', 'cni-blocks' ), value: 'span' } ], onChange: function( value ) { const tag = value || 'h2'; const defaults = headingDefaultSizes( tag ); const useDefaults = [ 'h2', 'h3', 'h4', 'p', 'span' ].indexOf( tag ) !== -1; props.setAttributes( Object.assign( { tagName: tag, level: /^h[1-6]$/.test( tag ) ? parseInt( tag.slice( 1 ), 10 ) : ( a.level || 2 ) }, useDefaults ? { fontSizePc: defaults.pc, fontSizeTablet: defaults.tablet, fontSizeMobile: defaults.mobile, fontSizeUnitPc: tag === 'p' || tag === 'span' ? 'rem' : 'px', fontSizeUnitTablet: tag === 'p' || tag === 'span' ? 'rem' : 'px', fontSizeUnitMobile: tag === 'p' || tag === 'span' ? 'rem' : 'px' } : {} ) ); } } ),
@@ -622,7 +675,7 @@
 					activeDesignTab !== 'original' ? el( 'div', { className: 'cni-heading-plus__design-library' }, textDesigns.filter( function( design ) { return ( design.category || 'text' ) === activeDesignTab; } ).map( function( design ) {
 						const isSelected = activeDesignTab === 'heading' ? !! ( activeHeadingDesign && activeHeadingDesign.id === design.id ) : !! ( activeTextDecoration && activeTextDecoration.id === design.id );
 						const previewStyle = activeDesignTab === 'heading' ? designPreviewStyle( design, a, designApplyMode ) : ( designApplyMode === 'keep' ? { fontFamily: a.fontFamily ? '"' + a.fontFamily + '", sans-serif' : 'inherit', color: a.textColor || 'inherit' } : null );
-						return el( 'button', { key: design.id, type: 'button', className: 'cni-heading-plus__design-card' + ( isSelected ? ' is-selected' : '' ), 'data-cni-text-design': design.id, onClick: function() { const next = activeDesignTab === 'heading' ? { headingDesign: design.id, headingDesignPrimaryColor: design.primaryColor, headingDesignAccentColor: design.accentColor } : { textDecoration: design.id, textDecorationPrimaryColor: design.primaryColor, textDecorationHighlightColor: design.highlightColor || '', textDecorationAccentColor: design.accentColor, textDecorationOutlineColor: '#ffffff' }; next.customDesignId = ''; next.originalDesignId = ''; if ( activeDesignTab === 'heading' && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 ) next.layoutVersion = 3; if ( activeDesignTab === 'heading' && [ 'left-line', 'right-line' ].indexOf( design.id ) !== -1 ) next.alignment = 'left'; if ( designApplyMode === 'preset' ) { next.fontFamily = design.fontFamily; next.fontWeight = design.fontWeight; } props.setAttributes( next ); setIsDesignModalOpen( false ); }, 'aria-pressed': isSelected },
+						return el( 'button', { key: design.id, type: 'button', className: 'cni-heading-plus__design-card' + ( isSelected ? ' is-selected' : '' ), 'data-cni-text-design': design.id, onClick: function() { const next = activeDesignTab === 'heading' ? { headingDesign: design.id, headingDesignPrimaryColor: design.primaryColor, headingDesignAccentColor: design.accentColor } : { textDecoration: design.id, textDecorationPrimaryColor: design.primaryColor, textDecorationHighlightColor: design.highlightColor || '', textDecorationAccentColor: design.accentColor, textDecorationOutlineColor: '#ffffff', textEffect: '' }; next.customDesignId = ''; next.originalDesignId = ''; if ( activeDesignTab === 'heading' && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 ) next.layoutVersion = 3; if ( activeDesignTab === 'heading' && [ 'left-line', 'right-line' ].indexOf( design.id ) !== -1 ) next.alignment = 'left'; if ( designApplyMode === 'preset' ) { next.fontFamily = design.fontFamily; next.fontWeight = design.fontWeight; } props.setAttributes( next ); setIsDesignModalOpen( false ); }, 'aria-pressed': isSelected },
 							designPreview( design, a.content ? a.content.replace( /<[^>]*>/g, '' ) : '', previewStyle ),
 							el( 'strong', null, design.label ),
 							el( 'small', null, design.description ),
@@ -630,7 +683,7 @@
 						);
 					} ) ) : null
 				) : null,
-				el( 'div', propsFor( a, false, editorDevice ), headingChrome( a ), a.inlineImageUrl ? el( 'div', { className: 'cni-heading-plus__inline-row' }, a.inlineImagePosition !== 'after' ? inlineImage( a ) : null, el( RichText, { tagName: textTag( a ), className: headingTextClass( a ), value: a.content, allowedFormats: [ 'core/bold', 'core/italic', 'core/link', inlineColorFormat, inlineSizeFormat, rubyFormat, responsiveBreakFormat ], placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); }, onSplit: function( value, isOriginal ) { return splitHeading( props, value, isOriginal ); }, onReplace: function( replacementBlocks, indexToSelect, initialPosition ) { replaceHeadingBlocks( props, replacementBlocks, indexToSelect, initialPosition ); } } ), a.inlineImagePosition === 'after' ? inlineImage( a ) : null ) : el( RichText, { tagName: textTag( a ), className: headingTextClass( a ), value: a.content, allowedFormats: [ 'core/bold', 'core/italic', 'core/link', inlineColorFormat, inlineSizeFormat, rubyFormat, responsiveBreakFormat ], placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); }, onSplit: function( value, isOriginal ) { return splitHeading( props, value, isOriginal ); }, onReplace: function( replacementBlocks, indexToSelect, initialPosition ) { replaceHeadingBlocks( props, replacementBlocks, indexToSelect, initialPosition ); } } ) )
+				el( 'div', propsFor( a, false, editorDevice ), headingChrome( a ), a.inlineImageUrl ? el( 'div', { className: 'cni-heading-plus__inline-row' }, a.inlineImagePosition !== 'after' ? inlineImage( a ) : null, el( RichText, { tagName: textTag( a ), className: headingTextClass( a ), value: a.content, allowedFormats: headingAllowedFormats(), placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); }, onSplit: function( value, isOriginal ) { return splitHeading( props, value, isOriginal ); }, onReplace: function( replacementBlocks, indexToSelect, initialPosition ) { replaceHeadingBlocks( props, replacementBlocks, indexToSelect, initialPosition ); } } ), a.inlineImagePosition === 'after' ? inlineImage( a ) : null ) : el( RichText, { tagName: textTag( a ), className: headingTextClass( a ), value: a.content, allowedFormats: headingAllowedFormats(), placeholder: __( '見出しを入力', 'cni-blocks' ), onChange: function( value ) { props.setAttributes( { content: value } ); }, onSplit: function( value, isOriginal ) { return splitHeading( props, value, isOriginal ); }, onReplace: function( replacementBlocks, indexToSelect, initialPosition ) { replaceHeadingBlocks( props, replacementBlocks, indexToSelect, initialPosition ); } } ) )
 			);
 		},
 		save: function( props ) {

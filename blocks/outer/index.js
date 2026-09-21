@@ -4,7 +4,9 @@
 	const el = element.createElement;
 	const { __ } = i18n;
 	const { useBlockProps, InnerBlocks, InspectorControls, MediaUpload, MediaUploadCheck, useSettings } = blockEditor;
-	const { Button, ColorPalette, FocalPointPicker, PanelBody, RangeControl, SelectControl, ToggleControl } = components;
+	const { Button, ButtonGroup, ColorPalette, FocalPointPicker, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
+	const FREE_IMAGE_LIMIT = 6;
+	const FREE_IMAGE_DEVICES = [ 'pc', 'tablet', 'mobile' ];
 
 	function cssUrl( url ) {
 		if ( ! url ) return 'none';
@@ -40,8 +42,151 @@
 	}
 
 	function numberInRange( value, min, max, fallback ) {
-		const number = typeof value === 'number' ? value : fallback;
+		const number = typeof value === 'number' && Number.isFinite( value ) ? value : fallback;
 		return Math.max( min, Math.min( max, number ) );
+	}
+
+	function freeImageId() {
+		return 'free-image-' + Date.now().toString( 36 ) + '-' + Math.random().toString( 36 ).slice( 2, 7 );
+	}
+
+	function freeImagesFor( attributes ) {
+		return Array.isArray( attributes.freeImages ) ? attributes.freeImages.slice( 0, FREE_IMAGE_LIMIT ).filter( function( image ) { return image && typeof image === 'object'; } ) : [];
+	}
+
+	function freeImageKey( key, device ) {
+		return device === 'pc' ? key : device + key.charAt( 0 ).toUpperCase() + key.slice( 1 );
+	}
+
+	function freeImageNumber( image, key, device, fallback ) {
+		const order = device === 'mobile' ? [ 'mobile', 'tablet', 'pc' ] : ( device === 'tablet' ? [ 'tablet', 'pc' ] : [ 'pc' ] );
+		for ( let index = 0; index < order.length; index++ ) {
+			const value = image[ freeImageKey( key, order[ index ] ) ];
+			if ( typeof value === 'number' ) return numberInRange( value, key === 'width' ? 5 : -30, key === 'width' ? 100 : 130, fallback );
+		}
+		return fallback;
+	}
+
+	function displayFreeImageNumber( value ) {
+		return String( Math.round( value * 10 ) / 10 );
+	}
+
+	function freeImageVisible( image, device ) {
+		const order = device === 'mobile' ? [ 'mobile', 'tablet', 'pc' ] : ( device === 'tablet' ? [ 'tablet', 'pc' ] : [ 'pc' ] );
+		for ( let index = 0; index < order.length; index++ ) {
+			const value = image[ freeImageKey( 'visible', order[ index ] ) ];
+			if ( typeof value === 'boolean' ) return value;
+		}
+		return true;
+	}
+
+	function freeImageMotion( image ) {
+		const motion = image && image.motion && typeof image.motion === 'object' ? image.motion : {};
+		return {
+			enabled: motion.enabled === true,
+			effect: typeof motion.effect === 'string' ? motion.effect : 'fade-up',
+			trigger: typeof motion.trigger === 'string' ? motion.trigger : 'auto',
+			speedMode: typeof motion.speedMode === 'string' ? motion.speedMode : 'recommended',
+			duration: typeof motion.duration === 'number' ? motion.duration : 600,
+			delay: typeof motion.delay === 'number' ? motion.delay : 0,
+			easing: typeof motion.easing === 'string' ? motion.easing : 'recommended',
+			distanceMode: typeof motion.distanceMode === 'string' ? motion.distanceMode : 'effect-default',
+			distance: typeof motion.distance === 'number' ? motion.distance : 16,
+			offset: typeof motion.offset === 'number' ? motion.offset : 12,
+			once: motion.once !== false,
+			mobile: motion.mobile !== false,
+			mobileDelay: motion.mobileDelay === true,
+			intensity: typeof motion.intensity === 'string' ? motion.intensity : 'standard',
+			maskColor: typeof motion.maskColor === 'string' ? motion.maskColor : '#ffffff',
+		};
+	}
+
+	function FreeImageMotionControls( props ) {
+		const apiState = element.useState( function() { return window.CNIMotionRegistryAPI || null; } );
+		const motionApi = apiState[ 0 ];
+		const setMotionApi = apiState[ 1 ];
+		const motion = freeImageMotion( props.image );
+		element.useEffect( function() {
+			const refresh = function() { setMotionApi( window.CNIMotionRegistryAPI || null ); };
+			document.addEventListener( 'cni:motion-registry-ready', refresh );
+			refresh();
+			return function() { document.removeEventListener( 'cni:motion-registry-ready', refresh ); };
+		}, [] );
+		if ( window.CNIMotionEditorConfig && window.CNIMotionEditorConfig.generalEnabled === false ) return null;
+		if ( ! motionApi || typeof motionApi.forTarget !== 'function' ) return null;
+		const effects = motionApi.forTarget( 'free-image' );
+		if ( ! effects.length ) return null;
+		const effect = motionApi.get( motion.effect ) || effects[ 0 ];
+		const update = function( changes ) { props.update( { motion: Object.assign( {}, motion, changes ) } ); };
+		const effectOptions = [ { label: __( 'なし', 'cni-blocks' ), value: '' } ].concat( effects.map( function( item ) { return { label: item.label, value: item.slug }; } ) );
+		const triggerOptions = ( effect ? effect.triggers : [ 'auto' ] ).map( function( value ) {
+			const labels = { auto: __( '自動', 'cni-blocks' ), 'site-ready': __( 'Site Ready', 'cni-blocks' ), scroll: __( 'スクロール', 'cni-blocks' ), hover: __( 'ホバー / フォーカス', 'cni-blocks' ), immediate: __( '即時', 'cni-blocks' ) };
+			return { label: labels[ value ] || value, value: value };
+		} );
+		return el( PanelBody, { title: __( 'CNI Motion', 'cni-blocks' ), initialOpen: false },
+			el( ToggleControl, { label: __( 'この画像にMotionを使用する', 'cni-blocks' ), checked: motion.enabled, onChange: function( value ) { update( { enabled: !! value } ); } } ),
+			motion.enabled ? el( element.Fragment, null,
+				el( SelectControl, { label: __( 'アニメーション', 'cni-blocks' ), value: motion.effect, options: effectOptions, onChange: function( value ) { update( { enabled: value !== '', effect: value || 'fade-up' } ); } } ),
+				el( SelectControl, { label: __( '発火', 'cni-blocks' ), value: triggerOptions.some( function( item ) { return item.value === motion.trigger; } ) ? motion.trigger : 'auto', options: triggerOptions, onChange: function( value ) { update( { trigger: value } ); } } ),
+				el( SelectControl, { label: __( '速度', 'cni-blocks' ), value: motion.speedMode, options: [ { label: __( '推奨', 'cni-blocks' ), value: 'recommended' }, { label: __( '速い (400ms)', 'cni-blocks' ), value: 'fast' }, { label: __( '標準 (600ms)', 'cni-blocks' ), value: 'normal' }, { label: __( 'ゆっくり (800ms)', 'cni-blocks' ), value: 'slow' }, { label: __( 'カスタム', 'cni-blocks' ), value: 'custom' } ], onChange: function( value ) { update( { speedMode: value } ); } } ),
+				motion.speedMode === 'custom' ? el( RangeControl, { label: __( '時間 (ms)', 'cni-blocks' ), value: motion.duration, min: 100, max: 5000, step: 50, onChange: function( value ) { update( { duration: value } ); } } ) : null,
+				el( RangeControl, { label: __( '遅延 (ms)', 'cni-blocks' ), value: motion.delay, min: 0, max: 10000, step: 50, onChange: function( value ) { update( { delay: value } ); } } ),
+				el( ToggleControl, { label: __( '一度だけ再生', 'cni-blocks' ), checked: motion.once, onChange: function( value ) { update( { once: !! value } ); } } ),
+				el( ToggleControl, { label: __( 'モバイルでMotion', 'cni-blocks' ), checked: motion.mobile, onChange: function( value ) { update( { mobile: !! value } ); } } ),
+				el( ToggleControl, { label: __( 'モバイルでも遅延', 'cni-blocks' ), checked: motion.mobileDelay, onChange: function( value ) { update( { mobileDelay: !! value } ); } } )
+			) : null
+		);
+	}
+
+	function freeImageStyle( image ) {
+		const style = {
+			'--cni-outer-free-image-x': freeImageNumber( image, 'x', 'pc', 50 ) + '%',
+			'--cni-outer-free-image-y': freeImageNumber( image, 'y', 'pc', 50 ) + '%',
+			'--cni-outer-free-image-width': freeImageNumber( image, 'width', 'pc', 30 ) + '%',
+		};
+		[ 'tablet', 'mobile' ].forEach( function( device ) {
+			[ 'x', 'y', 'width' ].forEach( function( key ) {
+				const value = image[ freeImageKey( key, device ) ];
+				if ( typeof value === 'number' ) style[ '--cni-outer-free-image-' + device + '-' + key ] = numberInRange( value, key === 'width' ? 5 : -30, key === 'width' ? 100 : 130, key === 'width' ? 30 : 50 ) + '%';
+			} );
+		} );
+		return style;
+	}
+
+	function freeImageElement( image, isEditor, handlers ) {
+		if ( ! image.imageUrl ) return null;
+		const selected = !! ( isEditor && handlers && handlers.selectedId === image.id );
+		const layer = image.layer === 'back' ? 'back' : 'front';
+		return el(
+			'div',
+			{
+				key: image.id,
+				className: 'cni-outer__free-image-position cni-outer__free-image-position--' + layer + ( selected ? ' is-selected' : '' ),
+				style: freeImageStyle( image ),
+				'data-cni-free-visible-pc': freeImageVisible( image, 'pc' ) ? 'true' : 'false',
+				'data-cni-free-visible-tablet': freeImageVisible( image, 'tablet' ) ? 'true' : 'false',
+				'data-cni-free-visible-mobile': freeImageVisible( image, 'mobile' ) ? 'true' : 'false',
+				onClick: isEditor && handlers ? function( event ) { event.stopPropagation(); handlers.select( image.id ); } : undefined,
+				onPointerDown: isEditor && handlers ? function( event ) { handlers.startDrag( event, image ); } : undefined,
+				onPointerMove: isEditor && handlers ? function( event ) { handlers.moveDrag( event, image ); } : undefined,
+				onPointerUp: isEditor && handlers ? handlers.endDrag : undefined,
+				onPointerCancel: isEditor && handlers ? handlers.endDrag : undefined,
+			},
+			/* Deliberately separate from the position wrapper: CNI Motion will own
+			 * transforms on this inner element in the second implementation stage. */
+			el( 'div', { className: 'cni-outer__free-image-motion' }, el( 'img', { src: image.imageUrl, alt: image.imageAlt || '' } ) ),
+			isEditor && selected ? el( 'span', { className: 'cni-outer__free-image-label' }, image.name || __( '画像', 'cni-blocks' ) ) : null
+		);
+	}
+
+	function freeImagesElement( attributes, isEditor, handlers ) {
+		if ( attributes.freeImagesEnabled !== true ) return null;
+		const images = freeImagesFor( attributes );
+		if ( ! images.length ) return null;
+		return [ 'back', 'front' ].map( function( layer ) {
+			const items = images.filter( function( image ) { return ( image.layer === 'back' ? 'back' : 'front' ) === layer; } ).map( function( image ) { return freeImageElement( image, isEditor, handlers ); } ).filter( Boolean );
+			return items.length ? el( 'div', { key: layer, className: 'cni-outer__free-images cni-outer__free-images--' + layer }, items ) : null;
+		} );
 	}
 
 	function shapeWidthInRange( value, min, fallback ) {
@@ -686,6 +831,7 @@
 
 	function outerClassNameBase( attributes, includeHero ) {
 		const classes = [];
+		if ( attributes.freeImagesEnabled === true ) classes.push( 'cni-outer--has-free-images' );
 		if ( hasOutwardDivider( attributes ) ) classes.push( 'cni-outer--has-outward-divider' );
 		if ( hasCreativeImageZoom( attributes ) ) classes.push( 'cni-outer--creative-background-zoom' );
 		if ( attributes.creativeFrameEffect === 'draw' ) classes.push( 'cni-outer--creative-frame-draw' );
@@ -789,6 +935,8 @@
 			backgroundImageUrl: { type: 'string', default: '' },
 			backgroundVideoId: { type: 'number', default: 0 },
 			backgroundVideoUrl: { type: 'string', default: '' },
+			freeImagesEnabled: { type: 'boolean', default: false },
+			freeImages: { type: 'array', default: [] },
 			isHero: { type: 'boolean', default: false },
 			heroLayout: { type: 'string', default: 'content' },
 			tabletBackgroundImageId: { type: 'number', default: 0 },
@@ -875,9 +1023,49 @@
 				? attributes.borderStyle
 				: 'solid';
 			const borderType = attributes.borderWidth > 0 ? selectedBorderStyle : 'none';
+			const images = freeImagesFor( attributes );
+			const freeDeviceState = element.useState( 'pc' );
+			const freeDevice = freeDeviceState[ 0 ];
+			const setFreeDevice = freeDeviceState[ 1 ];
+			const selectedFreeImageState = element.useState( images[ 0 ] ? images[ 0 ].id : '' );
+			const selectedFreeImageId = selectedFreeImageState[ 0 ];
+			const setSelectedFreeImageId = selectedFreeImageState[ 1 ];
+			const freeImageDragRef = element.useRef( null );
+			const selectedFreeImage = images.filter( function( image ) { return image.id === selectedFreeImageId; } )[ 0 ] || images[ 0 ] || null;
+			const updateFreeImage = function( id, changes ) {
+				setAttributes( { freeImages: images.map( function( image ) { return image.id === id ? Object.assign( {}, image, changes ) : image; } ) } );
+			};
+			const freeImagePointFromOuter = function( event ) {
+				const outer = event.currentTarget.closest( '.wp-block-cni-blocks-outer' );
+				const rect = outer ? outer.getBoundingClientRect() : null;
+				if ( ! rect || ! rect.width || ! rect.height ) return { x: 50, y: 50 };
+				return { x: numberInRange( ( event.clientX - rect.left ) / rect.width * 100, -30, 130, 50 ), y: numberInRange( ( event.clientY - rect.top ) / rect.height * 100, -30, 130, 50 ) };
+			};
+			const startFreeImageDrag = function( event, image ) {
+				if ( event.button !== 0 ) return;
+				event.preventDefault(); event.stopPropagation();
+				const point = freeImagePointFromOuter( event );
+				freeImageDragRef.current = { id: image.id, offsetX: freeImageNumber( image, 'x', freeDevice, 50 ) - point.x, offsetY: freeImageNumber( image, 'y', freeDevice, 50 ) - point.y };
+				setSelectedFreeImageId( image.id );
+				if ( event.currentTarget.setPointerCapture ) event.currentTarget.setPointerCapture( event.pointerId );
+			};
+			const moveFreeImageDrag = function( event, image ) {
+				const drag = freeImageDragRef.current;
+				if ( ! drag || drag.id !== image.id ) return;
+				event.preventDefault();
+				const point = freeImagePointFromOuter( event );
+				const changes = {}; changes[ freeImageKey( 'x', freeDevice ) ] = numberInRange( point.x + drag.offsetX, -30, 130, 50 ); changes[ freeImageKey( 'y', freeDevice ) ] = numberInRange( point.y + drag.offsetY, -30, 130, 50 );
+				updateFreeImage( image.id, changes );
+			};
+			const endFreeImageDrag = function( event ) {
+				freeImageDragRef.current = null;
+				if ( event.currentTarget.releasePointerCapture && event.currentTarget.hasPointerCapture && event.currentTarget.hasPointerCapture( event.pointerId ) ) event.currentTarget.releasePointerCapture( event.pointerId );
+			};
+			const freeImageEditorHandlers = { selectedId: selectedFreeImageId, select: setSelectedFreeImageId, startDrag: startFreeImageDrag, moveDrag: moveFreeImageDrag, endDrag: endFreeImageDrag };
 			const blockProps = useBlockProps( {
 				style: getOuterStyle( attributes ),
 				className: outerClassName( attributes ),
+				'data-cni-free-image-editor-device': attributes.freeImagesEnabled === true ? freeDevice : undefined,
 			} );
 
 			return el(
@@ -1169,6 +1357,53 @@
 					),
 					el(
 						PanelBody,
+						{ title: __( '自由配置画像', 'cni-blocks' ), initialOpen: false },
+						el( ToggleControl, {
+							label: __( '自由配置画像を使用する', 'cni-blocks' ),
+							checked: attributes.freeImagesEnabled === true,
+							help: __( '画像をOuter+基準で自由に配置します。通常のInnerBlocksとは独立しており、セクションの外側へも配置できます。', 'cni-blocks' ),
+							onChange: function( value ) { setAttributes( { freeImagesEnabled: !! value } ); },
+						} ),
+						attributes.freeImagesEnabled === true ? el( element.Fragment, null,
+							el( 'p', { className: 'cni-outer-control-help' }, __( '編集画面では画像を直接ドラッグして移動できます。PC／Tablet／Mobileごとに値を保存し、未設定の端末は上位の設定を使用します。', 'cni-blocks' ) ),
+							el( ButtonGroup, { className: 'cni-outer__free-image-device-tabs' }, FREE_IMAGE_DEVICES.map( function( device ) { return el( Button, { key: device, variant: freeDevice === device ? 'primary' : 'secondary', isPressed: freeDevice === device, onClick: function() { setFreeDevice( device ); } }, device === 'pc' ? __( 'PC', 'cni-blocks' ) : ( device === 'tablet' ? __( 'Tablet', 'cni-blocks' ) : __( 'Mobile', 'cni-blocks' ) ) ); } ) ),
+							images.length ? el( 'div', { className: 'cni-outer__free-image-list' }, images.map( function( image, index ) { return el( Button, { key: image.id, variant: selectedFreeImage && image.id === selectedFreeImage.id ? 'primary' : 'secondary', onClick: function() { setSelectedFreeImageId( image.id ); } }, ( index + 1 ) + '. ' + ( image.name || __( '画像', 'cni-blocks' ) ) ); } ) ) : null,
+							el( MediaUploadCheck, null, el( MediaUpload, {
+								allowedTypes: [ 'image' ],
+								onSelect: function( media ) {
+									if ( ! media || ! media.url || images.length >= FREE_IMAGE_LIMIT ) return;
+									const image = { id: freeImageId(), name: __( '画像', 'cni-blocks' ) + ( images.length + 1 ), imageId: media.id || 0, imageUrl: media.url, imageAlt: media.alt || '', layer: 'front', x: 50, y: 50, width: 30, visible: true };
+									setAttributes( { freeImages: images.concat( image ) } ); setSelectedFreeImageId( image.id );
+								},
+								render: function( mediaProps ) { return el( Button, { variant: 'primary', disabled: images.length >= FREE_IMAGE_LIMIT, onClick: mediaProps.open }, images.length >= FREE_IMAGE_LIMIT ? __( '画像は最大6枚です', 'cni-blocks' ) : __( '画像を追加', 'cni-blocks' ) ); },
+							} ) ),
+							selectedFreeImage ? el( 'div', { className: 'cni-outer__free-image-settings' },
+								el( TextControl, { label: __( '管理用名称', 'cni-blocks' ), value: selectedFreeImage.name || '', onChange: function( value ) { updateFreeImage( selectedFreeImage.id, { name: value } ); } } ),
+								selectedFreeImage.imageUrl ? el( 'img', { className: 'cni-outer__free-image-preview', src: selectedFreeImage.imageUrl, alt: '' } ) : null,
+								el( MediaUploadCheck, null, el( MediaUpload, { allowedTypes: [ 'image' ], value: selectedFreeImage.imageId || 0, onSelect: function( media ) { if ( media && media.url ) updateFreeImage( selectedFreeImage.id, { imageId: media.id || 0, imageUrl: media.url, imageAlt: media.alt || '' } ); }, render: function( mediaProps ) { return el( Button, { variant: 'secondary', onClick: mediaProps.open }, __( '画像を変更', 'cni-blocks' ) ); } } ) ),
+								el( TextControl, { label: __( '代替テキスト', 'cni-blocks' ), value: selectedFreeImage.imageAlt || '', onChange: function( value ) { updateFreeImage( selectedFreeImage.id, { imageAlt: value } ); } } ),
+								el( SelectControl, { label: __( '表示階層', 'cni-blocks' ), value: selectedFreeImage.layer === 'back' ? 'back' : 'front', options: [ { label: __( 'コンテンツの背面', 'cni-blocks' ), value: 'back' }, { label: __( 'コンテンツの前面', 'cni-blocks' ), value: 'front' } ], onChange: function( value ) { updateFreeImage( selectedFreeImage.id, { layer: value === 'back' ? 'back' : 'front' } ); } } ),
+								el( ToggleControl, { label: ( freeDevice === 'pc' ? __( 'PC', 'cni-blocks' ) : ( freeDevice === 'tablet' ? __( 'Tablet', 'cni-blocks' ) : __( 'Mobile', 'cni-blocks' ) ) ) + __( 'で表示', 'cni-blocks' ), checked: freeImageVisible( selectedFreeImage, freeDevice ), help: freeDevice !== 'pc' && typeof selectedFreeImage[ freeImageKey( 'visible', freeDevice ) ] !== 'boolean' ? __( '上位設定を継承中です。切り替えるとこの端末だけに保存します。', 'cni-blocks' ) : undefined, onChange: function( value ) { const changes = {}; changes[ freeImageKey( 'visible', freeDevice ) ] = !! value; updateFreeImage( selectedFreeImage.id, changes ); } } ),
+								el( 'p', { className: 'cni-outer__free-image-picker-label' }, __( '位置（Outer+中央が50% / 50%）', 'cni-blocks' ) ),
+								el( 'div', { className: 'cni-outer__free-image-picker', 'aria-label': __( '自由配置画像の位置。数値入力でも調整できます。', 'cni-blocks' ), onPointerDown: function( event ) { const rect = event.currentTarget.getBoundingClientRect(); const changes = {}; changes[ freeImageKey( 'x', freeDevice ) ] = numberInRange( ( event.clientX - rect.left ) / rect.width * 160 - 30, -30, 130, 50 ); changes[ freeImageKey( 'y', freeDevice ) ] = numberInRange( ( event.clientY - rect.top ) / rect.height * 160 - 30, -30, 130, 50 ); updateFreeImage( selectedFreeImage.id, changes ); if ( event.currentTarget.setPointerCapture ) event.currentTarget.setPointerCapture( event.pointerId ); }, onPointerMove: function( event ) { if ( ! event.currentTarget.hasPointerCapture || ! event.currentTarget.hasPointerCapture( event.pointerId ) ) return; const rect = event.currentTarget.getBoundingClientRect(); const changes = {}; changes[ freeImageKey( 'x', freeDevice ) ] = numberInRange( ( event.clientX - rect.left ) / rect.width * 160 - 30, -30, 130, 50 ); changes[ freeImageKey( 'y', freeDevice ) ] = numberInRange( ( event.clientY - rect.top ) / rect.height * 160 - 30, -30, 130, 50 ); updateFreeImage( selectedFreeImage.id, changes ); }, onPointerUp: function( event ) { if ( event.currentTarget.releasePointerCapture && event.currentTarget.hasPointerCapture && event.currentTarget.hasPointerCapture( event.pointerId ) ) event.currentTarget.releasePointerCapture( event.pointerId ); } }, el( 'span', { className: 'cni-outer__free-image-picker-boundary' } ), el( 'span', { className: 'cni-outer__free-image-picker-dot', style: { left: ( freeImageNumber( selectedFreeImage, 'x', freeDevice, 50 ) + 30 ) / 160 * 100 + '%', top: ( freeImageNumber( selectedFreeImage, 'y', freeDevice, 50 ) + 30 ) / 160 * 100 + '%' } } ) ),
+								el( 'p', { className: 'description cni-outer__free-image-picker-help' }, __( '点線内がOuter+の範囲です。外側へ配置するとセクションからはみ出して表示されます。', 'cni-blocks' ) ),
+								[ 'x', 'y' ].map( function( key ) { const label = key === 'x' ? 'X' : 'Y'; return el( TextControl, { key: key, type: 'number', step: '0.1', label: label + '（%）', help: freeDevice !== 'pc' && typeof selectedFreeImage[ freeImageKey( key, freeDevice ) ] !== 'number' ? __( '上位設定を継承中です。入力するとこの端末だけに保存します。', 'cni-blocks' ) : undefined, value: displayFreeImageNumber( freeImageNumber( selectedFreeImage, key, freeDevice, 50 ) ), onChange: function( value ) { const changes = {}; changes[ freeImageKey( key, freeDevice ) ] = numberInRange( parseFloat( value ), -30, 130, 50 ); updateFreeImage( selectedFreeImage.id, changes ); } } ); } ),
+								el( 'div', { className: 'cni-outer__free-image-width-control' },
+									el( 'p', { className: 'cni-outer__free-image-width-label' }, __( '幅（%）', 'cni-blocks' ) ),
+									el( RangeControl, { label: undefined, className: 'cni-outer__free-image-width-slider', value: freeImageNumber( selectedFreeImage, 'width', freeDevice, 30 ), min: 5, max: 100, step: 1, help: freeDevice !== 'pc' && typeof selectedFreeImage[ freeImageKey( 'width', freeDevice ) ] !== 'number' ? __( '上位設定を継承中です。変更するとこの端末だけに保存します。', 'cni-blocks' ) : undefined, onChange: function( value ) { const changes = {}; changes[ freeImageKey( 'width', freeDevice ) ] = numberInRange( value, 5, 100, 30 ); updateFreeImage( selectedFreeImage.id, changes ); } } ),
+									el( TextControl, { type: 'number', step: '0.1', label: __( '幅（%）', 'cni-blocks' ), hideLabelFromVision: true, className: 'cni-outer__free-image-width-number', value: displayFreeImageNumber( freeImageNumber( selectedFreeImage, 'width', freeDevice, 30 ) ), onChange: function( value ) { const changes = {}; changes[ freeImageKey( 'width', freeDevice ) ] = numberInRange( parseFloat( value ), 5, 100, 30 ); updateFreeImage( selectedFreeImage.id, changes ); } } )
+								),
+								el( Button, { variant: 'secondary', onClick: function() { const copy = Object.assign( {}, selectedFreeImage, { id: freeImageId(), name: ( selectedFreeImage.name || __( '画像', 'cni-blocks' ) ) + __( ' コピー', 'cni-blocks' ), x: numberInRange( freeImageNumber( selectedFreeImage, 'x', 'pc', 50 ) + 3, -30, 130, 50 ), y: numberInRange( freeImageNumber( selectedFreeImage, 'y', 'pc', 50 ) + 3, -30, 130, 50 ) } ); if ( images.length < FREE_IMAGE_LIMIT ) { setAttributes( { freeImages: images.concat( copy ) } ); setSelectedFreeImageId( copy.id ); } }, disabled: images.length >= FREE_IMAGE_LIMIT }, __( 'この画像を複製', 'cni-blocks' ) ),
+								el( Button, { variant: 'tertiary', isDestructive: true, onClick: function() { const next = images.filter( function( image ) { return image.id !== selectedFreeImage.id; } ); setAttributes( { freeImages: next } ); setSelectedFreeImageId( next[ 0 ] ? next[ 0 ].id : '' ); } }, __( 'この画像を削除', 'cni-blocks' ) )
+							) : el( 'p', null, __( '画像を追加してください。', 'cni-blocks' ) )
+						) : null
+					),
+					attributes.freeImagesEnabled === true && selectedFreeImage ? el( FreeImageMotionControls, {
+						image: selectedFreeImage,
+						update: function( changes ) { updateFreeImage( selectedFreeImage.id, changes ); },
+					} ) : null,
+					el(
+						PanelBody,
 						{ title: __( 'マウスオーバー演出', 'cni-blocks' ), initialOpen: false },
 						el( 'p', { className: 'cni-outer-control-help' }, __( 'PCではホバー、キーボード操作ではフォーカス時に表示します。モバイルと「動きを減らす」設定では通常表示のままです。', 'cni-blocks' ) ),
 						el( SelectControl, {
@@ -1337,6 +1572,7 @@
 					creativeBackgroundElement( attributes ),
 					backgroundVideoElement( attributes, true ),
 					creativeFrameElement( attributes ),
+					freeImagesElement( attributes, true, freeImageEditorHandlers ),
 					el(
 						'div',
 						{ className: 'cni-outer__inner' },
@@ -1364,6 +1600,7 @@
 				creativeBackgroundElement( attributes ),
 				backgroundVideoElement( attributes, false ),
 				creativeFrameElement( attributes ),
+				freeImagesElement( attributes, false ),
 				el(
 					'div',
 					{ className: 'cni-outer__inner' },

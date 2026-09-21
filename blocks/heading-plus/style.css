@@ -8,7 +8,7 @@
 	font-style: var(--cni-heading-style, normal) !important;
 	line-height: var(--cni-heading-line-height, 1.3) !important;
 	letter-spacing: var(--cni-heading-letter-spacing, 0) !important;
-	text-align: var(--cni-heading-align, left);
+	text-align: var(--cni-heading-align, left) !important;
 	text-transform: var(--cni-heading-transform, none) !important;
 	padding: var(--cni-heading-padding-y, 0) var(--cni-heading-padding-x, 0);
 }
@@ -92,7 +92,7 @@
 	display: flex;
 	width: 100%;
 	writing-mode: horizontal-tb;
-	text-align: initial;
+	text-align: initial !important;
 }
 
 .wp-block-cni-blocks-heading-plus[data-writing-mode][data-vertical-position="right"] { justify-content: flex-end; }
@@ -269,7 +269,7 @@
 	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"] {
 		writing-mode: horizontal-tb;
 		text-orientation: mixed;
-		text-align: var(--cni-heading-align, left);
+	text-align: var(--cni-heading-align, left) !important;
 		justify-content: flex-start;
 	}
 	.wp-block-cni-blocks-heading-plus[data-writing-mode][data-mobile-writing-mode="horizontal-tb"][data-heading-alignment="center"] { justify-content: center; }
@@ -299,6 +299,9 @@
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-secondary-alignment="center"] .cni-heading-plus__eyebrow { text-align: center; }
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-secondary-alignment="right"] .cni-heading-plus__eyebrow { text-align: right; }
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-cni-heading-design="number-title"] { display: flex; gap: var(--cni-secondary-gap-pc, 8px); }
+.wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-cni-heading-design="number-title"][data-heading-alignment="left"] { justify-content: flex-start; }
+.wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-cni-heading-design="number-title"][data-heading-alignment="center"] { justify-content: center; }
+.wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-cni-heading-design="number-title"][data-heading-alignment="right"] { justify-content: flex-end; }
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-cni-heading-design="number-title"] .cni-heading-plus__number { flex: 0 0 auto; color: var(--cni-secondary-color); }
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-number-vertical-alignment="top"] { align-items: flex-start; }
 .wp-block-cni-blocks-heading-plus[data-cni-secondary-layout="v3"][data-number-vertical-alignment="center"] { align-items: center; }
@@ -317,7 +320,7 @@
 }
 
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Desktop"] {
-	font-size: var(--cni-heading-size-pc, 40px);
+	font-size: var(--cni-heading-size-pc, 40px) !important;
 }
 
 .editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Tablet"] {
@@ -396,7 +399,10 @@
 [data-cni-text-design] .cni-heading-plus__effect-target { position: relative; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="simple-shadow"] .cni-heading-plus__effect-target { color: var(--cni-heading-design-primary) !important; font-family: "Noto Sans JP", sans-serif !important; font-weight: 900 !important; text-shadow: .06em .08em .12em var(--cni-heading-design-accent); }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="frame-label"] .cni-heading-plus__effect-target { display: inline-block; box-sizing: border-box; padding: .22em .52em !important; border: .045em solid var(--cni-heading-design-primary) !important; background: var(--cni-heading-design-accent) !important; color: var(--cni-heading-design-primary) !important; font-family: "Zen Kaku Gothic New", sans-serif !important; font-weight: 700 !important; box-shadow: .08em .08em 0 var(--cni-heading-design-primary), .13em .13em 0 var(--cni-heading-design-accent) !important; }
-:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="white-label"] .cni-heading-plus__effect-target { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .24em .58em !important; background: var(--cni-heading-design-accent) !important; color: var(--cni-heading-design-primary) !important; font-family: "Zen Kaku Gothic New", sans-serif !important; font-weight: 700 !important; }
+/* Inline label backgrounds include the font's ascender space in their line box.
+ * Shift a little of the vertical padding to the bottom so Japanese labels look
+ * optically centred, without changing their selected line-height. */
+:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="white-label"] .cni-heading-plus__effect-target { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .16em .58em .22em !important; background: var(--cni-heading-design-accent) !important; color: var(--cni-heading-design-primary) !important; font-family: "Zen Kaku Gothic New", sans-serif !important; font-weight: 700 !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="elegant-gradient"] .cni-heading-plus__effect-target { display: inline-block; background: linear-gradient(120deg, var(--cni-heading-design-primary) 0%, var(--cni-heading-design-highlight) 48%, var(--cni-heading-design-accent) 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; font-family: "Noto Serif JP", serif !important; font-weight: 700 !important; -webkit-text-fill-color: transparent !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="pop-outline-shadow"] .cni-heading-plus__effect-target { color: var(--cni-heading-design-primary) !important; font-family: "M PLUS Rounded 1c", sans-serif !important; font-weight: 900 !important; -webkit-text-stroke: .045em var(--cni-heading-design-accent); text-shadow: .075em .09em 0 var(--cni-heading-design-accent); paint-order: stroke fill; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="sale-price"] .cni-heading-plus__effect-target { color: var(--cni-heading-design-primary) !important; font-family: "Noto Sans JP", sans-serif !important; font-weight: 900 !important; -webkit-text-stroke: .018em #ffffff !important; text-shadow: 0 .055em 0 var(--cni-heading-design-accent) !important; paint-order: stroke fill; }
@@ -420,9 +426,12 @@
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="center-underline"],:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] { text-align: center !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="center-underline"] .cni-heading-plus__effect-target { display: inline-block; padding: .22em 0 .48em !important; color: var(--cni-heading-design-primary) !important; font-family: "Noto Sans JP", sans-serif !important; font-weight: 700 !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="center-underline"] .cni-heading-plus__effect-target::after { position: absolute; display: block !important; bottom: .1em; left: 50%; width: 2.4em; border-bottom: .13em solid var(--cni-heading-design-accent) !important; transform: translateX(-50%); content: '' !important; }
-:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target { display: inline-flex; align-items: center; gap: .75em; padding: .22em 0 !important; color: var(--cni-heading-design-primary) !important; font-family: "Noto Sans JP", sans-serif !important; font-weight: 700 !important; }
+:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target { display: inline-flex; align-items: center; gap: .75em; padding: .22em 0 !important; color: var(--cni-heading-design-primary) !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target::before,:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target::after { display: block !important; flex: 0 0 1.8em; width: 1.8em; border-top: .075em solid var(--cni-heading-design-accent) !important; content: '' !important; }
-:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="left-line"] .cni-heading-plus__effect-target,:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="right-line"] .cni-heading-plus__effect-target { display: inline-flex; align-items: center; gap: .45em; padding: .22em 0 !important; color: var(--cni-heading-design-primary) !important; font-family: "Noto Sans JP", sans-serif !important; font-weight: 700 !important; }
+:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="left-line"] .cni-heading-plus__effect-target,:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="right-line"] .cni-heading-plus__effect-target { display: inline-flex; align-items: center; gap: .45em; padding: .22em 0 !important; color: var(--cni-heading-design-primary) !important; }
+/* Keep the former line-design font only for saved Heading+ markup that does
+ * not have the current structural-design attribute. */
+.wp-block-cni-blocks-heading-plus[data-cni-text-design="side-lines"]:not([data-cni-heading-design]) .cni-heading-plus__effect-target,.wp-block-cni-blocks-heading-plus[data-cni-text-design="left-line"]:not([data-cni-heading-design]) .cni-heading-plus__effect-target,.wp-block-cni-blocks-heading-plus[data-cni-text-design="right-line"]:not([data-cni-heading-design]) .cni-heading-plus__effect-target { font-family: "Noto Sans JP", sans-serif !important; font-weight: 700 !important; }
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="left-line"] .cni-heading-plus__effect-target::before,:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="right-line"] .cni-heading-plus__effect-target::after { display: block !important; flex: 0 0 2.8em; width: 2.8em; border-top: .075em solid var(--cni-heading-design-accent) !important; content: '' !important; }
 /* ProUnit and some themes position heading pseudo-elements absolutely. These lines are flex items instead. */
 :is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target::before,:is(.wp-block-cni-blocks-heading-plus,.cni-image-text-layer__item,.cni-heading-plus__design-card,.cni-heading-plus__selected-design)[data-cni-text-design="side-lines"] .cni-heading-plus__effect-target::after { position: static !important; inset: auto !important; float: none !important; clear: none !important; margin: 0 !important; transform: none !important; background: transparent !important; height: 0 !important; }
@@ -486,6 +495,24 @@
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__decoration-marker-underline { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; background: linear-gradient(transparent 64%, var(--cni-heading-decoration-accent) 64% 92%, transparent 92%) !important; color: var(--cni-heading-decoration-primary) !important; }
 .wp-block-cni-blocks-heading-plus .cni-heading-plus__decoration-neon { color: var(--cni-heading-decoration-primary) !important; text-shadow: 0 0 .06em var(--cni-heading-decoration-primary), 0 0 .17em var(--cni-heading-decoration-accent), 0 0 .34em var(--cni-heading-decoration-accent), 0 0 .62em var(--cni-heading-decoration-accent); }
 
+/* General-purpose effects intentionally do not share a text-shadow property
+ * with the design-library decorations. One effect is selected at a time, so
+ * its controls stay predictable and it remains safe on any heading design. */
+.wp-block-cni-blocks-heading-plus[data-cni-text-effect="soft-outline"] .cni-heading-plus__text:not(.cni-heading-plus__custom-layer) {
+	text-shadow:
+		var(--cni-heading-effect-spread-positive, 4px) var(--cni-heading-effect-spread-positive, 4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		var(--cni-heading-effect-spread-negative, -4px) var(--cni-heading-effect-spread-negative, -4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		var(--cni-heading-effect-spread-negative, -4px) var(--cni-heading-effect-spread-positive, 4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		var(--cni-heading-effect-spread-positive, 4px) var(--cni-heading-effect-spread-negative, -4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		var(--cni-heading-effect-spread-positive, 4px) 0 var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		var(--cni-heading-effect-spread-negative, -4px) 0 var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		0 var(--cni-heading-effect-spread-positive, 4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff),
+		0 var(--cni-heading-effect-spread-negative, -4px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #fff) !important;
+}
+.wp-block-cni-blocks-heading-plus[data-cni-text-effect="drop-shadow"] .cni-heading-plus__text:not(.cni-heading-plus__custom-layer) {
+	text-shadow: var(--cni-heading-effect-offset-x, 2px) var(--cni-heading-effect-offset-y, 3px) var(--cni-heading-effect-blur, 4px) var(--cni-heading-effect-color, #000) !important;
+}
+
 /* A transparent text fill makes a contenteditable heading appear empty in
  * Gutenberg and can hide its caret. Keep the public gradient/outline effects,
  * but use a readable editing fallback while the user is typing. */
@@ -503,7 +530,7 @@
  * Keep the old selectors above for saved content and mirror the complete
  * structural set here for data-cni-heading-design. */
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="frame-label"] .cni-heading-plus__effect-target { display: inline-block; box-sizing: border-box; padding: .22em .52em !important; border: .045em solid var(--cni-heading-structure-primary) !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; box-shadow: .08em .08em 0 var(--cni-heading-structure-primary), .13em .13em 0 var(--cni-heading-structure-accent) !important; }
-.wp-block-cni-blocks-heading-plus[data-cni-heading-design="white-label"] .cni-heading-plus__effect-target { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .24em .58em !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="white-label"] .cni-heading-plus__effect-target { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .16em .58em .22em !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="accent-underline"] .cni-heading-plus__effect-target { display: inline-block; padding: .18em 0 .28em !important; border-bottom: var(--cni-heading-structure-line-width, .13em) solid var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] { text-align: center !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__effect-target { display: inline-block; padding: .2em 0 !important; color: var(--cni-heading-structure-primary) !important; }
@@ -533,13 +560,20 @@
  * Target the semantic heading too, so updating the plugin repairs those
  * saved blocks without requiring an editor re-save. */
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="frame-label"] .cni-heading-plus__text { display: inline-block; box-sizing: border-box; padding: .22em .52em !important; border: .045em solid var(--cni-heading-structure-primary) !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; box-shadow: .08em .08em 0 var(--cni-heading-structure-primary), .13em .13em 0 var(--cni-heading-structure-accent) !important; }
-.wp-block-cni-blocks-heading-plus[data-cni-heading-design="white-label"] .cni-heading-plus__text { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .24em .58em !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="white-label"] .cni-heading-plus__text { display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: .16em .58em .22em !important; background: var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="accent-underline"] .cni-heading-plus__text { display: inline-block; padding: .18em 0 .28em !important; border-bottom: var(--cni-heading-structure-line-width, .13em) solid var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] { text-align: center !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text { display: inline-block; padding: .2em 0 !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::before,.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::after { display: inline-block !important; width: calc(.82em * var(--cni-heading-structure-slash-scale, 1)); height: calc(.06em * var(--cni-heading-structure-slash-scale, 1)); border: 0 !important; background: var(--cni-heading-structure-accent) !important; content: '' !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::before { margin-right: calc(.8em * var(--cni-heading-structure-slash-scale, 1)); transform: rotate(55deg); }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::after { margin-left: calc(.8em * var(--cni-heading-structure-slash-scale, 1)); transform: rotate(-55deg); }
+/* Keep both decorative slashes on the same typographic centre. Theme heading
+ * styles sometimes position one pseudo element, which makes the pair appear
+ * vertically uneven despite their identical dimensions. */
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__effect-target::before,
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__effect-target::after,
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::before,
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-slash"] .cni-heading-plus__text::after { position: static !important; inset: auto !important; float: none !important; clear: none !important; vertical-align: middle; transform-origin: center; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="left-bar"] .cni-heading-plus__text { display: block; box-sizing: border-box; padding: .22em .55em !important; border-left: var(--cni-heading-structure-line-width, .13em) solid var(--cni-heading-structure-accent) !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="left-bar-band"] .cni-heading-plus__text { display: block; box-sizing: border-box; padding: .38em .55em !important; border-left: var(--cni-heading-structure-line-width, .16em) solid var(--cni-heading-structure-accent) !important; background: #f3f7fa !important; color: var(--cni-heading-structure-primary) !important; }
 .wp-block-cni-blocks-heading-plus[data-cni-heading-design="short-underline"] .cni-heading-plus__text,.wp-block-cni-blocks-heading-plus[data-cni-heading-design="center-underline"] .cni-heading-plus__text { display: inline-block; padding: .22em 0 .48em !important; color: var(--cni-heading-structure-primary) !important; }
@@ -579,5 +613,33 @@
 	.wp-block-cni-blocks-heading-plus[data-cni-heading-design="number-title"] .cni-heading-plus__number { font-size: 1.05em; }
 	.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { font-size: 1.25em; }
 }
+
+/* Composition designs use extra elements outside the editable heading.
+ * Align those elements explicitly rather than relying on text-align, which
+ * cannot position an absolute backdrop or a flex-based number/title pair. */
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="number-title"][data-heading-alignment="left"] { justify-content: flex-start; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="number-title"][data-heading-alignment="center"] { justify-content: center; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="number-title"][data-heading-alignment="right"] { justify-content: flex-end; }
+
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop {
+	--cni-heading-backdrop-x: var(--cni-bg-text-x, 0px);
+	--cni-heading-backdrop-y: var(--cni-bg-text-y, 0px);
+}
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"][data-heading-alignment="left"] .cni-heading-plus__backdrop { right: auto !important; left: 0 !important; transform: translate(var(--cni-heading-backdrop-x), var(--cni-heading-backdrop-y)) !important; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"][data-heading-alignment="center"] .cni-heading-plus__backdrop { right: auto !important; left: 50% !important; transform: translate(calc(-50% + var(--cni-heading-backdrop-x)), var(--cni-heading-backdrop-y)) !important; }
+.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"][data-heading-alignment="right"] .cni-heading-plus__backdrop { right: 0 !important; left: auto !important; transform: translate(var(--cni-heading-backdrop-x), var(--cni-heading-backdrop-y)) !important; }
+
+@media (min-width: 768px) and (max-width: 1024px) {
+	.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { --cni-heading-backdrop-x: var(--cni-bg-text-x-tablet, var(--cni-bg-text-x, 0px)); --cni-heading-backdrop-y: var(--cni-bg-text-y-tablet, var(--cni-bg-text-y, 0px)); }
+}
+@media (max-width: 767px) {
+	.wp-block-cni-blocks-heading-plus[data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { --cni-heading-backdrop-x: var(--cni-bg-text-x-mobile, var(--cni-bg-text-x, 0px)); --cni-heading-backdrop-y: var(--cni-bg-text-y-mobile, var(--cni-bg-text-y, 0px)); }
+}
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Desktop"][data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { --cni-heading-backdrop-x: var(--cni-bg-text-x, 0px) !important; --cni-heading-backdrop-y: var(--cni-bg-text-y, 0px) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Tablet"][data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { --cni-heading-backdrop-x: var(--cni-bg-text-x-tablet, var(--cni-bg-text-x, 0px)) !important; --cni-heading-backdrop-y: var(--cni-bg-text-y-tablet, var(--cni-bg-text-y, 0px)) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device="Mobile"][data-cni-heading-design="backdrop-title"] .cni-heading-plus__backdrop { --cni-heading-backdrop-x: var(--cni-bg-text-x-mobile, var(--cni-bg-text-x, 0px)) !important; --cni-heading-backdrop-y: var(--cni-bg-text-y-mobile, var(--cni-bg-text-y, 0px)) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device][data-cni-heading-design="backdrop-title"][data-heading-alignment="left"] .cni-heading-plus__backdrop { right: auto !important; left: 0 !important; transform: translate(var(--cni-heading-backdrop-x), var(--cni-heading-backdrop-y)) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device][data-cni-heading-design="backdrop-title"][data-heading-alignment="center"] .cni-heading-plus__backdrop { right: auto !important; left: 50% !important; transform: translate(calc(-50% + var(--cni-heading-backdrop-x)), var(--cni-heading-backdrop-y)) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-heading-plus[data-editor-device][data-cni-heading-design="backdrop-title"][data-heading-alignment="right"] .cni-heading-plus__backdrop { right: 0 !important; left: auto !important; transform: translate(var(--cni-heading-backdrop-x), var(--cni-heading-backdrop-y)) !important; }
 
 @media (max-width: 600px) { .cni-heading-plus__design-library { grid-template-columns: 1fr; } }

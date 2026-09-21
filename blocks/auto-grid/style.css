@@ -642,7 +642,7 @@
 	text-align: var(--cni-cell-text-align, left);
 }
 
-@media (min-width: 782px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1024px) {
 	.wp-block-cni-blocks-auto-grid {
 		--cni-grid-card-current-padding-x: var(--cni-grid-card-padding-h-tablet, var(--cni-grid-card-padding-tablet, 20px));
 		--cni-grid-card-current-padding-y: var(--cni-grid-card-padding-v-tablet, var(--cni-grid-card-padding-tablet, 20px));
@@ -678,7 +678,7 @@
 	}
 }
 
-@media (max-width: 781px) {
+@media (max-width: 767px) {
 	.wp-block-cni-blocks-grid-card > .cni-grid-card__badge--mobile-hidden {
 		display: none;
 	}

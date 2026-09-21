@@ -92,7 +92,7 @@
 
 	function updateFlowArrows( grid ) {
 		const cards = getCards( grid );
-		const isMobile = window.matchMedia && window.matchMedia( '(max-width: 781px)' ).matches;
+		const isMobile = window.matchMedia && window.matchMedia( '(max-width: 767px)' ).matches;
 		const mobileDirection = grid.getAttribute( 'data-cni-flow-mobile-direction' ) || 'down';
 		const verticalAlign = [ 'auto', 'card', 'image' ].indexOf( grid.getAttribute( 'data-cni-flow-vertical-align' ) ) !== -1 ? grid.getAttribute( 'data-cni-flow-vertical-align' ) : 'auto';
 

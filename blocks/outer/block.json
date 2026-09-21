@@ -71,6 +71,14 @@
       "type": "string",
       "default": ""
     },
+    "freeImagesEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "freeImages": {
+      "type": "array",
+      "default": []
+    },
     "isHero": {
       "type": "boolean",
       "default": false

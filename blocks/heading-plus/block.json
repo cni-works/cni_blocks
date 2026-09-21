@@ -70,6 +70,8 @@
     ,"backgroundTextOpacity": { "type": "number", "default": 14 }
     ,"backgroundTextX": { "type": "number", "default": 0 }
     ,"backgroundTextY": { "type": "number", "default": 0 }
+    ,"backgroundTextXTablet": { "type": "number" }
+    ,"backgroundTextYTablet": { "type": "number" }
     ,"backgroundTextXMobile": { "type": "number", "default": 0 }
     ,"backgroundTextYMobile": { "type": "number", "default": 0 }
     ,"headingDesignLineThickness": { "type": "number", "default": 2 }
@@ -77,6 +79,13 @@
     ,"customDesignId": { "type": "string", "default": "" }
     ,"originalDesignId": { "type": "string", "default": "" }
     ,"textDecorationOutlineColor": { "type": "string", "default": "" }
+    ,"textEffect": { "type": "string", "default": "" }
+    ,"textEffectColor": { "type": "string", "default": "" }
+    ,"textEffectOpacity": { "type": "number", "default": 100 }
+    ,"textEffectSpread": { "type": "number", "default": 4 }
+    ,"textEffectBlur": { "type": "number", "default": 4 }
+    ,"textEffectOffsetX": { "type": "number", "default": 2 }
+    ,"textEffectOffsetY": { "type": "number", "default": 3 }
   },
   "supports": { "anchor": true, "html": false }
 }
