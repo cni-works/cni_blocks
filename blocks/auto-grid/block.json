@@ -19,6 +19,14 @@
       "type": "number",
       "default": 0
     },
+    "cardMaxWidth": {
+      "type": "number",
+      "default": 0
+    },
+    "cardMaxWidthAlignment": {
+      "type": "string",
+      "default": "left"
+    },
     "cardPaddingPc": {
       "type": "number",
       "default": 24
@@ -30,6 +38,30 @@
     "cardPaddingMobile": {
       "type": "number",
       "default": 16
+    },
+    "cardPaddingVerticalPc": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalPc": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingVerticalTablet": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalTablet": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingVerticalMobile": {
+      "type": "number",
+      "default": -1
+    },
+    "cardPaddingHorizontalMobile": {
+      "type": "number",
+      "default": -1
     },
     "flushFirstImage": {
       "type": "boolean",
@@ -58,6 +90,10 @@
     "cardBackgroundColor": {
       "type": "string",
       "default": "#ffffff"
+    },
+    "cardTransparentBackground": {
+      "type": "boolean",
+      "default": false
     },
     "cardRadius": {
       "type": "number",
@@ -88,6 +124,110 @@
       "default": false
     },
     "centerLastRow": {
+      "type": "boolean",
+      "default": false
+    },
+    "flowArrowStyle": {
+      "type": "string",
+      "default": "none"
+    },
+    "flowArrowColor": {
+      "type": "string",
+      "default": "#1e73be"
+    },
+    "flowArrowSize": {
+      "type": "number",
+      "default": 24
+    },
+    "flowArrowMobileDirection": {
+      "type": "string",
+      "default": "down"
+    },
+    "flowArrowVerticalAlign": {
+      "type": "string",
+      "default": "auto"
+    },
+    "flowArrowOffsetY": {
+      "type": "number",
+      "default": 0
+    },
+    "flowArrowOffsetX": {
+      "type": "number",
+      "default": 0
+    },
+    "layoutMode": {
+      "type": "string",
+      "default": "grid"
+    },
+    "cellColumnsPc": {
+      "type": "number",
+      "default": 3
+    },
+    "cellColumnsTablet": {
+      "type": "number",
+      "default": 2
+    },
+    "cellColumnsMobile": {
+      "type": "number",
+      "default": 1
+    },
+    "cellFirstColumn": {
+      "type": "string",
+      "default": "equal"
+    },
+    "cellMobileLayout": {
+      "type": "string",
+      "default": "stack"
+    },
+    "cellOuterBorder": {
+      "type": "string",
+      "default": "standard"
+    },
+    "cellInnerBorder": {
+      "type": "string",
+      "default": "thin"
+    },
+    "cellVerticalBorder": {
+      "type": "string",
+      "default": ""
+    },
+    "cellHorizontalBorder": {
+      "type": "string",
+      "default": ""
+    },
+    "cellBorderColor": {
+      "type": "string",
+      "default": "#dddddd"
+    },
+    "cellPadding": {
+      "type": "string",
+      "default": "standard"
+    },
+    "cellPaddingTop": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingRight": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingBottom": {
+      "type": "number",
+      "default": -1
+    },
+    "cellPaddingLeft": {
+      "type": "number",
+      "default": -1
+    },
+    "cellRadius": {
+      "type": "string",
+      "default": "none"
+    },
+    "cellBackgroundColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "cellTransparentBackground": {
       "type": "boolean",
       "default": false
     }

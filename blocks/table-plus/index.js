@@ -23,7 +23,7 @@
 		return normalized;
 	}
 	function hasMergedCells( cells ) { return cells.some( function( cell ) { return cell.hidden || cell.rowSpan > 1 || cell.colSpan > 1; } ); }
-	function tableStyle( a ) { return { '--cni-table-border-color': a.borderColor || '#dddddd', '--cni-table-border-width': numberOr( a.borderWidth, 1 ) + 'px', '--cni-table-border-style': a.borderStyle || 'solid', '--cni-table-cell-padding': numberOr( a.cellPadding, 12 ) + 'px', '--cni-table-background': a.tableBackgroundColor || 'transparent', '--cni-table-header-background': a.headerBackgroundColor || '#f5f5f5' }; }
+	function tableStyle( a ) { const style = { '--cni-table-border-color': a.borderColor || '#dddddd', '--cni-table-border-width': numberOr( a.borderWidth, 1 ) + 'px', '--cni-table-border-style': a.borderStyle || 'solid', '--cni-table-cell-padding': numberOr( a.cellPadding, 12 ) + 'px', '--cni-table-background': a.tableBackgroundColor || 'transparent', '--cni-table-header-background': a.headerBackgroundColor || '#f5f5f5' }; const verticalPadding = numberOr( a.cellPaddingVertical, 12 ), horizontalPadding = numberOr( a.cellPaddingHorizontal, 12 ), fontSize = numberOr( a.fontSize, 0 ); if ( verticalPadding >= 0 ) style['--cni-table-cell-padding-vertical'] = verticalPadding + 'px'; if ( horizontalPadding >= 0 ) style['--cni-table-cell-padding-horizontal'] = horizontalPadding + 'px'; if ( fontSize > 0 ) style['--cni-table-font-size'] = fontSize + 'px'; return style; }
 	function wrapperProps( a, save ) {
 		const props = { style: tableStyle( a ), 'data-mobile-mode': a.mobileMode || 'none', 'data-striped': a.striped ? '1' : '0' };
 		return save ? blockEditor.useBlockProps.save( props ) : useBlockProps( props );
@@ -55,7 +55,7 @@
 
 	blocks.registerBlockType( 'cni-blocks/table-plus', {
 		apiVersion: 3, title: __( 'テーブル+', 'cni-blocks' ), icon: 'editor-table', category: 'cni-blocks', description: __( 'セル結合、セル単位の色、モバイル表示を設定できる表です。', 'cni-blocks' ),
-		attributes: { rows: { type: 'number', default: 3 }, columns: { type: 'number', default: 3 }, cells: { type: 'array', default: [] }, hasHeader: { type: 'boolean', default: true }, hasFooter: { type: 'boolean', default: false }, caption: { type: 'string', default: '' }, mobileMode: { type: 'string', default: 'none' }, borderStyle: { type: 'string', default: 'solid' }, borderWidth: { type: 'number', default: 1 }, borderColor: { type: 'string', default: '#dddddd' }, cellPadding: { type: 'number', default: 12 }, tableBackgroundColor: { type: 'string', default: '' }, headerBackgroundColor: { type: 'string', default: '#f5f5f5' }, striped: { type: 'boolean', default: false } },
+		attributes: { rows: { type: 'number', default: 3 }, columns: { type: 'number', default: 3 }, cells: { type: 'array', default: [] }, hasHeader: { type: 'boolean', default: true }, hasFooter: { type: 'boolean', default: false }, caption: { type: 'string', default: '' }, mobileMode: { type: 'string', default: 'none' }, borderStyle: { type: 'string', default: 'solid' }, borderWidth: { type: 'number', default: 1 }, borderColor: { type: 'string', default: '#dddddd' }, cellPadding: { type: 'number', default: 12 }, cellPaddingVertical: { type: 'number', default: 12 }, cellPaddingHorizontal: { type: 'number', default: 12 }, fontSize: { type: 'number', default: 0 }, tableBackgroundColor: { type: 'string', default: '' }, headerBackgroundColor: { type: 'string', default: '#f5f5f5' }, striped: { type: 'boolean', default: false } },
 		supports: { align: [ 'wide', 'full' ], anchor: true, html: false },
 		edit: function( props ) {
 			const a = props.attributes;
@@ -133,10 +133,12 @@
 						el( SelectControl, { label: __( '縦方向の位置揃え', 'cni-blocks' ), value: selectedValue( 'valign' ) || 'middle', options: [ { label: __( '上', 'cni-blocks' ), value: 'top' }, { label: __( '中央', 'cni-blocks' ), value: 'middle' }, { label: __( '下', 'cni-blocks' ), value: 'bottom' } ], onChange: function( value ) { updateSelectedCells( { valign: value } ); } } ),
 						palette( __( '背景色', 'cni-blocks' ), selectedValue( 'backgroundColor' ), function( value ) { updateSelectedCells( { backgroundColor: value || '' } ); } ), palette( __( '文字色', 'cni-blocks' ), selectedValue( 'textColor' ), function( value ) { updateSelectedCells( { textColor: value || '' } ); } )
 					) : null,
-					el( PanelBody, { title: __( '枠線・余白・色', 'cni-blocks' ), initialOpen: false },
+					el( PanelBody, { title: __( '文字・枠線・余白・色', 'cni-blocks' ), initialOpen: false },
 						el( SelectControl, { label: __( '枠線', 'cni-blocks' ), value: a.borderStyle || 'solid', options: [ { label: __( '実線', 'cni-blocks' ), value: 'solid' }, { label: __( '点線', 'cni-blocks' ), value: 'dotted' }, { label: __( '破線', 'cni-blocks' ), value: 'dashed' }, { label: __( 'なし', 'cni-blocks' ), value: 'none' } ], onChange: function( value ) { props.setAttributes( { borderStyle: value } ); } } ),
 						a.borderStyle !== 'none' ? el( RangeControl, { label: __( '枠線の太さ（px）', 'cni-blocks' ), value: numberOr( a.borderWidth, 1 ), min: 1, max: 10, onChange: function( value ) { props.setAttributes( { borderWidth: value } ); } } ) : null,
-						el( RangeControl, { label: __( 'セルの内側余白（px）', 'cni-blocks' ), value: numberOr( a.cellPadding, 12 ), min: 0, max: 60, onChange: function( value ) { props.setAttributes( { cellPadding: value } ); } } ),
+						el( RangeControl, { label: __( 'テーブル全体の文字サイズ（px・0でテーマ設定）', 'cni-blocks' ), value: numberOr( a.fontSize, 0 ), min: 0, max: 48, onChange: function( value ) { props.setAttributes( { fontSize: numberOr( value, 0 ) } ); } } ),
+						el( RangeControl, { label: __( 'セル内余白：上下（px）', 'cni-blocks' ), value: numberOr( a.cellPaddingVertical, 12 ), min: 0, max: 60, onChange: function( value ) { props.setAttributes( { cellPaddingVertical: numberOr( value, 0 ) } ); } } ),
+						el( RangeControl, { label: __( 'セル内余白：左右（px）', 'cni-blocks' ), value: numberOr( a.cellPaddingHorizontal, 12 ), min: 0, max: 60, onChange: function( value ) { props.setAttributes( { cellPaddingHorizontal: numberOr( value, 0 ) } ); } } ),
 						el( ToggleControl, { label: __( '行を交互に色分け', 'cni-blocks' ), checked: !! a.striped, onChange: function( value ) { props.setAttributes( { striped: !! value } ); } } ),
 						a.borderStyle !== 'none' ? palette( __( '枠線の色', 'cni-blocks' ), a.borderColor, function( value ) { props.setAttributes( { borderColor: value || '#dddddd' } ); } ) : null,
 						palette( __( '表の背景色', 'cni-blocks' ), a.tableBackgroundColor, function( value ) { props.setAttributes( { tableBackgroundColor: value || '' } ); } ), a.hasHeader !== false ? palette( __( 'ヘッダーの背景色', 'cni-blocks' ), a.headerBackgroundColor, function( value ) { props.setAttributes( { headerBackgroundColor: value || '#f5f5f5' } ); } ) : null
@@ -149,6 +151,9 @@
 			return saveTable( props.attributes, false );
 		},
 		deprecated: [ {
+			attributes: { rows: { type: 'number', default: 3 }, columns: { type: 'number', default: 3 }, cells: { type: 'array', default: [] }, hasHeader: { type: 'boolean', default: true }, hasFooter: { type: 'boolean', default: false }, caption: { type: 'string', default: '' }, mobileMode: { type: 'string', default: 'none' }, borderStyle: { type: 'string', default: 'solid' }, borderWidth: { type: 'number', default: 1 }, borderColor: { type: 'string', default: '#dddddd' }, cellPadding: { type: 'number', default: 12 }, fontSize: { type: 'number', default: 0 }, tableBackgroundColor: { type: 'string', default: '' }, headerBackgroundColor: { type: 'string', default: '#f5f5f5' }, striped: { type: 'boolean', default: false } },
+			save: function( props ) { const attrs = Object.assign( {}, props.attributes, { cellPaddingVertical: -1, cellPaddingHorizontal: -1 } ); return saveTable( attrs, false ); },
+		}, {
 			attributes: { rows: { type: 'number', default: 3 }, columns: { type: 'number', default: 3 }, cells: { type: 'array', default: [] }, hasHeader: { type: 'boolean', default: true }, hasFooter: { type: 'boolean', default: false }, caption: { type: 'string', default: '' }, mobileMode: { type: 'string', default: 'scroll' }, showScrollHint: { type: 'boolean', default: true }, borderStyle: { type: 'string', default: 'solid' }, borderWidth: { type: 'number', default: 1 }, borderColor: { type: 'string', default: '#dddddd' }, cellPadding: { type: 'number', default: 12 }, tableBackgroundColor: { type: 'string', default: '' }, headerBackgroundColor: { type: 'string', default: '#f5f5f5' }, striped: { type: 'boolean', default: false } },
 			save: function( props ) { return saveTable( props.attributes, true ); },
 		} ],

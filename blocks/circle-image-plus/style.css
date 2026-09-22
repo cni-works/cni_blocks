@@ -1,0 +1,154 @@
+.wp-block-cni-blocks-circle-image-plus {
+	--cni-circle-size: 240px;
+	--cni-circle-image-size: 68%;
+	display: flex;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.wp-block-cni-blocks-circle-image-plus[data-alignment="left"] { justify-content: flex-start; }
+.wp-block-cni-blocks-circle-image-plus[data-alignment="center"] { justify-content: center; }
+.wp-block-cni-blocks-circle-image-plus[data-alignment="right"] { justify-content: flex-end; }
+.wp-block-cni-blocks-circle-image-plus[data-size="small"] { --cni-circle-size: 180px; }
+.wp-block-cni-blocks-circle-image-plus[data-size="large"] { --cni-circle-size: 320px; }
+.wp-block-cni-blocks-circle-image-plus[data-size="xlarge"] { --cni-circle-size: 400px; }
+.wp-block-cni-blocks-circle-image-plus[data-ring-gap="narrow"] { --cni-circle-image-size: 74%; }
+.wp-block-cni-blocks-circle-image-plus[data-ring-gap="wide"] { --cni-circle-image-size: 62%; }
+
+.cni-circle-image-plus__link,
+.cni-circle-image-plus__visual {
+	display: block;
+	width: min(var(--cni-circle-size), 100%);
+	aspect-ratio: 1;
+}
+
+.cni-circle-image-plus__link {
+	color: inherit;
+	text-decoration: none;
+}
+
+.cni-circle-image-plus__visual {
+	position: relative;
+	isolation: isolate;
+}
+
+.cni-circle-image-plus__image,
+.cni-circle-image-plus__placeholder {
+	position: absolute;
+	z-index: 1;
+	top: 50%;
+	left: 50%;
+	display: block;
+	width: var(--cni-circle-image-size);
+	height: var(--cni-circle-image-size);
+	border-radius: 50%;
+	object-fit: cover;
+	box-shadow: none;
+	transform: translate(-50%, -50%);
+}
+
+.cni-circle-image-plus__placeholder { background: #f1f1f1; }
+
+.cni-circle-image-plus__ring,
+.cni-circle-image-plus__svg {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.cni-circle-image-plus__ring::before {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	border-radius: 50%;
+	background: transparent;
+	content: "";
+}
+
+.wp-block-cni-blocks-circle-image-plus[data-ring-background="white"] .cni-circle-image-plus__ring::before { background: #fff; }
+.wp-block-cni-blocks-circle-image-plus[data-ring-background="black"] .cni-circle-image-plus__ring::before { background: #111; }
+
+.cni-circle-image-plus__svg {
+	z-index: 2;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.cni-circle-image-plus__text {
+	fill: var(--cni-circle-text-color, currentColor);
+	font-family: inherit;
+	font-size: 5px;
+	font-weight: var(--cni-circle-text-weight, 600);
+	letter-spacing: var(--cni-circle-letter-spacing, 0);
+	transition: fill 180ms ease;
+}
+
+.wp-block-cni-blocks-circle-image-plus[data-text-size="small"] .cni-circle-image-plus__text { font-size: 4px; }
+.wp-block-cni-blocks-circle-image-plus[data-text-size="large"] .cni-circle-image-plus__text { font-size: 6px; }
+
+.wp-block-cni-blocks-circle-image-plus[data-rotation="on"] .cni-circle-image-plus__ring {
+	animation: cni-circle-image-plus-rotate 30s linear infinite;
+}
+
+.wp-block-cni-blocks-circle-image-plus[data-rotation="on"][data-rotation-direction="counterclockwise"] .cni-circle-image-plus__ring { animation-direction: reverse; }
+.wp-block-cni-blocks-circle-image-plus[data-rotation="on"][data-rotation-speed="normal"] .cni-circle-image-plus__ring { animation-duration: 20s; }
+.wp-block-cni-blocks-circle-image-plus[data-rotation="on"][data-rotation-speed="fast"] .cni-circle-image-plus__ring { animation-duration: 12s; }
+
+.cni-circle-image-plus__link:hover .cni-circle-image-plus__text,
+.cni-circle-image-plus__link:focus-visible .cni-circle-image-plus__text { fill: var(--cni-circle-hover-text-color, var(--cni-circle-text-color, currentColor)); }
+
+.cni-circle-image-plus__link:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 50%; }
+
+.cni-circle-image-plus__editor-preview {
+	position: relative;
+	width: min(var(--cni-circle-size), 100%);
+}
+
+.cni-circle-image-plus__image-select {
+	position: absolute;
+	z-index: 4;
+	bottom: 8%;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.editor-styles-wrapper .cni-circle-image-plus__media-thumbnail {
+	display: block;
+	width: 100%;
+	max-width: 160px;
+	max-height: 120px;
+	margin: 0 0 12px;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+/* WordPress のエディター側画像スタイルで高さが上書きされても、円の比率を保つ。 */
+.editor-styles-wrapper .wp-block-cni-blocks-circle-image-plus .cni-circle-image-plus__image {
+	box-sizing: border-box;
+	width: var(--cni-circle-image-size) !important;
+	height: var(--cni-circle-image-size) !important;
+	max-width: none !important;
+	max-height: none !important;
+	aspect-ratio: 1 / 1;
+	object-fit: cover !important;
+}
+
+@keyframes cni-circle-image-plus-rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wp-block-cni-blocks-circle-image-plus[data-rotation="on"] .cni-circle-image-plus__ring { animation: none; }
+	.cni-circle-image-plus__text { transition: none; }
+}
+
+@media (max-width: 767px) {
+	/* --cni-circle-size 自身をここで参照すると循環参照になり、画像全体が 0px になる。 */
+	.cni-circle-image-plus__link,
+	.cni-circle-image-plus__visual {
+		width: min(var(--cni-circle-size), 100%, 88vw);
+	}
+}

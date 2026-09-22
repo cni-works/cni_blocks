@@ -18,11 +18,105 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	z-index: 0;
+	z-index: 1;
 	pointer-events: none;
 	border-radius: inherit;
-	background: var(--cni-outer-overlay-color, #000);
+	background: var(--cni-outer-overlay-background, var(--cni-outer-overlay-color, #000));
 	opacity: var(--cni-outer-overlay-opacity, 0);
+}
+
+.wp-block-cni-blocks-outer > .cni-outer__background-video {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: var(--cni-outer-background-position-pc, var(--cni-outer-background-position, center center));
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+/* Creative Hover is opt-in. These layers are only rendered when an effect is selected. */
+.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+	position: absolute;
+	inset: -4%;
+	pointer-events: none;
+	border-radius: inherit;
+	background-image: var(--cni-outer-creative-background-image, none);
+	background-position: var(--cni-outer-background-position-pc, var(--cni-outer-background-position, center center));
+	background-repeat: no-repeat;
+	background-size: cover;
+	transform: scale(1.001);
+	transition: transform 0.72s ease-out;
+}
+
+.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+	position: absolute;
+	inset: 18px;
+	z-index: 2;
+	pointer-events: none;
+	border-radius: max(0px, calc(var(--cni-outer-border-radius, 0px) - 6px));
+}
+
+.cni-outer__creative-frame-line {
+	position: absolute;
+	display: block;
+	background: var(--cni-outer-creative-frame-color, #fff);
+	opacity: 0.88;
+	transition: transform 0.34s ease-out;
+}
+
+.cni-outer__creative-frame-line--top,
+.cni-outer__creative-frame-line--bottom {
+	left: 0;
+	right: 0;
+	height: 1px;
+	transform: scaleX(0);
+}
+
+.cni-outer__creative-frame-line--top { top: 0; transform-origin: left center; }
+.cni-outer__creative-frame-line--right { right: 0; transform-origin: center top; transition-delay: 0.08s; }
+.cni-outer__creative-frame-line--bottom { bottom: 0; transform-origin: right center; transition-delay: 0.16s; }
+.cni-outer__creative-frame-line--left { left: 0; transform-origin: center bottom; transition-delay: 0.24s; }
+
+.cni-outer__creative-frame-line--right,
+.cni-outer__creative-frame-line--left {
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	transform: scaleY(0);
+}
+
+.wp-block-cni-blocks-outer.cni-outer--creative-content-lift > .cni-outer__inner {
+	transition: transform 0.48s ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.wp-block-cni-blocks-outer.cni-outer--creative-background-zoom:hover > .cni-outer__creative-background-clip > .cni-outer__creative-background,
+	.wp-block-cni-blocks-outer.cni-outer--creative-background-zoom:focus-within > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+		transform: scale(1.055);
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:hover .cni-outer__creative-frame-line,
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:focus-within .cni-outer__creative-frame-line {
+		transform: scale(1);
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--creative-content-lift:hover > .cni-outer__inner,
+	.wp-block-cni-blocks-outer.cni-outer--creative-content-lift:focus-within > .cni-outer__inner {
+		transform: translate3d(0, -8px, 0);
+	}
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__inner {
@@ -35,10 +129,46 @@
 	margin-left: auto;
 }
 
+/* Optional floating images deliberately live outside InnerBlocks. The position
+ * wrapper owns the centring transform; the inner wrapper is reserved for a
+ * future CNI Motion transform so the two can never overwrite each other. */
+.wp-block-cni-blocks-outer.cni-outer--has-free-images { z-index: 2; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images { position: absolute; inset: 0; pointer-events: none; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images--back { z-index: 2; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images--front { z-index: 4; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position { position: absolute; left: var(--cni-outer-free-image-x); top: var(--cni-outer-free-image-y); width: var(--cni-outer-free-image-width); transform: translate(-50%, -50%); box-sizing: border-box; line-height: 0; pointer-events: none; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-pc="false"] { display: none; }
+.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position > .cni-outer__free-image-motion,
+.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position > .cni-outer__free-image-motion > img { display: block; width: 100%; height: auto; }
+.wp-block-cni-blocks-outer.cni-outer--has-free-images > .cni-outer__divider { z-index: 5; }
+
+.editor-styles-wrapper .wp-block-cni-blocks-outer > .cni-outer__free-images { pointer-events: none; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position { pointer-events: auto; cursor: grab; touch-action: none; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position:active { cursor: grabbing; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position.is-selected { outline: 2px solid #1d8fdb; outline-offset: 4px; }
+.cni-outer__free-image-label { position: absolute; left: 0; top: calc(100% + 8px); z-index: 1; padding: 4px 7px; border-radius: 3px; background: #1d8fdb; color: #fff; font: 12px/1.25 sans-serif; white-space: nowrap; }
+.cni-outer__free-image-device-tabs { display: flex; margin: 8px 0 12px; }
+.cni-outer__free-image-list { display: grid; gap: 4px; margin: 12px 0; }
+.cni-outer__free-image-list .components-button { justify-content: flex-start; text-align: left; }
+.cni-outer__free-image-settings { margin-top: 16px; padding-top: 16px; border-top: 1px solid #dcdcde; }
+.cni-outer__free-image-preview { display: block; width: 100%; max-height: 180px; margin: 0 0 12px; object-fit: contain; background: #f6f7f7; }
+.cni-outer__free-image-picker-label { margin: 16px 0 8px; font-weight: 600; }
+.cni-outer__free-image-picker-help { margin: 8px 0 16px; }
+.cni-outer__free-image-width-control { display: grid; grid-template-columns: minmax(0,1fr) 76px; column-gap: 10px; align-items: end; margin: 16px 0; }
+.cni-outer__free-image-width-label { grid-column: 1 / -1; margin: 0 0 2px; font-weight: 600; }
+.cni-outer__free-image-width-slider { min-width: 0; margin: 0 !important; }
+.cni-outer__free-image-width-slider .components-base-control__field { margin-bottom: 0 !important; }
+.cni-outer__free-image-width-number { margin: 0 !important; }
+.cni-outer__free-image-width-number .components-base-control__field { margin-bottom: 0 !important; }
+.cni-outer__free-image-picker { position: relative; box-sizing: border-box; width: 100%; aspect-ratio: 1.6; overflow: hidden; border: 1px solid #8c8f94; background: #f6f7f7; cursor: crosshair; touch-action: none; }
+.cni-outer__free-image-picker-boundary { position: absolute; left: 18.75%; top: 18.75%; width: 62.5%; height: 62.5%; border: 1px dashed #2271b1; background: rgba(34,113,177,.06); pointer-events: none; }
+.cni-outer__free-image-picker-dot { position: absolute; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; background: #2271b1; box-shadow: 0 0 0 1px #135e96; transform: translate(-50%, -50%); pointer-events: none; }
+
 .wp-block-cni-blocks-outer > .cni-outer__divider {
 	position: absolute;
 	left: 0;
-	z-index: 2;
+	/* Keep decorative dividers above InnerBlocks so child content cannot show through their shape. */
+	z-index: 4;
 	display: block;
 	width: 100%;
 	height: min(var(--cni-outer-divider-height, 80px), 24vw);
@@ -61,11 +191,31 @@
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--top.is-outward {
-	transform: translateY(-100%);
+	/* Overlap by one pixel so fractional SVG layout cannot leave a seam. */
+	transform: translateY(calc(-100% + 1px));
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--bottom.is-outward {
-	transform: translateY(100%);
+	/* Overlap by one pixel so fractional SVG layout cannot leave a seam. */
+	transform: translateY(calc(100% - 1px));
+}
+
+/* Outward shapes are cut from an added strip of the actual Outer+ background.
+ * The divider colour covers the receiving side, leaving the live background
+ * visible through the triangle, curve, or zigzag opening. */
+.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+	margin-top: calc(0px - var(--cni-outer-top-outward-divider-height, 0px));
+	padding-top: calc(var(--cni-outer-padding-v-pc, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+}
+
+.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+	margin-bottom: calc(0px - var(--cni-outer-bottom-outward-divider-height, 0px));
+	padding-bottom: calc(var(--cni-outer-padding-v-pc, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
+}
+
+.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider > .cni-outer__divider--top.is-outward,
+.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider > .cni-outer__divider--bottom.is-outward {
+	transform: none;
 }
 
 .wp-block-cni-blocks-outer > .cni-outer__divider svg {
@@ -86,6 +236,14 @@
 
 .wp-block-cni-blocks-outer > .cni-outer__divider--top.is-flipped svg {
 	transform: rotate(180deg) scaleX(-1);
+}
+
+@media (max-width: 781px) {
+	/* Cloud paths are dense across a 1200-unit viewBox. A smaller mobile cap
+	 * preserves their horizontal, low-profile character instead of stretching them vertically. */
+	.wp-block-cni-blocks-outer > .cni-outer__divider--cloud {
+		height: var(--cni-outer-divider-mobile-height, min(var(--cni-outer-divider-height, 80px), 18vw));
+	}
 }
 
 .cni-outer-divider-control + .cni-outer-divider-control {
@@ -127,6 +285,32 @@
 		background-image: var(--cni-outer-tablet-background-image, var(--cni-outer-background-image, none));
 		background-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
 	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+		padding-top: calc(var(--cni-outer-padding-v-tablet, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+		padding-bottom: calc(var(--cni-outer-padding-v-tablet, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__background-video {
+		object-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip > .cni-outer__creative-background {
+		background-image: var(--cni-outer-creative-tablet-background-image, var(--cni-outer-creative-background-image, none));
+		background-position: var(--cni-outer-background-position-tablet, var(--cni-outer-background-position, center center));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position {
+		left: var(--cni-outer-free-image-tablet-x, var(--cni-outer-free-image-x));
+		top: var(--cni-outer-free-image-tablet-y, var(--cni-outer-free-image-y));
+		width: var(--cni-outer-free-image-tablet-width, var(--cni-outer-free-image-width));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-tablet="false"] { display: none; }
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-tablet="true"] { display: block; }
 }
 
 @media (max-width: 781px) {
@@ -137,4 +321,61 @@
 		background-position: var(--cni-outer-background-position-mobile, var(--cni-outer-background-position, center center));
 		background-attachment: scroll;
 	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-top-outward-divider {
+		padding-top: calc(var(--cni-outer-padding-v-mobile, 0px) + var(--cni-outer-top-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer.cni-outer--has-bottom-outward-divider {
+		padding-bottom: calc(var(--cni-outer-padding-v-mobile, 0px) + var(--cni-outer-bottom-outward-divider-height, 0px));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__background-video {
+		object-position: var(--cni-outer-background-position-mobile, var(--cni-outer-background-position, center center));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip,
+	.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__inner {
+		transform: none !important;
+		transition: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position {
+		left: var(--cni-outer-free-image-mobile-x, var(--cni-outer-free-image-tablet-x, var(--cni-outer-free-image-x)));
+		top: var(--cni-outer-free-image-mobile-y, var(--cni-outer-free-image-tablet-y, var(--cni-outer-free-image-y)));
+		width: var(--cni-outer-free-image-mobile-width, var(--cni-outer-free-image-tablet-width, var(--cni-outer-free-image-width)));
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-mobile="false"] { display: none; }
+	.wp-block-cni-blocks-outer > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-mobile="true"] { display: block; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+	.wp-block-cni-blocks-outer > .cni-outer__creative-background-clip,
+	.wp-block-cni-blocks-outer > .cni-outer__creative-frame {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__background-video {
+		display: none;
+	}
+
+	.wp-block-cni-blocks-outer > .cni-outer__inner,
+	.wp-block-cni-blocks-outer .cni-outer__creative-frame-line {
+		transform: none !important;
+		transition: none !important;
+	}
+}
+
+/* The block's own PC / Tablet / Mobile picker previews the same saved values
+ * even when Gutenberg's canvas width does not match that device. */
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="pc"] > .cni-outer__free-images > .cni-outer__free-image-position { left: var(--cni-outer-free-image-x) !important; top: var(--cni-outer-free-image-y) !important; width: var(--cni-outer-free-image-width) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="tablet"] > .cni-outer__free-images > .cni-outer__free-image-position { left: var(--cni-outer-free-image-tablet-x, var(--cni-outer-free-image-x)) !important; top: var(--cni-outer-free-image-tablet-y, var(--cni-outer-free-image-y)) !important; width: var(--cni-outer-free-image-tablet-width, var(--cni-outer-free-image-width)) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="mobile"] > .cni-outer__free-images > .cni-outer__free-image-position { left: var(--cni-outer-free-image-mobile-x, var(--cni-outer-free-image-tablet-x, var(--cni-outer-free-image-x))) !important; top: var(--cni-outer-free-image-mobile-y, var(--cni-outer-free-image-tablet-y, var(--cni-outer-free-image-y))) !important; width: var(--cni-outer-free-image-mobile-width, var(--cni-outer-free-image-tablet-width, var(--cni-outer-free-image-width))) !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="pc"] > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-pc="false"],
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="tablet"] > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-tablet="false"],
+.editor-styles-wrapper .wp-block-cni-blocks-outer[data-cni-free-image-editor-device="mobile"] > .cni-outer__free-images > .cni-outer__free-image-position[data-cni-free-visible-mobile="false"] { display: none !important; }

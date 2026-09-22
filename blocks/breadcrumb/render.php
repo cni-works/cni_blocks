@@ -203,7 +203,7 @@ function cni_blocks_render_breadcrumb( $attributes, $content, $block ) {
 						<span class="cni-breadcrumb__separator" aria-hidden="true"><?php echo esc_html( $separator ); ?></span>
 					<?php endif; ?>
 					<?php if ( ! empty( $item['url'] ) ) : ?>
-						<a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a>
+						<a href="<?php echo esc_url( $item['url'] ); ?>"><?php if ( 0 === $index && $show_home ) : ?><svg class="cni-breadcrumb__home-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.2 3 10.5v9.3c0 .55.45 1 1 1h5.5v-6h5v6H20c.55 0 1-.45 1-1v-9.3L12 3.2Zm0 2.6 7 5.68v7.32h-2.5v-6h-9v6H5v-7.32l7-5.68Z" /></svg><?php endif; ?><?php echo esc_html( $item['label'] ); ?></a>
 					<?php else : ?>
 						<span<?php echo $index === count( $items ) - 1 ? ' aria-current="page"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html( $item['label'] ); ?></span>
 					<?php endif; ?>

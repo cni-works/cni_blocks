@@ -8,6 +8,8 @@
   "textdomain": "cni-blocks",
   "attributes": {
     "postType": { "type": "string", "default": "post" },
+    "filterTaxonomy": { "type": "string", "default": "" },
+    "filterTermIds": { "type": "array", "default": [] },
     "postsPerPage": { "type": "number", "default": 6 },
     "offset": { "type": "number", "default": 0 },
     "sortOrder": { "type": "string", "default": "newest" },

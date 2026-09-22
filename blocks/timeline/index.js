@@ -7,7 +7,7 @@
 	const { Button, ColorPalette, PanelBody, RangeControl, SelectControl, TextControl, ToggleControl } = components;
 	const TIMELINE_ITEM = 'cni-blocks/timeline-item';
 	const ITEM_CONTENT_TEMPLATE = [
-		[ 'core/heading', { level: 3, placeholder: __( '見出し', 'cni-blocks' ) } ],
+		[ 'cni-blocks/heading-plus', { tagName: 'h4', level: 4, content: '', fontSizePc: 20, fontSizeTablet: 18, fontSizeMobile: 15.75 } ],
 		[ 'core/paragraph', { placeholder: __( '内容を入力', 'cni-blocks' ) } ],
 	];
 	const TIMELINE_TEMPLATE = [ [ TIMELINE_ITEM, { label: '10:00' } ] ];
@@ -21,7 +21,7 @@
 	}
 
 	function getTimelineStyle( attributes ) {
-		return {
+		const style = {
 			'--cni-timeline-marker-size': px( attributes.markerSize, 16 ),
 			'--cni-timeline-marker-color': attributes.markerColor || '#2385b8',
 			'--cni-timeline-label-color': attributes.labelColor || '#555555',
@@ -32,6 +32,19 @@
 			'--cni-timeline-line-style': attributes.lineStyle || 'solid',
 			'--cni-timeline-line-color': attributes.lineColor || '#dddddd',
 		};
+		if ( attributes.layoutMode === 'history' ) {
+			style[ '--cni-timeline-history-date-color' ] = attributes.historyDateColor || '#456c48';
+			style[ '--cni-timeline-history-date-font-size' ] = px( attributes.historyDateFontSize, 20 );
+			style[ '--cni-timeline-history-date-font-size-mobile' ] = px( attributes.historyDateFontSizeMobile, 16 );
+			style[ '--cni-timeline-history-date-font-weight' ] = attributes.historyDateFontWeight || '600';
+			style[ '--cni-timeline-history-date-column-width' ] = px( attributes.historyDateColumnWidth, 180 );
+			style[ '--cni-timeline-history-column-gap' ] = px( attributes.historyColumnGap, 28 );
+		}
+		return style;
+	}
+
+	function timelineDataProps( attributes ) {
+		return attributes.layoutMode === 'history' ? { 'data-timeline-mode': 'history' } : {};
 	}
 
 	blocks.registerBlockType( TIMELINE_ITEM, {
@@ -63,8 +76,8 @@
 						PanelBody,
 						{ title: __( 'ラベル', 'cni-blocks' ), initialOpen: true },
 						el( TextControl, {
-							label: __( 'ラベルの文字', 'cni-blocks' ),
-							help: __( '時刻だけでなく、午前、DAY 1、第1段階なども入力できます。', 'cni-blocks' ),
+							label: __( 'ラベルの文字（沿革では年月）', 'cni-blocks' ),
+							help: __( '時刻、年月、午前、DAY 1、第1段階などを入力できます。', 'cni-blocks' ),
 							value: attributes.label || '',
 							onChange: function( value ) { setAttributes( { label: value } ); },
 						} )
@@ -105,6 +118,7 @@
 		icon: 'clock',
 		category: 'cni-blocks',
 		attributes: {
+			layoutMode: { type: 'string', default: 'timeline' },
 			markerStyle: { type: 'string', default: 'outline' },
 			markerSize: { type: 'number', default: 16 },
 			markerColor: { type: 'string', default: '#2385b8' },
@@ -116,6 +130,12 @@
 			lineStyle: { type: 'string', default: 'solid' },
 			lineWidth: { type: 'number', default: 3 },
 			lineColor: { type: 'string', default: '#dddddd' },
+			historyDateColor: { type: 'string', default: '#456c48' },
+			historyDateFontSize: { type: 'number', default: 20 },
+			historyDateFontSizeMobile: { type: 'number', default: 16 },
+			historyDateFontWeight: { type: 'string', default: '600' },
+			historyDateColumnWidth: { type: 'number', default: 180 },
+			historyColumnGap: { type: 'number', default: 28 },
 		},
 		supports: {
 			align: [ 'wide', 'full' ],
@@ -124,11 +144,13 @@
 		},
 		edit: function( props ) {
 			const { attributes, setAttributes, clientId } = props;
+			const historyMode = attributes.layoutMode === 'history';
 			const blockEditorDispatch = data.dispatch( 'core/block-editor' );
 			const blockProps = useBlockProps( {
 				style: getTimelineStyle( attributes ),
 				'data-marker-style': attributes.markerStyle || 'outline',
 				'data-show-line': attributes.showLine !== false ? '1' : '0',
+				...timelineDataProps( attributes ),
 			} );
 
 			function addItem() {
@@ -144,7 +166,21 @@
 					null,
 					el(
 						PanelBody,
-						{ title: __( '丸印とラベル', 'cni-blocks' ), initialOpen: true },
+						{ title: __( '表示モード', 'cni-blocks' ), initialOpen: true },
+						el( SelectControl, {
+							label: __( 'モード', 'cni-blocks' ),
+							value: historyMode ? 'history' : 'timeline',
+							options: [
+								{ label: __( '通常タイムライン', 'cni-blocks' ), value: 'timeline' },
+								{ label: __( '沿革', 'cni-blocks' ), value: 'history' },
+							],
+							onChange: function( value ) { setAttributes( { layoutMode: value === 'history' ? 'history' : 'timeline' } ); },
+						} ),
+						historyMode ? el( 'p', { className: 'components-base-control__help' }, __( '年月・縦線・内容の3列で表示します。スマホでは年月と内容を縦に並べます。', 'cni-blocks' ) ) : null
+					),
+					el(
+						PanelBody,
+						{ title: historyMode ? __( '年月と丸印', 'cni-blocks' ) : __( '丸印とラベル', 'cni-blocks' ), initialOpen: true },
 						el( SelectControl, {
 							label: __( '丸印のスタイル', 'cni-blocks' ),
 							value: attributes.markerStyle || 'outline',
@@ -157,10 +193,21 @@
 						el( RangeControl, { label: __( '丸印のサイズ（px）', 'cni-blocks' ), value: numberOr( attributes.markerSize, 16 ), min: 8, max: 40, onChange: function( value ) { setAttributes( { markerSize: numberOr( value, 16 ) } ); } } ),
 						el( 'p', null, __( '丸印の色', 'cni-blocks' ) ),
 						el( ColorPalette, { value: attributes.markerColor || '#2385b8', clearable: false, onChange: function( value ) { setAttributes( { markerColor: value || '#2385b8' } ); } } ),
-						el( RangeControl, { label: __( 'ラベルの文字サイズ（px）', 'cni-blocks' ), value: numberOr( attributes.labelFontSize, 18 ), min: 10, max: 40, onChange: function( value ) { setAttributes( { labelFontSize: numberOr( value, 18 ) } ); } } ),
-						el( 'p', null, __( 'ラベルの文字色', 'cni-blocks' ) ),
-						el( ColorPalette, { value: attributes.labelColor || '#555555', clearable: false, onChange: function( value ) { setAttributes( { labelColor: value || '#555555' } ); } } )
+						! historyMode ? el( RangeControl, { label: __( 'ラベルの文字サイズ（px）', 'cni-blocks' ), value: numberOr( attributes.labelFontSize, 18 ), min: 10, max: 40, onChange: function( value ) { setAttributes( { labelFontSize: numberOr( value, 18 ) } ); } } ) : null,
+						! historyMode ? el( 'p', null, __( 'ラベルの文字色', 'cni-blocks' ) ) : null,
+						! historyMode ? el( ColorPalette, { value: attributes.labelColor || '#555555', clearable: false, onChange: function( value ) { setAttributes( { labelColor: value || '#555555' } ); } } ) : null,
+						historyMode ? el( element.Fragment, null,
+							el( RangeControl, { label: __( '年月の文字サイズ：PC（px）', 'cni-blocks' ), value: numberOr( attributes.historyDateFontSize, 20 ), min: 10, max: 48, onChange: function( value ) { setAttributes( { historyDateFontSize: numberOr( value, 20 ) } ); } } ),
+							el( RangeControl, { label: __( '年月の文字サイズ：スマホ（px）', 'cni-blocks' ), value: numberOr( attributes.historyDateFontSizeMobile, 16 ), min: 10, max: 36, onChange: function( value ) { setAttributes( { historyDateFontSizeMobile: numberOr( value, 16 ) } ); } } ),
+							el( SelectControl, { label: __( '年月の太さ', 'cni-blocks' ), value: attributes.historyDateFontWeight || '600', options: [ '400', '500', '600', '700', '800', '900' ].map( function( weight ) { return { label: weight, value: weight }; } ), onChange: function( value ) { setAttributes( { historyDateFontWeight: value || '600' } ); } } ),
+							el( 'p', null, __( '年月の文字色', 'cni-blocks' ) ),
+							el( ColorPalette, { value: attributes.historyDateColor || '#456c48', clearable: false, onChange: function( value ) { setAttributes( { historyDateColor: value || '#456c48' } ); } } )
+						) : null
 					),
+					historyMode ? el( PanelBody, { title: __( '沿革レイアウト', 'cni-blocks' ), initialOpen: false },
+						el( RangeControl, { label: __( '年月列の幅（px）', 'cni-blocks' ), value: numberOr( attributes.historyDateColumnWidth, 180 ), min: 80, max: 360, onChange: function( value ) { setAttributes( { historyDateColumnWidth: numberOr( value, 180 ) } ); } } ),
+						el( RangeControl, { label: __( '年月・縦線・内容の間隔（px）', 'cni-blocks' ), value: numberOr( attributes.historyColumnGap, 28 ), min: 8, max: 100, onChange: function( value ) { setAttributes( { historyColumnGap: numberOr( value, 28 ) } ); } } )
+					) : null,
 					el(
 						PanelBody,
 						{ title: __( '接続線', 'cni-blocks' ), initialOpen: false },
@@ -209,6 +256,7 @@
 				style: getTimelineStyle( attributes ),
 				'data-marker-style': attributes.markerStyle || 'outline',
 				'data-show-line': attributes.showLine !== false ? '1' : '0',
+				...timelineDataProps( attributes ),
 			} );
 
 			return el( 'ol', blockProps, el( InnerBlocks.Content ) );
