@@ -75,6 +75,10 @@ function cni_blocks_render_post_list( $attributes ) {
 
 	$posts_per_page = isset( $attributes['postsPerPage'] ) ? absint( $attributes['postsPerPage'] ) : 6;
 	$posts_per_page = max( 1, min( 24, $posts_per_page ) );
+	/* A value of 0 preserves the established single-count behaviour. */
+	$posts_per_page_mobile = isset( $attributes['postsPerPageMobile'] ) ? absint( $attributes['postsPerPageMobile'] ) : 0;
+	$posts_per_page_mobile = $posts_per_page_mobile > 0 ? max( 1, min( 24, $posts_per_page_mobile ) ) : $posts_per_page;
+	$query_posts_per_page  = max( $posts_per_page, $posts_per_page_mobile );
 	$offset         = isset( $attributes['offset'] ) ? absint( $attributes['offset'] ) : 0;
 	$offset         = min( 100, $offset );
 	$sort_order     = isset( $attributes['sortOrder'] ) ? sanitize_key( $attributes['sortOrder'] ) : 'newest';
@@ -92,7 +96,7 @@ function cni_blocks_render_post_list( $attributes ) {
 	$filter_term_ids = isset( $attributes['filterTermIds'] ) && is_array( $attributes['filterTermIds'] ) ? array_values( array_filter( array_map( 'absint', $attributes['filterTermIds'] ) ) ) : array();
 	$tax_query       = array();
 	$taxonomies      = get_object_taxonomies( $post_type, 'objects' );
-	if ( ! empty( $filter_term_ids ) && isset( $taxonomies[ $filter_taxonomy ] ) && ! empty( $taxonomies[ $filter_taxonomy ]->public ) && ! empty( $taxonomies[ $filter_taxonomy ]->hierarchical ) ) {
+	if ( ! empty( $filter_term_ids ) && isset( $taxonomies[ $filter_taxonomy ] ) && ! empty( $taxonomies[ $filter_taxonomy ]->public ) ) {
 		$valid_term_ids = array();
 		foreach ( $filter_term_ids as $filter_term_id ) {
 			$term = get_term( $filter_term_id, $filter_taxonomy );
@@ -115,14 +119,15 @@ function cni_blocks_render_post_list( $attributes ) {
 		$display_type = 'card';
 	}
 	$card_design  = isset( $attributes['cardDesign'] ) ? sanitize_key( $attributes['cardDesign'] ) : 'standard';
-	if ( 'card' !== $display_type || ! in_array( $card_design, array( 'standard', 'overlay', 'date-corner', 'text-card' ), true ) ) {
+	if ( 'card' !== $display_type || ! in_array( $card_design, array( 'standard', 'overlay', 'date-corner', 'compact-text' ), true ) ) {
 		$card_design = 'standard';
 	}
-	$show_image    = 'list' !== $display_type && 'text-card' !== $card_design && ( ! isset( $attributes['showImage'] ) || $attributes['showImage'] );
+	$is_compact_text = 'compact-text' === $card_design;
+	$show_image    = 'list' !== $display_type && ! $is_compact_text && ( ! isset( $attributes['showImage'] ) || $attributes['showImage'] );
 	$show_category = ! isset( $attributes['showCategory'] ) || $attributes['showCategory'];
 	$show_date     = ! isset( $attributes['showDate'] ) || $attributes['showDate'];
-	$show_title    = ! isset( $attributes['showTitle'] ) || $attributes['showTitle'];
-	$show_excerpt  = in_array( $card_design, array( 'overlay', 'date-corner', 'text-card' ), true ) && ( ! isset( $attributes['showExcerpt'] ) || $attributes['showExcerpt'] );
+	$show_title    = $is_compact_text || ! isset( $attributes['showTitle'] ) || $attributes['showTitle'];
+	$show_excerpt  = in_array( $card_design, array( 'overlay', 'date-corner' ), true ) && ( ! isset( $attributes['showExcerpt'] ) || $attributes['showExcerpt'] );
 	$excerpt_length = isset( $attributes['excerptLength'] ) ? absint( $attributes['excerptLength'] ) : 55;
 	$excerpt_length = max( 10, min( 160, $excerpt_length ) );
 	$title_level   = isset( $attributes['titleLevel'] ) ? absint( $attributes['titleLevel'] ) : 3;
@@ -177,13 +182,18 @@ function cni_blocks_render_post_list( $attributes ) {
 	$category_badge_color   = isset( $attributes['categoryBadgeColor'] ) ? sanitize_hex_color( $attributes['categoryBadgeColor'] ) : '#087ea4';
 	$category_badge_color   = $category_badge_color ? $category_badge_color : '#087ea4';
 	$category_badge_text    = cni_blocks_post_list_contrast_color( $category_badge_color );
-	$text_card_title_background = isset( $attributes['textCardTitleBackgroundColor'] ) ? sanitize_hex_color( $attributes['textCardTitleBackgroundColor'] ) : '';
-	$text_card_title_background = $text_card_title_background ? $text_card_title_background : 'transparent';
+	$compact_text_link_icon = isset( $attributes['compactTextLinkIcon'] ) ? sanitize_key( $attributes['compactTextLinkIcon'] ) : 'arrow';
+	if ( ! in_array( $compact_text_link_icon, array( 'none', 'arrow', 'chevron', 'circle-arrow' ), true ) ) {
+		$compact_text_link_icon = 'arrow';
+	}
+	$pinned_post_ids = isset( $attributes['pinnedPostIds'] ) && is_array( $attributes['pinnedPostIds'] ) ? $attributes['pinnedPostIds'] : array();
+	$pinned_post_ids = array_values( array_unique( array_filter( array_map( 'absint', $pinned_post_ids ) ) ) );
+	$pinned_post_ids = array_slice( $pinned_post_ids, 0, $query_posts_per_page );
 
 	$query_args = array(
 			'post_type'           => $post_type,
 			'post_status'         => 'publish',
-			'posts_per_page'      => $posts_per_page,
+		'posts_per_page'      => $query_posts_per_page,
 			'offset'              => $offset,
 			'orderby'             => $sort_options[ $sort_order ]['orderby'],
 			'order'               => $sort_options[ $sort_order ]['order'],
@@ -194,7 +204,48 @@ function cni_blocks_render_post_list( $attributes ) {
 		$query_args['tax_query'] = $tax_query;
 	}
 
-	$query = new WP_Query( $query_args );
+	/* No pinned posts keeps the established one-query path unchanged. */
+	if ( empty( $pinned_post_ids ) ) {
+		$query = new WP_Query( $query_args );
+		$posts = $query->posts;
+	} else {
+		$pinned_query_args = array(
+			'post_type'           => $post_type,
+			'post_status'         => 'publish',
+			'post__in'            => $pinned_post_ids,
+			'posts_per_page'      => count( $pinned_post_ids ),
+			'orderby'             => 'post__in',
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+		);
+		if ( ! empty( $tax_query ) ) {
+			$pinned_query_args['tax_query'] = $tax_query;
+		}
+		$pinned_query = new WP_Query( $pinned_query_args );
+		$pinned_posts = $pinned_query->posts;
+		$remaining    = max( 0, $query_posts_per_page - count( $pinned_posts ) );
+
+		if ( $remaining > 0 ) {
+			$regular_query_args                   = $query_args;
+			$regular_query_args['posts_per_page'] = $remaining;
+			$regular_query_args['post__not_in']   = $pinned_post_ids;
+			$regular_query                         = new WP_Query( $regular_query_args );
+			$posts                                 = array_merge( $pinned_posts, $regular_query->posts );
+		} else {
+			$posts = $pinned_posts;
+		}
+	}
+
+	/*
+	 * The editor renders this block through the REST block-renderer endpoint.
+	 * Return the empty state before building card-only values so a post type with
+	 * no published posts remains renderable. The stable empty class is also used
+	 * by sites that hide an enclosing group when its list has no results.
+	 */
+	if ( empty( $posts ) ) {
+		wp_reset_postdata();
+		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'cni-post-list cni-post-list--empty' ) ) . '><p class="cni-post-list__empty">' . esc_html__( '表示できる投稿がありません。', 'cni-blocks' ) . '</p></div>';
+	}
 
 	$style = implode(
 		';',
@@ -218,7 +269,6 @@ function cni_blocks_render_post_list( $attributes ) {
 			'--cni-post-list-date-corner-text:' . $date_corner_text,
 			'--cni-post-list-category-badge-background:' . $category_badge_color,
 			'--cni-post-list-category-badge-text:' . $category_badge_text,
-			'--cni-post-list-text-card-title-background:' . $text_card_title_background,
 		)
 	);
 	$wrapper_class = 'cni-post-list cni-post-list--' . $display_type . ' cni-post-list--ratio-' . $image_ratio . ' cni-post-list--hover-' . $hover_effect;
@@ -226,8 +276,8 @@ function cni_blocks_render_post_list( $attributes ) {
 		$wrapper_class .= ' cni-post-list--design-overlay';
 	} elseif ( 'date-corner' === $card_design ) {
 		$wrapper_class .= ' cni-post-list--design-date-corner';
-	} elseif ( 'text-card' === $card_design ) {
-		$wrapper_class .= ' cni-post-list--design-text-card';
+	} elseif ( $is_compact_text ) {
+		$wrapper_class .= ' cni-post-list--design-compact-text';
 	}
 
 	$wrapper_attributes = get_block_wrapper_attributes(
@@ -241,11 +291,14 @@ function cni_blocks_render_post_list( $attributes ) {
 	ob_start();
 	?>
 	<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-		<?php if ( $query->have_posts() ) : ?>
+		<?php if ( ! empty( $posts ) ) : ?>
 			<div class="cni-post-list__items">
 				<?php
-				while ( $query->have_posts() ) :
-					$query->the_post();
+				global $post;
+				$post_index = 0;
+				foreach ( $posts as $post ) :
+					++$post_index;
+					setup_postdata( $post );
 					$post_id        = get_the_ID();
 					$permalink      = get_permalink( $post_id );
 					$title          = get_the_title( $post_id );
@@ -253,9 +306,11 @@ function cni_blocks_render_post_list( $attributes ) {
 					$has_thumbnail  = $show_image && has_post_thumbnail( $post_id );
 					$category_badge = cni_blocks_post_list_term_badge( $term );
 					$excerpt        = $show_excerpt ? wp_trim_words( wp_strip_all_tags( get_the_excerpt( $post_id ) ), $excerpt_length, '…' ) : '';
-					$item_class     = 'cni-post-list__item' . ( $has_thumbnail ? '' : ' cni-post-list__item--no-image' );
+					$post_slug     = sanitize_title( get_post_field( 'post_name', $post_id ) );
+					$slug_class    = $post_slug ? ' cni-post-list__item--slug-' . sanitize_html_class( $post_slug ) : '';
+					$item_class     = 'cni-post-list__item' . ( $has_thumbnail ? '' : ' cni-post-list__item--no-image' ) . $slug_class;
 					?>
-					<article <?php post_class( $item_class, $post_id ); ?>>
+					<article <?php post_class( $item_class, $post_id ); ?> data-desktop-visible="<?php echo $post_index <= $posts_per_page ? '1' : '0'; ?>" data-mobile-visible="<?php echo $post_index <= $posts_per_page_mobile ? '1' : '0'; ?>">
 						<?php if ( 'overlay' === $card_design ) : ?>
 							<a class="cni-post-list__overlay-link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>">
 								<?php if ( $has_thumbnail ) : ?>
@@ -313,20 +368,13 @@ function cni_blocks_render_post_list( $attributes ) {
 								<?php endif; ?>
 								<?php if ( $excerpt ) : ?><p class="cni-post-list__excerpt"><?php echo esc_html( $excerpt ); ?></p><?php endif; ?>
 							</div>
-						<?php elseif ( 'text-card' === $card_design ) : ?>
-							<div class="cni-post-list__content">
-								<?php if ( $term || $show_date ) : ?>
-									<div class="cni-post-list__text-card-meta">
-										<?php if ( $category_badge ) : ?><?php echo $category_badge; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php endif; ?>
-										<?php if ( $show_date ) : ?><time class="cni-post-list__date" datetime="<?php echo esc_attr( get_the_date( DATE_W3C, $post_id ) ); ?>"><?php echo esc_html( get_the_date( '', $post_id ) ); ?></time><?php endif; ?>
-									</div>
+						<?php elseif ( $is_compact_text ) : ?>
+							<a class="cni-post-list__compact-text-link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>">
+								<<?php echo esc_attr( $title_tag ); ?> class="cni-post-list__title"><?php echo esc_html( $title ); ?></<?php echo esc_attr( $title_tag ); ?>>
+								<?php if ( 'none' !== $compact_text_link_icon ) : ?>
+									<span class="cni-post-list__link-icon cni-post-list__link-icon--<?php echo esc_attr( $compact_text_link_icon ); ?>" aria-hidden="true"><?php echo 'chevron' === $compact_text_link_icon ? '›' : '→'; ?></span>
 								<?php endif; ?>
-								<?php if ( $show_title ) : ?>
-									<<?php echo esc_attr( $title_tag ); ?> class="cni-post-list__title"><a href="<?php echo esc_url( $permalink ); ?>"><?php echo esc_html( $title ); ?></a></<?php echo esc_attr( $title_tag ); ?>>
-								<?php endif; ?>
-								<?php if ( $excerpt ) : ?><p class="cni-post-list__excerpt"><?php echo esc_html( $excerpt ); ?></p><?php endif; ?>
-								<a class="cni-post-list__text-card-link" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( $title ); ?>"><span class="cni-post-list__arrow" aria-hidden="true">→</span></a>
-							</div>
+							</a>
 						<?php else : ?>
 						<?php if ( $has_thumbnail ) : ?>
 							<div class="cni-post-list__media">
@@ -354,7 +402,7 @@ function cni_blocks_render_post_list( $attributes ) {
 						</div>
 						<?php endif; ?>
 					</article>
-				<?php endwhile; ?>
+				<?php endforeach; ?>
 			</div>
 		<?php else : ?>
 			<p class="cni-post-list__empty"><?php esc_html_e( '表示できる投稿がありません。', 'cni-blocks' ); ?></p>

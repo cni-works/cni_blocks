@@ -78,6 +78,16 @@ function cni_blocks_page_flip_image( $page, $index ) {
 	return '<img class="cni-page-flip__image" src="' . esc_url( $page['url'] ) . '" alt="' . esc_attr( $page['alt'] ) . '" loading="' . ( 0 === $index ? 'eager' : 'lazy' ) . '" decoding="async"' . ( 0 === $index ? ' fetchpriority="high"' : '' ) . ' />';
 }
 
+function cni_blocks_page_flip_viewer_image_url( $page ) {
+	if ( ! empty( $page['id'] ) ) {
+		$full_url = wp_get_attachment_image_url( $page['id'], 'full' );
+		if ( $full_url ) {
+			return $full_url;
+		}
+	}
+	return $page['url'];
+}
+
 function cni_blocks_render_page_flip( $attributes ) {
 	$pages = cni_blocks_page_flip_pages( $attributes['pages'] ?? array() );
 	if ( empty( $pages ) ) {
@@ -112,7 +122,7 @@ function cni_blocks_render_page_flip( $attributes ) {
 	foreach ( $pages as $index => $page ) {
 		$focus_json = wp_json_encode( $page['focusAreas'] );
 		$mobile_focus_json = wp_json_encode( $page['mobileFocusAreas'] );
-		$output .= '<figure class="cni-page-flip__page' . ( 0 === $index ? ' is-active' : '' ) . '" data-page-index="' . esc_attr( (string) $index ) . '" data-focus-areas="' . esc_attr( $focus_json ) . '" data-mobile-focus-areas="' . esc_attr( $mobile_focus_json ) . '">' . cni_blocks_page_flip_image( $page, $index ) . '</figure>';
+		$output .= '<figure class="cni-page-flip__page' . ( 0 === $index ? ' is-active' : '' ) . '" data-page-index="' . esc_attr( (string) $index ) . '" data-focus-areas="' . esc_attr( $focus_json ) . '" data-mobile-focus-areas="' . esc_attr( $mobile_focus_json ) . '" data-viewer-src="' . esc_url( cni_blocks_page_flip_viewer_image_url( $page ) ) . '">' . cni_blocks_page_flip_image( $page, $index ) . '</figure>';
 	}
 	$output .= '</div>';
 	$output .= '<button type="button" class="cni-page-flip__edge cni-page-flip__edge--next" aria-label="' . esc_attr__( '次のページ', 'cni-blocks' ) . '"></button>';

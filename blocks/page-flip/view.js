@@ -30,9 +30,14 @@
 		function focusForPage() { const exact = sequence.findIndex( function( item ) { return item.pageIndex === current; } ); return exact === -1 ? 0 : exact; }
 		function fitFocus() {
 			const item = sequence[ focusIndex ]; if ( ! item ) return;
-			const source = pages[ item.pageIndex ].querySelector( 'img' ); if ( ! source ) return;
-			const sourceUrl = source.currentSrc || source.src;
-			if ( modalImage.dataset.source !== sourceUrl ) { modalImage.dataset.source = sourceUrl; modalImage.onload = fitFocus; modalImage.src = sourceUrl; modalImage.alt = source.alt || ''; }
+			const page = pages[ item.pageIndex ]; const source = page.querySelector( 'img' ); if ( ! source ) return;
+			const sourceUrl = page.dataset.viewerSrc || source.currentSrc || source.src;
+			if ( modalImage.dataset.source !== sourceUrl ) {
+				modalImage.dataset.source = sourceUrl; modalImage.alt = source.alt || '';
+				modalImage.onload = function() { if ( modalImage.dataset.source === sourceUrl ) fitFocus(); };
+				modalImage.src = sourceUrl;
+				return;
+			}
 			const naturalWidth = source.naturalWidth || modalImage.naturalWidth || 1, naturalHeight = source.naturalHeight || modalImage.naturalHeight || 1, rect = modalStage.getBoundingClientRect();
 			const autoOverview = item.area.view === 'auto' && ( item.area.width >= 74 || item.area.height >= 68 );
 			const useOverview = showingOverview || item.area.view === 'overview' || autoOverview;

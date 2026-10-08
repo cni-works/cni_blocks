@@ -203,8 +203,10 @@
 		if ( a.textDesignHighlightColor ) style[ '--cni-heading-design-highlight' ] = a.textDesignHighlightColor;
 		if ( a.textDesignAccentColor ) style[ '--cni-heading-design-accent' ] = a.textDesignAccentColor;
 		if ( headingDesign ) {
-			style[ '--cni-heading-structure-primary' ] = a.headingDesignPrimaryColor || ( legacyDesign && legacyDesign.category === 'heading' && a.textDesignPrimaryColor ) || headingDesign.primaryColor;
-			style[ '--cni-heading-structure-accent' ] = a.headingDesignAccentColor || ( legacyDesign && legacyDesign.category === 'heading' && a.textDesignAccentColor ) || headingDesign.accentColor;
+			/* New designs inherit the heading colour when no design colour was
+			 * explicitly chosen. Old textDesign content retains its saved palette. */
+			style[ '--cni-heading-structure-primary' ] = a.headingDesignPrimaryColor || ( legacyDesign && legacyDesign.category === 'heading' && a.textDesignPrimaryColor ) || a.textColor || headingDesign.primaryColor;
+			style[ '--cni-heading-structure-accent' ] = a.headingDesignAccentColor || ( legacyDesign && legacyDesign.category === 'heading' && a.textDesignAccentColor ) || a.textColor || headingDesign.accentColor;
 		}
 		if ( headingDesign && [ 'left-line', 'right-line' ].indexOf( headingDesign.id ) !== -1 ) {
 			style[ '--cni-heading-structure-line-length' ] = Math.max( .5, Math.min( 12, numberOr( a.headingDesignLineLength, 2.8 ) ) ) + 'em';
@@ -214,9 +216,9 @@
 		if ( headingDesign && [ 'accent-underline', 'left-bar', 'left-bar-band' ].indexOf( headingDesign.id ) !== -1 && typeof a.headingDesignLineThickness === 'number' ) style[ '--cni-heading-structure-line-width' ] = Math.max( .5, Math.min( 16, a.headingDesignLineThickness ) ) + 'px';
 		if ( headingDesign && headingDesign.id === 'center-slash' ) style[ '--cni-heading-structure-slash-scale' ] = Math.max( .4, Math.min( 3, numberOr( a.headingDesignSlashScale, 1 ) ) );
 		if ( decoration ) {
-			const decorationPrimary = a.textDecorationPrimaryColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignPrimaryColor ) || decoration.primaryColor;
-			const decorationHighlight = a.textDecorationHighlightColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignHighlightColor ) || decoration.highlightColor || decoration.primaryColor;
-			const decorationAccent = a.textDecorationAccentColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignAccentColor ) || decoration.accentColor;
+			const decorationPrimary = a.textDecorationPrimaryColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignPrimaryColor ) || a.textColor || decoration.primaryColor;
+			const decorationHighlight = a.textDecorationHighlightColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignHighlightColor ) || a.textColor || decoration.highlightColor || decoration.primaryColor;
+			const decorationAccent = a.textDecorationAccentColor || ( legacyDesign && legacyDesign.category === 'text' && a.textDesignAccentColor ) || a.textColor || decoration.accentColor;
 			style[ '--cni-heading-decoration-primary' ] = decorationPrimary;
 			style[ '--cni-heading-decoration-highlight' ] = decorationHighlight;
 			style[ '--cni-heading-decoration-accent' ] = decorationAccent;
@@ -351,7 +353,9 @@
 		if ( legacyDesign && ! a.headingDesign && ! a.textDecoration ) props[ 'data-cni-text-design' ] = legacyDesign.id;
 		else if ( headingDesign && ! textDecoration ) props[ 'data-cni-text-design' ] = headingDesign.id;
 		else if ( textDecoration && ! headingDesign ) props[ 'data-cni-text-design' ] = textDecoration.id;
+		if ( legacyDesign && ! a.headingDesign && ! a.textDecoration ) props[ 'data-cni-legacy-design' ] = 'true';
 		if ( headingDesign ) props[ 'data-cni-heading-design' ] = headingDesign.id;
+		if ( textDecoration ) props[ 'data-cni-text-decoration' ] = textDecoration.id;
 		if ( textEffect && ! textDecoration && ! a.customDesignId ) props[ 'data-cni-text-effect' ] = textEffect;
 		if ( isV3Layout( a ) ) {
 			props[ 'data-cni-secondary-layout' ] = 'v3';
@@ -675,7 +679,7 @@
 					activeDesignTab !== 'original' ? el( 'div', { className: 'cni-heading-plus__design-library' }, textDesigns.filter( function( design ) { return ( design.category || 'text' ) === activeDesignTab; } ).map( function( design ) {
 						const isSelected = activeDesignTab === 'heading' ? !! ( activeHeadingDesign && activeHeadingDesign.id === design.id ) : !! ( activeTextDecoration && activeTextDecoration.id === design.id );
 						const previewStyle = activeDesignTab === 'heading' ? designPreviewStyle( design, a, designApplyMode ) : ( designApplyMode === 'keep' ? { fontFamily: a.fontFamily ? '"' + a.fontFamily + '", sans-serif' : 'inherit', color: a.textColor || 'inherit' } : null );
-						return el( 'button', { key: design.id, type: 'button', className: 'cni-heading-plus__design-card' + ( isSelected ? ' is-selected' : '' ), 'data-cni-text-design': design.id, onClick: function() { const next = activeDesignTab === 'heading' ? { headingDesign: design.id, headingDesignPrimaryColor: design.primaryColor, headingDesignAccentColor: design.accentColor } : { textDecoration: design.id, textDecorationPrimaryColor: design.primaryColor, textDecorationHighlightColor: design.highlightColor || '', textDecorationAccentColor: design.accentColor, textDecorationOutlineColor: '#ffffff', textEffect: '' }; next.customDesignId = ''; next.originalDesignId = ''; if ( activeDesignTab === 'heading' && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 ) next.layoutVersion = 3; if ( activeDesignTab === 'heading' && [ 'left-line', 'right-line' ].indexOf( design.id ) !== -1 ) next.alignment = 'left'; if ( designApplyMode === 'preset' ) { next.fontFamily = design.fontFamily; next.fontWeight = design.fontWeight; } props.setAttributes( next ); setIsDesignModalOpen( false ); }, 'aria-pressed': isSelected },
+						return el( 'button', { key: design.id, type: 'button', className: 'cni-heading-plus__design-card' + ( isSelected ? ' is-selected' : '' ), 'data-cni-text-design': design.id, onClick: function() { const next = activeDesignTab === 'heading' ? { headingDesign: design.id, headingDesignPrimaryColor: '', headingDesignAccentColor: '' } : { textDecoration: design.id, textDecorationPrimaryColor: '', textDecorationHighlightColor: '', textDecorationAccentColor: '', textDecorationOutlineColor: '', textEffect: '' }; next.customDesignId = ''; next.originalDesignId = ''; if ( designApplyMode === 'preset' ) { next.fontFamily = design.fontFamily; next.fontWeight = design.fontWeight; if ( activeDesignTab === 'heading' ) { next.headingDesignPrimaryColor = design.primaryColor; next.headingDesignAccentColor = design.accentColor; } else { next.textDecorationPrimaryColor = design.primaryColor; next.textDecorationHighlightColor = design.highlightColor || ''; next.textDecorationAccentColor = design.accentColor; next.textDecorationOutlineColor = '#ffffff'; } } if ( activeDesignTab === 'heading' && [ 'eyebrow-title', 'number-title', 'backdrop-title' ].indexOf( design.id ) !== -1 ) next.layoutVersion = 3; if ( activeDesignTab === 'heading' && [ 'left-line', 'right-line' ].indexOf( design.id ) !== -1 ) next.alignment = 'left'; props.setAttributes( next ); setIsDesignModalOpen( false ); }, 'aria-pressed': isSelected },
 							designPreview( design, a.content ? a.content.replace( /<[^>]*>/g, '' ) : '', previewStyle ),
 							el( 'strong', null, design.label ),
 							el( 'small', null, design.description ),

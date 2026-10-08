@@ -2,7 +2,7 @@
 /**
  * Plugin Name: cni_blocks
  * Description: A small block pack with gallery and flexible container blocks.
- * Version: 1.43.0
+ * Version: 1.50.0
  * Requires at least: 6.3
  * Requires PHP: 7.4
  * Update URI: https://github.com/cni-works/cni_blocks
@@ -181,6 +181,113 @@ function cni_blocks_is_lightning_theme() {
 	return 'lightning' === strtolower( (string) get_template() );
 }
 
+/**
+ * Get the site colour used as the starting point for Background Design Plus.
+ *
+ * An explicit plugin setting wins. When it is empty, prefer a named primary
+ * colour from theme.json and fall back to the first valid theme palette entry.
+ * The resolved hex value is sent to the editor, where it is expanded into a
+ * light base and a small, related accent palette.
+ *
+ * @return string
+ */
+function cni_blocks_background_design_theme_color() {
+	$configured = sanitize_hex_color( (string) get_option( 'cni_blocks_background_design_theme_color', '' ) );
+
+	if ( $configured ) {
+		return $configured;
+	}
+
+	if ( function_exists( 'wp_get_global_settings' ) ) {
+		$palette = wp_get_global_settings( array( 'color', 'palette', 'theme' ) );
+
+		if ( is_array( $palette ) ) {
+			foreach ( array( 'primary', 'theme-1', 'main', 'base' ) as $preferred_slug ) {
+				foreach ( $palette as $entry ) {
+					if ( is_array( $entry ) && $preferred_slug === ( $entry['slug'] ?? '' ) ) {
+						$color = sanitize_hex_color( (string) ( $entry['color'] ?? '' ) );
+						if ( $color ) {
+							return $color;
+						}
+					}
+				}
+			}
+
+			foreach ( $palette as $entry ) {
+				$color = is_array( $entry ) ? sanitize_hex_color( (string) ( $entry['color'] ?? '' ) ) : false;
+				if ( $color ) {
+					return $color;
+				}
+			}
+		}
+	}
+
+	return '#2563eb';
+}
+
+/**
+ * Register the one-time site colour setting for Background Design Plus.
+ */
+function cni_blocks_register_background_design_settings() {
+	register_setting(
+		'cni_blocks_background_design',
+		'cni_blocks_background_design_theme_color',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'sanitize_hex_color',
+			'default'           => '',
+		)
+	);
+}
+add_action( 'admin_init', 'cni_blocks_register_background_design_settings' );
+
+/**
+ * Add a small, intentionally focused settings screen instead of scattering a
+ * site-wide choice through individual block inspectors.
+ */
+function cni_blocks_add_background_design_settings_page() {
+	add_options_page(
+		__( 'CNI Blocks', 'cni-blocks' ),
+		__( 'CNI Blocks', 'cni-blocks' ),
+		'manage_options',
+		'cni-blocks',
+		'cni_blocks_render_background_design_settings_page'
+	);
+}
+add_action( 'admin_menu', 'cni_blocks_add_background_design_settings_page' );
+
+/**
+ * Render the Background Design Plus site colour setting.
+ */
+function cni_blocks_render_background_design_settings_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$configured = sanitize_hex_color( (string) get_option( 'cni_blocks_background_design_theme_color', '' ) );
+	$resolved   = cni_blocks_background_design_theme_color();
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'CNI Blocks', 'cni-blocks' ); ?></h1>
+		<form action="options.php" method="post">
+			<?php settings_fields( 'cni_blocks_background_design' ); ?>
+			<h2><?php esc_html_e( '背景生成＋ 共通配色', 'cni-blocks' ); ?></h2>
+			<p><?php esc_html_e( '新しく追加する背景生成＋の初期配色に使う基調色です。各ブロックで色を変更すると、そのブロックだけ個別配色として保持されます。', 'cni-blocks' ); ?></p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="cni_blocks_background_design_theme_color"><?php esc_html_e( '基調色', 'cni-blocks' ); ?></label></th>
+					<td>
+						<input id="cni_blocks_background_design_theme_color" name="cni_blocks_background_design_theme_color" type="color" value="<?php echo esc_attr( $configured ? $configured : $resolved ); ?>" />
+						<p class="description"><?php esc_html_e( 'テーマのパレットから自動取得した色を初期表示しています。サイト独自の基調色にしたい場合はここで選択して保存してください。', 'cni-blocks' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button(); ?>
+		</form>
+	</div>
+	<?php
+}
+
 function cni_blocks_register_blocks() {
 	$dir_url  = plugin_dir_url( __FILE__ );
 	$dir_path = plugin_dir_path( __FILE__ );
@@ -263,7 +370,7 @@ function cni_blocks_register_blocks() {
 	wp_register_script(
 		'cni-blocks-post-list-editor',
 		$post_list_dir_url . 'index.js',
-		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-server-side-render' ),
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-api-fetch', 'wp-server-side-render' ),
 		filemtime( $post_list_dir_path . 'index.js' )
 	);
 
@@ -277,7 +384,7 @@ function cni_blocks_register_blocks() {
 
 		$post_list_taxonomies[ $post_type->name ] = array();
 		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
-			if ( empty( $taxonomy->public ) || empty( $taxonomy->hierarchical ) ) {
+			if ( empty( $taxonomy->public ) ) {
 				continue;
 			}
 
@@ -449,6 +556,8 @@ function cni_blocks_register_blocks() {
 	$page_flip_dir_path = $dir_path . 'blocks/page-flip/';
 	$generated_background_plus_dir_url  = $dir_url . 'blocks/generated-background-plus/';
 	$generated_background_plus_dir_path = $dir_path . 'blocks/generated-background-plus/';
+	$background_design_plus_dir_url  = $dir_url . 'blocks/background-design-plus/';
+	$background_design_plus_dir_path = $dir_path . 'blocks/background-design-plus/';
 	$table_plus_dir_url    = $dir_url . 'blocks/table-plus/';
 	$table_plus_dir_path   = $dir_path . 'blocks/table-plus/';
 	$counter_plus_dir_url  = $dir_url . 'blocks/counter-plus/';
@@ -575,6 +684,29 @@ function cni_blocks_register_blocks() {
 		$generated_background_plus_dir_url . 'style.css',
 		array(),
 		filemtime( $generated_background_plus_dir_path . 'style.css' )
+	);
+
+	/* Enhanced Background Generator is deliberately registered separately from
+	 * the legacy block. Existing pages keep their saved markup and legacy CSS. */
+	wp_register_script(
+		'cni-blocks-background-design-plus-editor',
+		$background_design_plus_dir_url . 'index.js',
+		array( 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-block-editor', 'wp-components' ),
+		filemtime( $background_design_plus_dir_path . 'index.js' )
+	);
+	wp_localize_script(
+		'cni-blocks-background-design-plus-editor',
+		'cniBlocksBackgroundDesignPlusConfig',
+		array(
+			'themeColor' => cni_blocks_background_design_theme_color(),
+		)
+	);
+
+	wp_register_style(
+		'cni-blocks-background-design-plus-style',
+		$background_design_plus_dir_url . 'style.css',
+		array(),
+		filemtime( $background_design_plus_dir_path . 'style.css' )
 	);
 
 	wp_register_script(
@@ -842,6 +974,15 @@ function cni_blocks_register_blocks() {
 			'editor_script' => 'cni-blocks-generated-background-plus-editor',
 			'style'         => 'cni-blocks-generated-background-plus-style',
 			'editor_style'  => 'cni-blocks-generated-background-plus-style',
+		)
+	);
+
+	register_block_type(
+		$background_design_plus_dir_path,
+		array(
+			'editor_script' => 'cni-blocks-background-design-plus-editor',
+			'style'         => 'cni-blocks-background-design-plus-style',
+			'editor_style'  => 'cni-blocks-background-design-plus-style',
 		)
 	);
 

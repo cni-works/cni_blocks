@@ -79,6 +79,33 @@
 		} );
 	}
 
+	function updateTransparentCellLastRow( grid ) {
+		const content = grid.querySelector( ':scope > .cni-cell-grid-scroll > .cni-cell-grid-content' );
+		if ( ! content ) {
+			return;
+		}
+
+		const cards = Array.prototype.filter.call( content.children, function( child ) {
+			return child.classList.contains( 'wp-block-cni-blocks-grid-card' );
+		} );
+		cards.forEach( function( card ) {
+			card.classList.remove( 'cni-grid-card--cell-last-row' );
+		} );
+
+		if ( grid.getAttribute( 'data-cell-transparent-background' ) !== '1' || ! cards.length ) {
+			return;
+		}
+
+		const lastRowBottom = Math.max.apply( null, cards.map( function( card ) {
+			return card.offsetTop + card.offsetHeight;
+		} ) );
+		cards.forEach( function( card ) {
+			if ( Math.abs( lastRowBottom - ( card.offsetTop + card.offsetHeight ) ) < 2 ) {
+				card.classList.add( 'cni-grid-card--cell-last-row' );
+			}
+		} );
+	}
+
 	function flowArrowVerticalPosition( card, alignment ) {
 		const image = alignment !== 'card' ? card.querySelector( 'img' ) : null;
 		if ( ! image || ! image.getBoundingClientRect ) return 50;
@@ -145,6 +172,7 @@
 
 	function initializeGrid( grid ) {
 		const update = function() {
+			updateTransparentCellLastRow( grid );
 			if ( grid.getAttribute( 'data-last-row-alignment' ) === 'center' ) {
 				centerIncompleteLastRow( grid );
 			} else {
@@ -162,7 +190,7 @@
 	}
 
 	function initialize() {
-		document.querySelectorAll( '.wp-block-cni-blocks-auto-grid[data-last-row-alignment="center"], .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows]' ).forEach( initializeGrid );
+		document.querySelectorAll( '.wp-block-cni-blocks-auto-grid[data-last-row-alignment="center"], .wp-block-cni-blocks-auto-grid[data-cni-flow-arrows], .wp-block-cni-blocks-auto-grid.cni-grid--cell[data-cell-transparent-background="1"]' ).forEach( initializeGrid );
 		document.querySelectorAll( '.wp-block-cni-blocks-grid-card[data-cni-grid-badge-anchor="media"]' ).forEach( initializeBadgeMediaCard );
 	}
 

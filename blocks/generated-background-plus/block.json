@@ -127,6 +127,7 @@
     }
   },
   "supports": {
+    "inserter": false,
     "align": [ "wide", "full" ],
     "anchor": true,
     "html": false

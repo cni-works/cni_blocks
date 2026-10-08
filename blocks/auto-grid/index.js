@@ -244,6 +244,18 @@
 		return { none: 0, small: 6, medium: 14, large: 24 }[ value ] || 0;
 	}
 
+	function updateEditorTransparentCellLastRow( layout, enabled ) {
+		const cards = Array.prototype.filter.call( layout.children, function( child ) {
+			return child.classList.contains( 'wp-block-cni-blocks-grid-card' );
+		} );
+		cards.forEach( function( card ) { card.classList.remove( 'cni-grid-card--cell-last-row' ); } );
+		if ( ! enabled || ! cards.length ) return;
+		const lastRowBottom = Math.max.apply( null, cards.map( function( card ) { return card.offsetTop + card.offsetHeight; } ) );
+		cards.forEach( function( card ) {
+			if ( Math.abs( lastRowBottom - ( card.offsetTop + card.offsetHeight ) ) < 2 ) card.classList.add( 'cni-grid-card--cell-last-row' );
+		} );
+	}
+
 	function cellCardSettings( attributes ) {
 		const columnSpan = Math.max( 1, Math.min( 4, numberOr( attributes.cellColumnSpan, 1 ) ) );
 		const rowSpan = Math.max( 1, Math.min( 4, numberOr( attributes.cellRowSpan, 1 ) ) );
@@ -897,6 +909,7 @@
 				}
 
 				const update = function() {
+					updateEditorTransparentCellLastRow( layout, cellMode && !! attributes.cellTransparentBackground );
 					centerIncompleteLastRow( layout, ! cellMode && !! attributes.centerLastRow );
 					updateEditorFlowArrows( layout, ! cellMode && flowArrowStyle( attributes.flowArrowStyle ) !== 'none', editorDevice === 'Mobile', flowArrowMobileDirection( attributes.flowArrowMobileDirection ), flowArrowVerticalAlign( attributes.flowArrowVerticalAlign ) );
 				};
@@ -919,7 +932,7 @@
 						mutationObserver.disconnect();
 					}
 				};
-			}, [ attributes.centerLastRow, attributes.flowArrowStyle, attributes.flowArrowMobileDirection, attributes.flowArrowVerticalAlign, cellMode, editorDevice, props.clientId ] );
+			}, [ attributes.centerLastRow, attributes.cellTransparentBackground, attributes.flowArrowStyle, attributes.flowArrowMobileDirection, attributes.flowArrowVerticalAlign, cellMode, editorDevice, props.clientId ] );
 
 			element.useEffect( function() {
 				const grid = gridRef.current;
@@ -932,7 +945,8 @@
 				} else {
 					layout.style.removeProperty( 'grid-template-columns' );
 				}
-			}, [ cellMode, editorDevice, attributes.cellColumnsPc, attributes.cellColumnsTablet, attributes.cellFirstColumn, attributes.cellMobileLayout, props.clientId ] );
+				updateEditorTransparentCellLastRow( layout, cellMode && !! attributes.cellTransparentBackground );
+			}, [ cellMode, editorDevice, attributes.cellColumnsPc, attributes.cellColumnsTablet, attributes.cellFirstColumn, attributes.cellMobileLayout, attributes.cellTransparentBackground, props.clientId ] );
 
 			return el(
 				element.Fragment,
@@ -960,7 +974,7 @@
 						el( RangeControl, { label: __( '下の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Bottom' ) !== null ? cellSidePadding( attributes, 'Bottom' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingBottom: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
 						el( RangeControl, { label: __( '左の余白（px）', 'cni-blocks' ), value: cellSidePadding( attributes, 'Left' ) !== null ? cellSidePadding( attributes, 'Left' ) : cellPadding( attributes.cellPadding ), min: 0, max: 160, onChange: function( value ) { setAttributes( { cellPaddingLeft: numberOr( value, cellPadding( attributes.cellPadding ) ) } ); } } ),
 						el( SelectControl, { label: __( '外側の角丸', 'cni-blocks' ), value: attributes.cellRadius || 'none', options: [ { label: __( 'なし', 'cni-blocks' ), value: 'none' }, { label: __( '小', 'cni-blocks' ), value: 'small' }, { label: __( '中', 'cni-blocks' ), value: 'medium' }, { label: __( '大', 'cni-blocks' ), value: 'large' } ], onChange: function( value ) { setAttributes( { cellRadius: value || 'none' } ); } } ),
-						el( ToggleControl, { label: __( 'セル背景を透明にする', 'cni-blocks' ), checked: !! attributes.cellTransparentBackground, help: __( '透明時は縦の区切り線だけを表示します。', 'cni-blocks' ), onChange: function( value ) { setAttributes( value ? { cellTransparentBackground: true, cellHorizontalBorder: 'none' } : { cellTransparentBackground: false } ); } } ),
+						el( ToggleControl, { label: __( 'セル背景を透明にする', 'cni-blocks' ), checked: !! attributes.cellTransparentBackground, help: __( '透明時も縦・横の区切り線を表示できます。', 'cni-blocks' ), onChange: function( value ) { setAttributes( { cellTransparentBackground: !! value } ); } } ),
 						! attributes.cellTransparentBackground ? el( element.Fragment, null, el( 'p', null, __( 'セルの標準背景色', 'cni-blocks' ) ), el( ColorPalette, { value: attributes.cellBackgroundColor || '#ffffff', clearable: false, onChange: function( value ) { setAttributes( { cellBackgroundColor: value || '#ffffff' } ); } } ) ) : null
 					) : null,
 					el(

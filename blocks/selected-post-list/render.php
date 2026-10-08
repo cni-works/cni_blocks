@@ -31,8 +31,23 @@ function cni_blocks_selected_post_list_search( WP_REST_Request $request ) {
 	$query      = trim( (string) $request->get_param( 'q' ) );
 	$post_types = cni_blocks_selected_post_list_public_post_types();
 	$results    = array();
+	$post_type  = sanitize_key( (string) $request->get_param( 'post_type' ) );
+	$include    = preg_split( '/\s*,\s*/', (string) $request->get_param( 'include' ) );
+	$include    = array_values( array_unique( array_filter( array_map( 'absint', is_array( $include ) ? $include : array() ) ) ) );
+	$include    = array_slice( $include, 0, 24 );
+	$taxonomy   = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+	$term_ids   = preg_split( '/\s*,\s*/', (string) $request->get_param( 'terms' ) );
+	$term_ids   = array_values( array_unique( array_filter( array_map( 'absint', is_array( $term_ids ) ? $term_ids : array() ) ) ) );
+	$term_ids   = array_slice( $term_ids, 0, 50 );
 
-	if ( '' === $query ) {
+	if ( $post_type ) {
+		if ( ! isset( $post_types[ $post_type ] ) ) {
+			return rest_ensure_response( $results );
+		}
+		$post_types = array( $post_type => $post_types[ $post_type ] );
+	}
+
+	if ( '' === $query && empty( $include ) ) {
 		return rest_ensure_response( $results );
 	}
 
@@ -52,17 +67,35 @@ function cni_blocks_selected_post_list_search( WP_REST_Request $request ) {
 		return rest_ensure_response( $results );
 	}
 
-	$search_query = new WP_Query(
-		array(
-			'post_type'           => array_keys( $post_types ),
-			'post_status'         => 'publish',
-			'posts_per_page'      => 10,
-			's'                   => sanitize_text_field( $query ),
-			'orderby'             => 'relevance',
-			'ignore_sticky_posts' => true,
-			'no_found_rows'       => true,
-		)
+	$query_args = array(
+		'post_type'           => array_keys( $post_types ),
+		'post_status'         => 'publish',
+		'posts_per_page'      => $include ? count( $include ) : 10,
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
 	);
+	if ( $include ) {
+		$query_args['post__in'] = $include;
+		$query_args['orderby']  = 'post__in';
+	} else {
+		$query_args['s']       = sanitize_text_field( $query );
+		$query_args['orderby'] = 'relevance';
+	}
+	if ( $post_type && $taxonomy && $term_ids ) {
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		if ( isset( $taxonomies[ $taxonomy ] ) && ! empty( $taxonomies[ $taxonomy ]->public ) ) {
+			$query_args['tax_query'] = array(
+				array(
+					'taxonomy' => $taxonomy,
+					'field'    => 'term_id',
+					'terms'    => $term_ids,
+					'operator' => 'IN',
+				),
+			);
+		}
+	}
+
+	$search_query = new WP_Query( $query_args );
 
 	foreach ( $search_query->posts as $post ) {
 		$results[] = cni_blocks_selected_post_list_result( $post );
@@ -76,8 +109,14 @@ function cni_blocks_selected_post_list_search( WP_REST_Request $request ) {
  *
  * @return bool
  */
-function cni_blocks_selected_post_list_can_search() {
-	return current_user_can( 'edit_posts' );
+function cni_blocks_selected_post_list_can_search( WP_REST_Request $request ) {
+	$post_type = sanitize_key( (string) $request->get_param( 'post_type' ) );
+	if ( ! $post_type ) {
+		return current_user_can( 'edit_posts' );
+	}
+
+	$post_type_object = get_post_type_object( $post_type );
+	return $post_type_object && ! empty( $post_type_object->public ) && current_user_can( $post_type_object->cap->edit_posts );
 }
 
 /**
@@ -100,7 +139,25 @@ function cni_blocks_selected_post_list_register_rest_route() {
 			'permission_callback' => 'cni_blocks_selected_post_list_can_search',
 			'args'                => array(
 				'q' => array(
-					'required'          => true,
+					'required'          => false,
+					'validate_callback' => 'cni_blocks_selected_post_list_validate_search_query',
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'post_type' => array(
+					'required'          => false,
+					'sanitize_callback' => 'sanitize_key',
+				),
+				'include' => array(
+					'required'          => false,
+					'validate_callback' => 'cni_blocks_selected_post_list_validate_search_query',
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+				'taxonomy' => array(
+					'required'          => false,
+					'sanitize_callback' => 'sanitize_key',
+				),
+				'terms' => array(
+					'required'          => false,
 					'validate_callback' => 'cni_blocks_selected_post_list_validate_search_query',
 					'sanitize_callback' => 'sanitize_text_field',
 				),
