@@ -1,7 +1,7 @@
 === cni_blocks ===
 Requires at least: 6.3
 Requires PHP: 7.4
-Stable tag: 1.50.0
+Stable tag: 1.51.0
 
 Includes:
 - Background Generator+ enhanced block (cni-blocks/background-design-plus), with the legacy generated-background-plus block retained for saved content.
@@ -21,6 +21,9 @@ Includes:
 - Counter+ block (cni-blocks/counter-plus)
 
 Updates:
+- 1.51.0: Grid+ editor cards now fill their grid tracks even when empty or containing short text. Inner block inserters and card-add buttons are compact and no longer overlap card content; public rendering is unchanged.
+- 1.51.0: Standard Heading blocks (H1-H6) can be converted to Heading+ while preserving heading level, formatted content, alignment, anchor, custom classes, and text/background colours.
+- 1.51.0: Background Generator+ free-position images now have integrated PC/Tablet/Mobile controls for position, width, and visibility, with Outer+-compatible inheritance, a position picker, decimal inputs, replacement, duplication, and deletion. Unedited saved images retain their existing rendering; Outer+ and the legacy background block are unchanged.
 - 1.50.0: Added the independently registered enhanced Background Generator+ with 19 background styles, 122 recommended presets, reproducible seeded layouts, style-specific motion, composition/texture controls, site-wide initial colour settings, fixed backgrounds, and responsive free-position images. Presets use independent recommended palettes and appear immediately after the background-style panel. Existing Outer+ and legacy background rendering are retained.
 - 1.50.0: Post List+ supports ordered pinned posts, separate desktop/tablet and mobile counts, tag/taxonomy filtering, compact-text cards, and queued initial editor previews. Transparent Grid+ cells support horizontal internal borders without an outside bottom border. Heading+ editor spacing and design colour/font inheritance are refined, and the page-flip viewer can use full-resolution attachment images.
 - 1.41.0: Added Grid+ card badges (text, Font Awesome, text-plus-icon, and image), media/card anchoring, responsive badge controls, flow arrows, transparent card backgrounds, and cell padding controls. Added Outer+ hero layout intent classes, improved divider behavior, and cloud mobile-height control. Added Timeline+ history mode. Heading+ now supports responsive original-design CSS, V3 layout refinements, one-sided lines, and stronger ProUnit compatibility for heading decoration and typography. Text-list Post List+ items no longer animate on hover.

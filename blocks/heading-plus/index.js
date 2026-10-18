@@ -488,6 +488,22 @@
 				transform: function( attributes ) {
 					return blocks.createBlock( 'cni-blocks/heading-plus', { content: attributes.content || '', tagName: 'h2', level: 2 } );
 				},
+			}, {
+				type: 'block',
+				blocks: [ 'core/heading' ],
+				transform: function( attributes ) {
+					const level = [ 1, 2, 3, 4, 5, 6 ].indexOf( attributes.level ) !== -1 ? attributes.level : 2;
+					const sizes = headingDefaultSizes( 'h' + level );
+					const next = { content: attributes.content || '', tagName: 'h' + level, level: level, fontSizePc: sizes.pc, fontSizeTablet: sizes.tablet, fontSizeMobile: sizes.mobile };
+					if ( [ 'left', 'center', 'right' ].indexOf( attributes.textAlign ) !== -1 ) next.alignment = attributes.textAlign;
+					[ 'anchor', 'className' ].forEach( function( key ) { if ( typeof attributes[ key ] === 'string' && attributes[ key ] ) next[ key ] = attributes[ key ]; } );
+					const colors = attributes.style && attributes.style.color ? attributes.style.color : {};
+					[ [ 'textColor', 'text' ], [ 'backgroundColor', 'background' ] ].forEach( function( setting ) {
+						if ( typeof colors[ setting[ 1 ] ] === 'string' && colors[ setting[ 1 ] ] ) next[ setting[ 0 ] ] = colors[ setting[ 1 ] ];
+						else if ( typeof attributes[ setting[ 0 ] ] === 'string' && /^[-a-z0-9_]+$/i.test( attributes[ setting[ 0 ] ] ) ) next[ setting[ 0 ] ] = 'var(--wp--preset--color--' + attributes[ setting[ 0 ] ] + ')';
+					} );
+					return blocks.createBlock( 'cni-blocks/heading-plus', next );
+				},
 			} ],
 		},
 		deprecated: [ {

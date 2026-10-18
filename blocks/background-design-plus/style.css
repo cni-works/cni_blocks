@@ -87,3 +87,37 @@
 .editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="pc"] .cni-bg2__free-image { left: var(--x) !important; top: var(--y) !important; width: var(--width) !important; }
 .editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="tablet"] .cni-bg2__free-image { left: var(--tablet-x, var(--x)) !important; top: var(--tablet-y, var(--y)) !important; width: var(--tablet-width, var(--width)) !important; }
 .editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="mobile"] .cni-bg2__free-image { left: var(--mobile-x, var(--tablet-x, var(--x))) !important; top: var(--mobile-y, var(--tablet-y, var(--y))) !important; width: var(--mobile-width, var(--tablet-width, var(--width))) !important; }
+
+/* New/edited responsive images match Outer+'s PC -> Tablet -> Mobile cascade.
+ * The opt-in attribute keeps unedited legacy images and saved markup intact. */
+@media (max-width: 781px) {
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"] { left: var(--mobile-x, var(--tablet-x, var(--x))); top: var(--mobile-y, var(--tablet-y, var(--y))); width: var(--mobile-width, var(--tablet-width, var(--width))); }
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"][data-cni-bg2-mobile-visible="true"] { display: block; }
+}
+@media (min-width: 782px) and (max-width: 1023px) {
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"][data-cni-bg2-tablet-visible="true"] { display: block; }
+}
+@media (min-width: 1024px) {
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"] { left: var(--x); top: var(--y); width: var(--width); }
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"][data-cni-bg2-pc-visible="true"] { display: block; }
+	.cni-bg2__free-image[data-cni-bg2-responsive-image="true"][data-cni-bg2-pc-visible="false"] { display: none; }
+}
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="pc"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-pc-visible="false"],
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="tablet"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-tablet-visible="false"],
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="mobile"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-mobile-visible="false"] { display: none !important; }
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="pc"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-pc-visible="true"],
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="tablet"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-tablet-visible="true"],
+.editor-styles-wrapper .wp-block-cni-blocks-background-design-plus[data-cni-bg2-image-editor-device="mobile"] > .cni-bg2__free-images > .cni-bg2__free-image[data-cni-bg2-mobile-visible="true"] { display: block !important; }
+.cni-bg2__image-device-tabs { display: flex; margin: 8px 0 12px; }
+.cni-bg2__image-list { display: grid; gap: 4px; margin: 12px 0; }
+.cni-bg2__image-list .components-button { justify-content: flex-start; text-align: left; }
+.cni-bg2__image-settings { margin-top: 16px; padding-top: 16px; border-top: 1px solid #dcdcde; }
+.cni-bg2__image-preview { display: block; width: 100%; max-height: 180px; margin: 0 0 12px; object-fit: contain; background: #f6f7f7; }
+.cni-bg2__image-picker-label { margin: 16px 0 8px; font-weight: 600; }
+.cni-bg2__image-picker { position: relative; box-sizing: border-box; width: 100%; aspect-ratio: 1.6; overflow: hidden; border: 1px solid #8c8f94; background: #f6f7f7; cursor: crosshair; touch-action: none; }
+.cni-bg2__image-picker-boundary { position: absolute; left: 18.75%; top: 18.75%; width: 62.5%; height: 62.5%; border: 1px dashed #2271b1; background: rgba(34,113,177,.06); pointer-events: none; }
+.cni-bg2__image-picker-dot { position: absolute; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; background: #2271b1; box-shadow: 0 0 0 1px #135e96; transform: translate(-50%, -50%); pointer-events: none; }
+.cni-bg2__image-width-control { display: grid; grid-template-columns: minmax(0,1fr) 76px; column-gap: 10px; align-items: end; margin: 16px 0; }
+.cni-bg2__image-width-label { grid-column: 1 / -1; margin: 0 0 2px; font-weight: 600; }
+.cni-bg2__image-width-slider, .cni-bg2__image-width-number { min-width: 0; margin: 0 !important; }
+.cni-bg2__image-width-slider .components-base-control__field, .cni-bg2__image-width-number .components-base-control__field { margin-bottom: 0 !important; }

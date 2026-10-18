@@ -546,6 +546,23 @@
 	display: block;
 }
 
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid > .block-editor-inner-blocks,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid > .cni-cell-grid-scroll > .block-editor-inner-blocks {
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+}
+
+/* Editor .wp-block auto margins otherwise shrink cards to their contents.
+ * Only the card wrappers stretch: inner blocks keep their own alignment. */
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card,
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid > .cni-cell-grid-scroll > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+	width: 100%;
+	max-width: none !important;
+	margin: 0 !important;
+	justify-self: stretch;
+}
+
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid > .block-editor-inner-blocks > .block-editor-block-list__layout {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cni-grid-min-width-pc, 280px)), 1fr));
@@ -556,6 +573,10 @@
 
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-equal-height="0"] > .block-editor-inner-blocks > .block-editor-block-list__layout {
 	align-items: start;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-equal-height="0"] > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-grid-card {
+	height: auto;
 }
 
 .editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks,
@@ -573,6 +594,45 @@
 	min-height: 48px;
 }
 
+/* Retain Gutenberg's inserter, but give it its own compact row, not an
+ * absolute overlay on the card's last paragraph or button. */
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .block-list-appender {
+	position: static;
+	display: flex;
+	flex: 0 0 auto;
+	align-self: stretch;
+	justify-content: flex-end;
+	width: 100%;
+	max-width: none;
+	margin: 8px 0 0;
+	padding: 0;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .block-list-appender:only-child {
+	margin-top: 0;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card:not(.is-selected):not(.has-child-selected):not(:focus-within) > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .block-list-appender:not(:only-child):not(.is-drag-over) {
+	display: none;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .block-list-appender .block-editor-inserter {
+	flex: 0 0 auto;
+	width: auto;
+	margin: 0;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .block-list-appender .block-editor-button-block-appender {
+	flex: 0 0 auto;
+	width: 32px;
+	min-width: 32px;
+	max-width: 32px;
+	height: 32px;
+	min-height: 32px;
+	padding: 4px;
+	box-sizing: border-box;
+}
+
 .editor-styles-wrapper .wp-block-cni-blocks-auto-grid[data-align-buttons-bottom="1"] .cni-grid-card__inner .block-editor-block-list__layout > .wp-block-buttons:last-child {
 	margin-top: auto;
 }
@@ -585,8 +645,10 @@
 
 .editor-styles-wrapper .cni-grid-add-card__button.components-button {
 	justify-content: center;
-	width: min(100%, 320px);
-	min-height: 44px;
+	width: auto;
+	max-width: 100%;
+	min-height: 32px;
+	padding: 4px 12px;
 	border-style: dashed;
 }
 
