@@ -8,8 +8,12 @@
   "textdomain": "cni-blocks",
   "attributes": {
     "postType": { "type": "string", "default": "post" },
+    "filterTaxonomy": { "type": "string", "default": "" },
+    "filterTermIds": { "type": "array", "default": [] },
     "postsPerPage": { "type": "number", "default": 6 },
+    "postsPerPageMobile": { "type": "number", "default": 0 },
     "offset": { "type": "number", "default": 0 },
+    "pinnedPostIds": { "type": "array", "default": [] },
     "sortOrder": { "type": "string", "default": "newest" },
     "displayType": { "type": "string", "default": "card" },
     "cardDesign": { "type": "string", "default": "standard" },
@@ -41,7 +45,7 @@
     "dateCornerBackgroundColor": { "type": "string", "default": "#ffffff" },
     "dateCornerTextColor": { "type": "string", "default": "#222222" },
     "categoryBadgeColor": { "type": "string", "default": "#087ea4" },
-    "textCardTitleBackgroundColor": { "type": "string", "default": "" }
+    "compactTextLinkIcon": { "type": "string", "default": "arrow" }
   },
   "supports": {
     "align": [ "wide", "full" ],

@@ -21,6 +21,7 @@
     "borderWidth": { "type": "number", "default": 1 },
     "borderColor": { "type": "string", "default": "#dddddd" },
     "zIndex": { "type": "number", "default": 999 },
+    "showAfterScroll": { "type": "number", "default": 0 },
     "showDesktop": { "type": "boolean", "default": true },
     "showTablet": { "type": "boolean", "default": true },
     "showMobile": { "type": "boolean", "default": true },

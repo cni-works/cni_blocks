@@ -1,4 +1,5 @@
 (() => {
+  if (window.cniBlocksDisabledBlocks && window.cniBlocksDisabledBlocks.indexOf('cni-blocks/slide-gallery') !== -1) return;
   const TRANSITION_MS = 260;
 
   function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
@@ -246,6 +247,7 @@
   }
 })();
 (() => {
+  if (window.cniBlocksDisabledBlocks && window.cniBlocksDisabledBlocks.indexOf('cni-blocks/slide-gallery') !== -1) return;
   function getColumns(block) {
     if (window.innerWidth <= 600) return Math.max(1, parseInt(block.dataset.columnsMobile || '1', 10));
     if (window.innerWidth <= 1024) return Math.max(1, parseInt(block.dataset.columnsTablet || '2', 10));
@@ -439,6 +441,7 @@
   else initializeCarousels();
 })();
 (() => {
+  if (window.cniBlocksDisabledBlocks && window.cniBlocksDisabledBlocks.indexOf('cni-blocks/tile-gallery') !== -1) return;
   function getTileItems(block) {
     return Array.from(block.querySelectorAll('.cni-tile-item img')).map((img, idx) => ({
       src: img.currentSrc || img.src,

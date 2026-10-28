@@ -11,6 +11,13 @@
 	box-shadow: var(--cni-fixed-shadow, 0 8px 28px rgba(0, 0, 0, .2));
 }
 
+/* Hide before the public script runs as well, without a flash or focusable
+ * invisible links. Closing a block takes priority over scroll visibility. */
+.wp-block-cni-blocks-fixed-display[hidden],
+.wp-block-cni-blocks-fixed-display[data-show-after-scroll]:not([data-cni-fixed-scroll-visible="1"]) {
+	display: none !important;
+}
+
 .wp-block-cni-blocks-fixed-display[data-position="top-left"] {
 	top: var(--cni-fixed-offset-y, 24px);
 	left: var(--cni-fixed-offset-x, 24px);
@@ -112,6 +119,7 @@
 
 .editor-styles-wrapper .wp-block-cni-blocks-fixed-display[data-show-desktop="0"],
 .editor-styles-wrapper .wp-block-cni-blocks-fixed-display[data-show-tablet="0"],
-.editor-styles-wrapper .wp-block-cni-blocks-fixed-display[data-show-mobile="0"] {
-	display: block;
+.editor-styles-wrapper .wp-block-cni-blocks-fixed-display[data-show-mobile="0"],
+.editor-styles-wrapper .wp-block-cni-blocks-fixed-display[data-show-after-scroll] {
+	display: block !important;
 }

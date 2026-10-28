@@ -17,6 +17,11 @@
 		return numberOr( value, fallback ) + 'px';
 	}
 
+	function scrollThreshold( value ) {
+		const number = Number( value );
+		return Number.isFinite( number ) ? Math.min( 100000, Math.max( 0, Math.round( number ) ) ) : 0;
+	}
+
 	function getFixedStyle( attributes ) {
 		return {
 			'--cni-fixed-offset-x': px( attributes.offsetX, 24 ),
@@ -41,6 +46,8 @@
 			'data-show-tablet': attributes.showTablet !== false ? '1' : '0',
 			'data-show-mobile': attributes.showMobile !== false ? '1' : '0',
 		};
+		// Omit the default attribute to keep previously saved blocks valid.
+		if ( scrollThreshold( attributes.showAfterScroll ) > 0 ) props[ 'data-show-after-scroll' ] = scrollThreshold( attributes.showAfterScroll );
 
 		return save ? blockEditor.useBlockProps.save( props ) : useBlockProps( props );
 	}
@@ -66,6 +73,7 @@
 			borderWidth: { type: 'number', default: 1 },
 			borderColor: { type: 'string', default: '#dddddd' },
 			zIndex: { type: 'number', default: 999 },
+			showAfterScroll: { type: 'number', default: 0 },
 			showDesktop: { type: 'boolean', default: true },
 			showTablet: { type: 'boolean', default: true },
 			showMobile: { type: 'boolean', default: true },
@@ -105,6 +113,11 @@
 						el( RangeControl, { label: __( '左右位置（px）', 'cni-blocks' ), value: numberOr( attributes.offsetX, 24 ), min: 0, max: 200, onChange: function( value ) { setAttributes( { offsetX: numberOr( value, 24 ) } ); } } ),
 						el( RangeControl, { label: __( '上下位置（px）', 'cni-blocks' ), value: numberOr( attributes.offsetY, 24 ), min: 0, max: 200, onChange: function( value ) { setAttributes( { offsetY: numberOr( value, 24 ) } ); } } ),
 						el( RangeControl, { label: __( '重なり順', 'cni-blocks' ), value: numberOr( attributes.zIndex, 999 ), min: 1, max: 9999, onChange: function( value ) { setAttributes( { zIndex: numberOr( value, 999 ) } ); } } )
+					),
+					el(
+						PanelBody,
+						{ title: __( '表示タイミング', 'cni-blocks' ), initialOpen: true },
+						el( TextControl, { label: __( '表示開始までのスクロール量（px）', 'cni-blocks' ), type: 'number', min: 0, max: 100000, step: 10, value: scrollThreshold( attributes.showAfterScroll ), help: __( '0は最初から表示。例：200ならページ上端から200pxスクロール後に表示し、上へ戻ると非表示になります。編集画面では常に表示します。', 'cni-blocks' ), onChange: function( value ) { setAttributes( { showAfterScroll: scrollThreshold( value ) } ); } } )
 					),
 					el(
 						PanelBody,
