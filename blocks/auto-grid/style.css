@@ -310,6 +310,22 @@
 	height: 100%;
 }
 
+/* Floats do not align flex items. Preserve image sizing while making the
+ * standard left/right alignment work in the card's vertical content stack. */
+.wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image.alignleft,
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image.alignleft {
+	align-self: flex-start;
+	margin-left: 0;
+	margin-right: 1em;
+}
+
+.wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .wp-block-image.alignright,
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image.alignright {
+	align-self: flex-end;
+	margin-left: auto;
+	margin-right: 0;
+}
+
 /* A card badge stays outside InnerBlocks, so it remains a decorative layer
  * and never changes the user's block order. The media-anchor variables are
  * only filled by the targeted editor/front-end observer when needed. */
@@ -592,6 +608,55 @@
 
 .editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout {
 	min-height: 48px;
+}
+
+/* Editor auto inline margins shrink text blocks and Columns to their content
+ * inside the card's column flex layout. Give their outer boxes the public
+ * content width, preserving text alignment, column ratios and inline widths.
+ * Image dimensions/alignment are handled separately below. */
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > p,
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-heading-plus,
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-cni-blocks-outer:not(.alignwide):not(.alignfull):not([data-align="wide"]):not([data-align="full"]),
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-columns {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+}
+
+/* Normal Image boxes stretch like their public counterparts, but the img and
+ * Gutenberg's resizer keep their intrinsic/explicit sizes. Aligned figures
+ * retain their own auto margins; never force the resizer or img to 100%. */
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:where(:not(.alignwide):not(.alignfull)),
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card .wp-block-cni-blocks-outer > .cni-outer__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:where(:not(.alignwide):not(.alignfull)) {
+	max-width: 100%;
+	min-width: 0;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block-image:where(:not(.alignleft):not(.aligncenter):not(.alignright):not(.alignwide):not(.alignfull)) {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Older editor markup has a separate full-width block/alignment wrapper. */
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > [data-type="core/image"]:not(.wp-block-image):not([data-align="wide"]):not([data-align="full"]) {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > [data-type="core/image"][data-align="left"] > .wp-block-image {
+	float: none;
+	margin-left: 0;
+	margin-right: 1em;
+}
+
+.editor-styles-wrapper .wp-block-cni-blocks-grid-card > .cni-grid-card__inner > .block-editor-inner-blocks > .block-editor-block-list__layout > [data-type="core/image"][data-align="right"] > .wp-block-image {
+	float: none;
+	margin-left: auto;
+	margin-right: 0;
 }
 
 /* Retain Gutenberg's inserter, but give it its own compact row, not an

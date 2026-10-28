@@ -56,20 +56,26 @@
 		document.head.appendChild( link );
 	}
 
-	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-google-font]' ).forEach( function( heading ) {
-		loadFont( heading.getAttribute( 'data-google-font' ) );
-	} );
-	/* Structural designs use an auxiliary font even when the main heading keeps
-	 * the theme font. Load it explicitly so editor and front cannot diverge. */
-	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-cni-heading-design]' ).forEach( function( heading ) {
-		loadFont( textDesignFonts[ heading.getAttribute( 'data-cni-heading-design' ) ] );
-	} );
-	document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-secondary-google-font]' ).forEach( function( heading ) {
-		loadFont( heading.getAttribute( 'data-secondary-google-font' ) );
-	} );
-	document.querySelectorAll( '.cni-image-text-layer__item[data-cni-text-design]' ).forEach( function( layer ) {
-		loadFont( textDesignFonts[ layer.getAttribute( 'data-cni-text-design' ) ] );
-	} );
-
-	prepareRuby( document );
+	const enabled = function( name ) { return ! window.cniBlocksDisabledBlocks || window.cniBlocksDisabledBlocks.indexOf( name ) === -1; };
+	if ( enabled( 'cni-blocks/heading-plus' ) ) {
+		document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-google-font]' ).forEach( function( heading ) {
+			loadFont( heading.getAttribute( 'data-google-font' ) );
+		} );
+		/* Structural designs use an auxiliary font even when the main heading keeps
+		 * the theme font. Load it explicitly so editor and front cannot diverge. */
+		document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-cni-heading-design]' ).forEach( function( heading ) {
+			loadFont( textDesignFonts[ heading.getAttribute( 'data-cni-heading-design' ) ] );
+		} );
+		document.querySelectorAll( '.wp-block-cni-blocks-heading-plus[data-secondary-google-font]' ).forEach( function( heading ) {
+			loadFont( heading.getAttribute( 'data-secondary-google-font' ) );
+		} );
+	}
+	if ( enabled( 'cni-blocks/image-text-layer' ) ) {
+		document.querySelectorAll( '.cni-image-text-layer__item[data-cni-text-design]' ).forEach( function( layer ) {
+			loadFont( textDesignFonts[ layer.getAttribute( 'data-cni-text-design' ) ] );
+		} );
+	}
+	if ( enabled( 'cni-blocks/heading-plus' ) ) {
+		prepareRuby( document );
+	}
 } )();

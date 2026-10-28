@@ -8,6 +8,7 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'blocks/background-design-plus/index.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'blocks/background-design-plus/style.css'), 'utf8');
+const motionRuntime = fs.readFileSync(path.join(root, 'blocks/background-design-plus/motion.js'), 'utf8');
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'blocks/background-design-plus/block.json'), 'utf8'));
 const defaults = Object.fromEntries(Object.entries(metadata.attributes).map(([key, value]) => [key, value.default]));
 const context = { window: { cniBlocksBackgroundDesignPlusConfig: {themeColor:'#cc0000'}, wp: { blocks: {}, element: { createElement: (type, props, ...children) => ({type, props, children}) }, blockEditor: {}, components: {}, i18n: { __: text => text } } } };
@@ -43,7 +44,7 @@ const diff = async (a,b) => {
   const browser=await chromium.launch({headless:true,channel:'msedge'});
   try {
     const page=await browser.newPage({viewport:{width:1000,height:360},deviceScaleFactor:1});
-    const render=async attrs=>{await page.setContent('<style>html,body{margin:0}'+css+'</style>'+section(attrs));await page.evaluate(async()=>{await Promise.all(Array.from(document.querySelectorAll('span')).map(async element=>{const background=getComputedStyle(element).backgroundImage;if(background.startsWith('url(')){const image=new Image();image.src=background.slice(5,-2);await image.decode();}}));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});return page.screenshot();};
+    const render=async attrs=>{await page.setContent('<style>html,body{margin:0}'+css+'</style>'+section(attrs));await page.addScriptTag({content:motionRuntime});await page.evaluate(async()=>{await Promise.all(Array.from(document.querySelectorAll('span')).map(async element=>{const background=getComputedStyle(element).backgroundImage;if(background.startsWith('url(')){const image=new Image();image.src=background.slice(5,-2);await image.decode();}}));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});return page.screenshot();};
     const panels=[]; const labels=[];
     for(const style of ['pixel-wave','waves','particle-wave','layered-panels','soft-polygons']) {
       const extra=style==='soft-polygons'?{polygonShape:'faceted'}:{};

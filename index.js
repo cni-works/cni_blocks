@@ -119,7 +119,7 @@
 		);
 	}
 
-	blocks.registerBlockType( 'cni-blocks/slide-gallery', {
+	if ( ! window.cniBlocksDisabledBlocks || window.cniBlocksDisabledBlocks.indexOf( 'cni-blocks/slide-gallery' ) === -1 ) blocks.registerBlockType( 'cni-blocks/slide-gallery', {
 		apiVersion: 3,
 		title: __( 'スライドギャラリー', 'cni-blocks' ),
 		icon: 'format-gallery',
@@ -791,7 +791,7 @@
 		},
 	} );
 
-blocks.registerBlockType( 'cni-blocks/tile-gallery', {
+if ( ! window.cniBlocksDisabledBlocks || window.cniBlocksDisabledBlocks.indexOf( 'cni-blocks/tile-gallery' ) === -1 ) blocks.registerBlockType( 'cni-blocks/tile-gallery', {
   apiVersion: 3,
   title: __('タイルギャラリー', 'cni-blocks'),
   icon: 'screenoptions',

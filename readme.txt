@@ -1,7 +1,7 @@
 === cni_blocks ===
 Requires at least: 6.3
 Requires PHP: 7.4
-Stable tag: 1.51.0
+Stable tag: 1.52.0
 
 Includes:
 - Background Generator+ enhanced block (cni-blocks/background-design-plus), with the legacy generated-background-plus block retained for saved content.
@@ -21,6 +21,11 @@ Includes:
 - Counter+ block (cni-blocks/counter-plus)
 
 Updates:
+- 1.52.0: Added site-wide block management under Settings > CNI Blocks. All 27 block types default to ON. OFF stops block registration, dedicated assets and PHP/render initialization while retaining saved content and settings. Dependent parent/child blocks switch together; shared files stay available to enabled consumers. Includes bulk controls, capability/nonce-protected saving, recovery guidance and safe handling of invalid settings.
+- 1.52.0: Grid+ editor Columns, normal-width Outer+ and Images now use the available card width; paragraph and Heading+ boxes respect their text alignment. Explicit image sizes and full-bleed image layouts are retained, and direct left/right image alignment also works on the front end.
+- 1.52.0: Fixed Display+ escapes ancestor stacking/transform contexts and supports an optional scroll distance before appearing. Existing close and device controls remain effective.
+- 1.52.0: Background Generator+ motion strengths now have clearer style-specific differences, and the four-second preview uses the public animation speed. Mobile motion controls, reduced-motion handling and moving-layer edge coverage are refined without changing saved background markup.
+- 1.52.0: Outer+ frame drawing now responds to linked Grid+ cards and keyboard focus; nested frames only respond to their own Outer+ interaction.
 - 1.51.0: Grid+ editor cards now fill their grid tracks even when empty or containing short text. Inner block inserters and card-add buttons are compact and no longer overlap card content; public rendering is unchanged.
 - 1.51.0: Standard Heading blocks (H1-H6) can be converted to Heading+ while preserving heading level, formatted content, alignment, anchor, custom classes, and text/background colours.
 - 1.51.0: Background Generator+ free-position images now have integrated PC/Tablet/Mobile controls for position, width, and visibility, with Outer+-compatible inheritance, a position picker, decimal inputs, replacement, duplication, and deletion. Unedited saved images retain their existing rendering; Outer+ and the legacy background block are unchanged.

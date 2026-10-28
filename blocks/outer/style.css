@@ -108,8 +108,15 @@
 		transform: scale(1.055);
 	}
 
-	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:hover .cni-outer__creative-frame-line,
-	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:focus-within .cni-outer__creative-frame-line {
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:hover > .cni-outer__creative-frame > .cni-outer__creative-frame-line,
+	.wp-block-cni-blocks-outer.cni-outer--creative-frame-draw:focus-within > .cni-outer__creative-frame > .cni-outer__creative-frame-line {
+		transform: scale(1);
+	}
+
+	/* Linked Grid+ cards receive pointer events on their sibling overlay link.
+	 * Follow that link's hover/focus without intercepting its clicks. */
+	.wp-block-cni-blocks-grid-card.has-cni-grid-card-link:has(> .cni-grid-card__link:hover) > .cni-grid-card__inner > .wp-block-cni-blocks-outer.cni-outer--creative-frame-draw > .cni-outer__creative-frame > .cni-outer__creative-frame-line,
+	.wp-block-cni-blocks-grid-card.has-cni-grid-card-link:has(> .cni-grid-card__link:focus-visible) > .cni-grid-card__inner > .wp-block-cni-blocks-outer.cni-outer--creative-frame-draw > .cni-outer__creative-frame > .cni-outer__creative-frame-line {
 		transform: scale(1);
 	}
 
